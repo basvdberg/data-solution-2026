@@ -43,8 +43,8 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--config",
-        default=str(PROJECT_ROOT / "DataObjectMappings" / "cbs.json"),
-        help="path to the DWA-style configuration file (default: DataObjectMappings/cbs.json)",
+        default=str(PROJECT_ROOT / "DataObjectMappings" / "000_Source" / "Northwind" / "regions.json"),
+        help="path to the DWA-style configuration file (default: DataObjectMappings/000_Source/Northwind/regions.json)",
     )
     parser.add_argument(
         "--mapping",
