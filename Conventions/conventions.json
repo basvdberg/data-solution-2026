@@ -1,0 +1,202 @@
+[
+  {
+    "group": "Control Framework Columns",
+    "key": "AuditTrailIdColumn",
+    "value": "AUDIT_TRAIL_ID",
+    "includeInOutput": true,
+    "mandatory": true,
+    "notes": "The column name for the creation process Audit Id column."
+  },
+  {
+    "group": "Data Object Identification",
+    "key": "LandingAreaObjectDatastore",
+    "value": "100_Landing_Area",
+    "includeInOutput": true,
+    "notes": "The data store of the landing area object(s)."
+  },
+  {
+    "group": "Data Object Identification",
+    "key": "LandingAreaObjectLocation",
+    "value": "dbo",
+    "includeInOutput": true,
+    "notes": "The location of the landing object(s)."
+  },
+  {
+    "group": "Data Object Identification",
+    "key": "LandingAreaObjectPrefix",
+    "value": "LND",
+    "includeInOutput": true,
+    "notes": "The identifying string (prefix) that is intended to identity the landing area object."
+  },
+  {
+    "group": "Data Object Identification",
+    "key": "PersistentStagingAreaObjectDatastore",
+    "value": "150_Persistent_Staging_Area",
+    "includeInOutput": true,
+    "notes": "The data store of the Persistent Staging Area object(s)."
+  },
+  {
+    "group": "Data Object Identification",
+    "key": "PersistentStagingAreaObjectLocation",
+    "value": "dbo",
+    "includeInOutput": true,
+    "notes": "The location of the Persistent Staging Area object(s)."
+  },
+  {
+    "group": "Data Object Identification",
+    "key": "PersistentStagingAreaObjectPrefix",
+    "value": "PSA",
+    "includeInOutput": true,
+    "notes": "The identifying string (prefix) that is intended to identity the Persistent Staging Area object."
+  },
+  {
+    "group": "Data Object Identification",
+    "key": "SourceObjectDatastore",
+    "value": "000_Source",
+    "includeInOutput": true,
+    "notes": "The data store of the source data object(s)."
+  },
+  {
+    "group": "Data Object Identification",
+    "key": "SourceObjectLocation",
+    "value": "dbo",
+    "includeInOutput": true,
+    "notes": "The location of the source data object(s)."
+  },
+  {
+    "group": "Data Solution Columns",
+    "key": "changeDataColumn",
+    "value": "CHANGE_DATA_INDICATOR",
+    "includeInOutput": true,
+    "mandatory": true,
+    "notes": "The column name for Change Data Indicator column."
+  },
+  {
+    "group": "Data Solution Columns",
+    "key": "ChecksumColumn",
+    "value": "CHECKSUM",
+    "includeInOutput": true,
+    "mandatory": true,
+    "notes": "The column name for the Row Checksum/Hash column."
+  },
+  {
+    "group": "Data Solution Columns",
+    "key": "CurrentRecordColumn",
+    "value": "CURRENT_RECORD_INDICATOR",
+    "includeInOutput": true,
+    "mandatory": true,
+    "notes": "The column name for the Current Record Flag column."
+  },
+  {
+    "group": "Data Solution Columns",
+    "key": "DeletedRecordColumn",
+    "value": "DELETED_RECORD_INDICATOR",
+    "includeInOutput": true,
+    "mandatory": true,
+    "notes": "The column name for the Deleted Record Flag column."
+  },
+  {
+    "group": "Data Solution Columns",
+    "key": "InscriptionRecordIdColumn",
+    "value": "INSCRIPTION_RECORD_ID",
+    "includeInOutput": true,
+    "mandatory": true,
+    "notes": "The column name for the Inscription Id column."
+  },
+  {
+    "group": "Data Solution Columns",
+    "key": "InscriptionTimeStampBeforeColumn",
+    "value": "INSCRIPTION_BEFORE_TIMESTAMP",
+    "includeInOutput": true,
+    "mandatory": true,
+    "notes": "The column name for the Inscription Before Timestamp column."
+  },
+  {
+    "group": "Data Solution Columns",
+    "key": "InscriptionTimeStampColumn",
+    "value": "INSCRIPTION_TIMESTAMP",
+    "includeInOutput": true,
+    "mandatory": true,
+    "notes": "The column name for the Inscription creation/start Timestamp column."
+  },
+  {
+    "group": "Data Solution Columns",
+    "key": "RecordSourceColumn",
+    "value": "RECORD_SOURCE_INDICATOR",
+    "includeInOutput": true,
+    "mandatory": true,
+    "notes": "The column name for the Record Source column."
+  },
+  {
+    "group": "Data Solution Columns",
+    "key": "SourceTimestampColumn",
+    "value": "SOURCE_TIMESTAMP",
+    "includeInOutput": true,
+    "mandatory": true,
+    "notes": "The column name for the Source Timestamp column."
+  },
+  {
+    "group": "Data Solution Columns",
+    "key": "StateTimestampBeforeColumn",
+    "value": "STATE_BEFORE_TIMESTAMP",
+    "includeInOutput": true,
+    "mandatory": true,
+    "notes": "The column name for the State Before Timestamp column."
+  },
+  {
+    "group": "Data Solution Columns",
+    "key": "StateTimestampColumn",
+    "value": "STATE_TIMESTAMP",
+    "includeInOutput": true,
+    "mandatory": true,
+    "notes": "The column name for the State Timestamp column."
+  },
+  {
+    "group": "Deployment",
+    "key": "Environment",
+    "value": "localhost",
+    "includeInOutput": true,
+    "notes": "The physical environment or server that hosts the data solution."
+  },
+  {
+    "group": "Deployment",
+    "key": "ProjectGUID",
+    "value": "75bb30ef-a3f0-47a9-9a22-2bd740e26c3a",
+    "includeInOutput": true,
+    "notes": "The Project Guid used as the SQL Project identifier."
+  },
+  {
+    "group": "Deployment",
+    "key": "SolutionName",
+    "value": "SaveMore Data Solution",
+    "includeInOutput": true
+  },
+  {
+    "group": "Frameworks",
+    "key": "ControlFrameworkDatastore",
+    "value": "Direct_Framework",
+    "includeInOutput": true,
+    "notes": "The data store of the control framework, aligned with the connection values."
+  },
+  {
+    "group": "Frameworks",
+    "key": "ControlFrameworkLocation",
+    "value": "omd",
+    "includeInOutput": true,
+    "notes": "The location of the Control Framework (in the datastore), aligned with the connection values."
+  },
+  {
+    "group": "Surrogate Key Definition",
+    "key": "SurrogateKeyIdentifier",
+    "value": "SK",
+    "mandatory": true,
+    "notes": "The suffix or prefix used to standardize a column used as surrogate key."
+  },
+  {
+    "group": "Surrogate Key Definition",
+    "key": "SurrogateKeyPattern",
+    "value": "{{dataObject.name}}_{{conventions.surrogateKeyIdentifier}}",
+    "mandatory": true,
+    "notes": "The pattern used when the surrogate key column name is generated."
+  }
+]

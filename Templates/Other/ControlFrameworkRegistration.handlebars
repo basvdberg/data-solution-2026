@@ -1,0 +1,99 @@
+/*
+    Registration script for the DIRECT control framework.
+*/
+
+/* Maintenance and verification code block
+DELETE FROM omd.EVENT_LOG
+DELETE FROM omd.SOURCE_CONTROL
+DELETE FROM omd.BATCH_MODULE
+DELETE FROM omd.MODULE_INSTANCE WHERE MODULE_INSTANCE_ID <> 0;
+DELETE FROM omd.BATCH_INSTANCE WHERE BATCH_INSTANCE_ID <> 0;
+DELETE FROM omd.BATCH WHERE BATCH_ID <> 0;
+DELETE FROM omd.MODULE WHERE MODULE_ID <> 0;
+
+SELECT * FROM omd.MODULE
+SELECT * FROM omd.MODULE_INSTANCE
+
+SELECT * FROM omd.BATCH
+SELECT * FROM omd.BATCH_INSTANCE
+
+SELECT b.*,m.* FROM omd.BATCH_MODULE bm
+JOIN omd.MODULE m ON bm.MODULE_ID = m.MODULE_ID
+JOIN omd.BATCH b ON bm.BATCH_ID = b.BATCH_ID
+*/
+
+/*
+    Batch registration
+*/
+{{#each dataObjectMappings}}
+{{#hasClassification classifications "Persistent Staging Area"}}
+EXEC [{{lookupConnection ../../connections "Control Framework" "datastore"}}].[{{lookupConnection ../../connections "Control Framework" "location"}}].[RegisterBatch]
+ @BatchCode = 'b_{{name}}'
+,@BatchDescription = 'Data logistics workflow for [{{name}}]'
+
+{{/hasClassification}}
+{{/each~}}
+
+/*
+    Module registration
+*/
+-- Landing modules
+{{#each dataObjectMappings}}
+{{#each dataObjectMappings}}
+{{#hasClassification ../classifications "Landing Area"}}
+EXEC [{{lookupConnection ../../../connections "Control Framework" "datastore"}}].[{{lookupConnection ../../../connections "Control Framework" "location"}}].[RegisterModule]
+ @ModuleCode = 'm_{{targetDataObject.name}}'
+,@ModuleAreaCode = '{{../../../conventions.landingAreaObjectPrefix}}'
+,@Executable = 'EXEC [{{../../../conventions.landingAreaObjectDatastore}}].[{{../../../conventions.landingAreaObjectLocation}}].[SP_{{targetDataObject.name}}] @{{../../../conventions.auditTrailIdColumn}} = @ModuleInstanceId'
+,@ModuleDescription = 'Staging Area process for [{{../sourceDataObjects.0.name}}]'
+,@ModuleSourceDataObject = '[{{lookupExtension ../sourceDataObjects.0.dataConnection.extensions "datastore"}}].[{{lookupExtension ../sourceDataObjects.0.dataConnection.extensions "location"}}].[{{../sourceDataObjects.0.name}}]'
+,@ModuleTargetDataObject = '[{{lookupExtension ../targetDataObject.dataConnection.extensions "datastore"}}].[{{lookupExtension ../targetDataObject.dataConnection.extensions "location"}}].[{{../targetDataObject.name}}]'
+
+{{/hasClassification~}}{{/each~}}{{/each~}}
+
+-- Persistent Staging modules
+{{#each dataObjectMappings}}
+{{#each dataObjectMappings}}
+{{#hasClassification ../classifications "Persistent Staging Area"}}
+EXEC [{{lookupConnection ../../../connections "Control Framework" "datastore"}}].[{{lookupConnection ../../../connections "Control Framework" "location"}}].[RegisterModule]
+ @ModuleCode = 'm_{{targetDataObject.name}}'
+,@ModuleAreaCode = '{{../../../conventions.persistentStagingAreaObjectPrefix}}'
+,@Executable = 'EXEC [{{../../../conventions.persistentStagingAreaObjectDatastore}}].[{{../../../conventions.persistentStagingAreaObjectLocation}}].[SP_{{targetDataObject.name}}] @{{../../../conventions.auditTrailIdColumn}} = @ModuleInstanceId'
+,@ModuleDescription = 'Persistent Staging Area process for [{{../sourceDataObjects.0.name}}]'
+,@ModuleSourceDataObject = '[{{lookupExtension ../sourceDataObjects.0.dataConnection.extensions "datastore"}}].[{{lookupExtension ../sourceDataObjects.0.dataConnection.extensions "location"}}].[{{../sourceDataObjects.0.name}}]'
+,@ModuleTargetDataObject = '[{{lookupExtension ../targetDataObject.dataConnection.extensions "datastore"}}].[{{lookupExtension ../targetDataObject.dataConnection.extensions "location"}}].[{{../targetDataObject.name}}]'
+
+{{/hasClassification~}}{{/each~}}{{/each~}}
+
+/*
+    Batch/Module registration
+*/
+{{#each dataObjectMappings}}
+{{#each dataObjectMappings}}
+{{#hasClassification ../classifications "Persistent Staging Area"}}
+-- {{../name~}}
+{{#hasClassification ../../classifications "User Managed"}}{{else}}
+EXEC [{{lookupConnection ../../../../connections "Control Framework" "datastore"}}].[{{lookupConnection ../../../../connections "Control Framework" "location"}}].[AddModuleToBatch] {{!-- Landing --}}
+ @ModuleCode = 'm_{{sourceDataObjects.0.name}}'
+,@BatchCode = 'b_{{../../../name}}'
+{{/hasClassification}}
+
+EXEC [{{lookupConnection ../../../connections "Control Framework" "datastore"}}].[{{lookupConnection ../../../connections "Control Framework" "location"}}].[AddModuleToBatch] {{!-- Persistent Staging --}}
+ @ModuleCode = 'm_{{targetDataObject.name}}'
+,@BatchCode = 'b_{{../../name}}'
+
+{{/hasClassification~}}{{/each~}}{{/each~}}
+
+/*
+    Manual run scripts for reference
+*/
+/*
+
+{{#each dataObjectMappings}}
+{{#each dataObjectMappings}}
+{{#hasClassification ../classifications "Persistent Staging Area"}}
+-- {{../name}}
+EXEC [{{lookupConnection ../../../connections "Control Framework" "datastore"}}].[{{lookupConnection ../../../connections "Control Framework" "location"}}].[RunBatch]
+ @BatchCode = 'b_{{../../name}}'
+
+{{/hasClassification}}{{/each}}{{~/each}}*/

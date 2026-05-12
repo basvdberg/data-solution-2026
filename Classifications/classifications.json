@@ -1,0 +1,43 @@
+[
+  {
+    "id": "7ae84e95-a3ec-4bd7-bc1d-45fe1c9aa2aa",
+    "group": "Deployment",
+    "classification": "Deployment"
+  },
+  {
+    "id": "910252ef-0884-4e6b-88c1-93dd3faf4bb2",
+    "group": "Management",
+    "classification": "Control Framework",
+    "notes": "Runtime execution, process control, logging, and auditing."
+  },
+  {
+    "id": "4069bbf5-10bd-4b1f-a112-8d7ebd5c97a4",
+    "group": "Solution Area",
+    "classification": "Landing Area",
+    "notes": "The landing/staging area, a transient temporary storage area to store data for downstream processing. Part of the Staging Layer."
+  },
+  {
+    "id": "43b6ce73-62ba-43a5-a330-3bf9440599e4",
+    "group": "Solution Area",
+    "classification": "Operational System",
+    "notes": "The systems that provide the data."
+  },
+  {
+    "id": "241e870d-82f1-4437-87bf-48d3e0e304cf",
+    "group": "Solution Area",
+    "classification": "Persistent Staging Area",
+    "notes": "Persistent Staging Area (PSA), immutable historized data recorded as transactions. Part of the Staging Layer."
+  },
+  {
+    "id": "3cb478a3-f7cb-436d-8cba-171988808add",
+    "group": "Solution Layer",
+    "classification": "Operational System",
+    "notes": "\u0027Source\u0027 layer, representing the operational systems or interfaces that provide data to the solution."
+  },
+  {
+    "id": "aed7703d-ab04-4a79-ac53-5abb170c4c1b",
+    "group": "Solution Layer",
+    "classification": "Staging Layer",
+    "notes": "Staging Layer, the ingestion layer of the data solution."
+  }
+]

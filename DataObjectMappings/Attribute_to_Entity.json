@@ -1,0 +1,335 @@
+{
+  "id": "c70a5c68-a771-44e3-b7f1-df2d77922563",
+  "name": "Attribute_to_Entity",
+  "notes": "Data object mapping between attribute and entity in the logical model layer.",
+  "dataObjectMappings": [
+    {
+      "id": "b0e5938e-e303-4fc5-886d-2468fc394006",
+      "name": "Attribute to Entity",
+      "notes": "Mapping that records the relationship between attribute and entity.",
+      "sourceDataObjects": [
+        {
+          "id": "70cf435a-aa2c-46d7-94a0-51fff82e45a9",
+          "name": "Attribute",
+          "notes": "Logical business data model attribute with definition and description. Describes a bounded and precise property of an entity.",
+          "dataConnection": {
+            "id": "48b83b6e-4021-4552-98d4-768e873807af",
+            "name": "Sandbox",
+            "extensions": [
+              {
+                "key": "location",
+                "value": "dbo"
+              },
+              {
+                "key": "connectionString",
+                "value": "Data Source=.;Initial Catalog=Sandbox;Integrated Security=True;Trust Server Certificate=True;Encrypt=True;"
+              },
+              {
+                "key": "connectionType",
+                "value": "MSSQLDB"
+              },
+              {
+                "key": "datastore",
+                "value": "Sandbox"
+              }
+            ]
+          },
+          "dataItems": [
+            {
+              "id": "a1a72347-9bb3-4c31-b779-6c96ed53e0cc",
+              "name": "Definition",
+              "notes": "Formal definition of the attribute. A definition provides a clear, bounded and precise meaning to a specific data characteristic.",
+              "ordinalPosition": 1,
+              "dataType": "nvarchar",
+              "characterLength": 4000
+            },
+            {
+              "id": "5635127f-4cb8-42b4-85e3-fe27ef3c3533",
+              "name": "Description",
+              "notes": "Description of the attribute.",
+              "ordinalPosition": 2,
+              "dataType": "nvarchar",
+              "characterLength": 4000
+            },
+            {
+              "id": "4825a84e-0978-4930-811c-87f0d6266183",
+              "name": "Critical Data Element",
+              "ordinalPosition": 3,
+              "dataType": "nvarchar",
+              "characterLength": 4000
+            },
+            {
+              "id": "34ed5c33-ab89-4576-83a7-de8e2516ef2b",
+              "name": "Classification",
+              "ordinalPosition": 4,
+              "dataType": "nvarchar",
+              "characterLength": 4000
+            },
+            {
+              "id": "c080f3b8-d886-452e-9f7d-9fa4e1dc9833",
+              "name": "Business Rule",
+              "ordinalPosition": 5,
+              "dataType": "nvarchar",
+              "characterLength": 4000
+            },
+            {
+              "id": "40c50c73-ec1d-49f7-bfd3-a619fdbb94d5",
+              "name": "Data Quality Rule",
+              "ordinalPosition": 6,
+              "dataType": "nvarchar",
+              "characterLength": 4000
+            }
+          ],
+          "classifications": [
+            {
+              "id": "6860f248-c3fd-451a-ad12-201c700822ad",
+              "group": "Model Layer",
+              "classification": "Logical Model",
+              "notes": "Logical Data Model for entities and attributes."
+            },
+            {
+              "id": "e9eee2e0-9df2-453d-b4ec-61e2cad7bbd7",
+              "group": "System of Record",
+              "classification": "Business Glossary"
+            },
+            {
+              "id": "fa5f2c09-f56b-486e-9450-5eda54542bb4",
+              "group": "System of Reference",
+              "classification": "Business Glossary"
+            }
+          ]
+        }
+      ],
+      "targetDataObject": {
+        "id": "6bae16a9-26b4-43bd-b782-23d31760a6ad",
+        "name": "Entity",
+        "notes": "Logical business data model entity with definition and description.",
+        "dataConnection": {
+          "id": "48b83b6e-4021-4552-98d4-768e873807af",
+          "name": "Sandbox",
+          "extensions": [
+            {
+              "key": "location",
+              "value": "dbo"
+            },
+            {
+              "key": "connectionString",
+              "value": "Data Source=.;Initial Catalog=Sandbox;Integrated Security=True;Trust Server Certificate=True;Encrypt=True;"
+            },
+            {
+              "key": "connectionType",
+              "value": "MSSQLDB"
+            },
+            {
+              "key": "datastore",
+              "value": "Sandbox"
+            }
+          ]
+        },
+        "dataItems": [
+          {
+            "id": "9c629f12-4956-424d-b6e4-e721fef8c60e",
+            "name": "Definition",
+            "notes": "Formal definition of the entity.",
+            "ordinalPosition": 1,
+            "dataType": "nvarchar",
+            "characterLength": 4000
+          },
+          {
+            "id": "1ee674c5-7329-439c-98f6-fca942c45815",
+            "name": "Description",
+            "notes": "Description of the entity.",
+            "ordinalPosition": 2,
+            "dataType": "nvarchar",
+            "characterLength": 4000
+          }
+        ],
+        "classifications": [
+          {
+            "id": "6860f248-c3fd-451a-ad12-201c700822ad",
+            "group": "Model Layer",
+            "classification": "Logical Model",
+            "notes": "Logical Data Model for entities and attributes."
+          },
+          {
+            "id": "e9eee2e0-9df2-453d-b4ec-61e2cad7bbd7",
+            "group": "System of Record",
+            "classification": "Business Glossary"
+          },
+          {
+            "id": "fa5f2c09-f56b-486e-9450-5eda54542bb4",
+            "group": "System of Reference",
+            "classification": "Business Glossary"
+          }
+        ]
+      },
+      "classifications": [
+        {
+          "id": "6860f248-c3fd-451a-ad12-201c700822ad",
+          "group": "Model Layer",
+          "classification": "Logical Model",
+          "notes": "Logical Data Model for entities and attributes."
+        }
+      ]
+    },
+    {
+      "id": "139d6567-2bab-47f3-aa3a-5e2f9cacba1a",
+      "name": "Business Process L3 -\u003E Entity",
+      "sourceDataObjects": [
+        {
+          "id": "b6b24724-1e9f-41b0-8dd8-e9ecfca3ee1e",
+          "name": "Business Process L3",
+          "notes": "Business process L3 with Process Management (BPMN) classification and role, purpose and documentation fields.",
+          "dataConnection": {
+            "id": "48b83b6e-4021-4552-98d4-768e873807af",
+            "name": "Sandbox",
+            "extensions": [
+              {
+                "key": "location",
+                "value": "dbo"
+              },
+              {
+                "key": "connectionString",
+                "value": "Data Source=.;Initial Catalog=Sandbox;Integrated Security=True;Trust Server Certificate=True;Encrypt=True;"
+              },
+              {
+                "key": "connectionType",
+                "value": "MSSQLDB"
+              },
+              {
+                "key": "datastore",
+                "value": "Sandbox"
+              }
+            ]
+          },
+          "dataItems": [
+            {
+              "id": "c062e9f1-b2f0-4c57-90f3-f1f77e1b2700",
+              "name": "Business Role",
+              "ordinalPosition": 1,
+              "dataType": "nvarchar",
+              "characterLength": 4000
+            },
+            {
+              "id": "1a03f63c-4bbc-4615-a045-5ded7e8c7e49",
+              "name": "Business Actor",
+              "ordinalPosition": 2,
+              "dataType": "nvarchar",
+              "characterLength": 4000
+            },
+            {
+              "id": "ed51cd72-09ee-404e-a1ad-b477a4571646",
+              "name": "Process Goal",
+              "ordinalPosition": 3,
+              "dataType": "nvarchar",
+              "characterLength": 4000
+            },
+            {
+              "id": "e28e5d9d-2167-4bb5-9fd3-b882a02d524a",
+              "name": "Process Description",
+              "ordinalPosition": 4,
+              "dataType": "nvarchar",
+              "characterLength": 4000
+            },
+            {
+              "id": "53dd07be-8f40-415b-8d08-3a596896b3dc",
+              "name": "Process Documentation",
+              "ordinalPosition": 5,
+              "dataType": "nvarchar",
+              "characterLength": 4000
+            }
+          ],
+          "classifications": [
+            {
+              "id": "20a6572a-bfa4-4091-8fcd-eeedb37d5ee5",
+              "group": "Model Layer",
+              "classification": "Process Management (BPMN)",
+              "notes": "Classification for business processes (L1-L5) within Process Management (BPMN)."
+            },
+            {
+              "id": "5e67e1ff-0294-498b-b0e8-dba6b6d9176e",
+              "group": "System of Record",
+              "classification": "Enterprise Architecture"
+            },
+            {
+              "id": "a814275d-3149-4bd2-ab6b-e95e34e725b4",
+              "group": "System of Reference",
+              "classification": "Enterprise Architecture"
+            }
+          ]
+        }
+      ],
+      "targetDataObject": {
+        "id": "6bae16a9-26b4-43bd-b782-23d31760a6ad",
+        "name": "Entity",
+        "notes": "Logical business data model entity with definition and description.",
+        "dataConnection": {
+          "id": "48b83b6e-4021-4552-98d4-768e873807af",
+          "name": "Sandbox",
+          "extensions": [
+            {
+              "key": "location",
+              "value": "dbo"
+            },
+            {
+              "key": "connectionString",
+              "value": "Data Source=.;Initial Catalog=Sandbox;Integrated Security=True;Trust Server Certificate=True;Encrypt=True;"
+            },
+            {
+              "key": "connectionType",
+              "value": "MSSQLDB"
+            },
+            {
+              "key": "datastore",
+              "value": "Sandbox"
+            }
+          ]
+        },
+        "dataItems": [
+          {
+            "id": "9c629f12-4956-424d-b6e4-e721fef8c60e",
+            "name": "Definition",
+            "notes": "Formal definition of the entity.",
+            "ordinalPosition": 1,
+            "dataType": "nvarchar",
+            "characterLength": 4000
+          },
+          {
+            "id": "1ee674c5-7329-439c-98f6-fca942c45815",
+            "name": "Description",
+            "notes": "Description of the entity.",
+            "ordinalPosition": 2,
+            "dataType": "nvarchar",
+            "characterLength": 4000
+          }
+        ],
+        "classifications": [
+          {
+            "id": "6860f248-c3fd-451a-ad12-201c700822ad",
+            "group": "Model Layer",
+            "classification": "Logical Model",
+            "notes": "Logical Data Model for entities and attributes."
+          },
+          {
+            "id": "e9eee2e0-9df2-453d-b4ec-61e2cad7bbd7",
+            "group": "System of Record",
+            "classification": "Business Glossary"
+          },
+          {
+            "id": "fa5f2c09-f56b-486e-9450-5eda54542bb4",
+            "group": "System of Reference",
+            "classification": "Business Glossary"
+          }
+        ]
+      }
+    }
+  ],
+  "classifications": [
+    {
+      "id": "6860f248-c3fd-451a-ad12-201c700822ad",
+      "group": "Model Layer",
+      "classification": "Logical Model",
+      "notes": "Logical Data Model for entities and attributes."
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "id": "7d2d4e6f-8cfa-4deb-b23e-7d2bca5b8ec5",
+  "name": "Data Stack",
+  "notes": "Data stack with data storage and physical model classifications and owner.",
+  "dataConnection": {
+    "id": "48b83b6e-4021-4552-98d4-768e873807af",
+    "name": "Sandbox",
+    "extensions": [
+      {
+        "key": "location",
+        "value": "dbo"
+      },
+      {
+        "key": "connectionString",
+        "value": "Data Source=.;Initial Catalog=Sandbox;Integrated Security=True;Trust Server Certificate=True;Encrypt=True;"
+      },
+      {
+        "key": "connectionType",
+        "value": "MSSQLDB"
+      },
+      {
+        "key": "datastore",
+        "value": "Sandbox"
+      }
+    ]
+  },
+  "dataItems": [
+    {
+      "id": "e22adac2-aa39-4b97-82ce-ec846693585e",
+      "name": "Owner",
+      "ordinalPosition": 1,
+      "dataType": "nvarchar",
+      "characterLength": 4000
+    }
+  ],
+  "classifications": [
+    {
+      "id": "88cd4df8-1452-4ef0-9f66-95bd302e85f2",
+      "group": "Model Layer",
+      "classification": "Data Platform",
+      "notes": "Classification for data storage and related groups."
+    },
+    {
+      "id": "92f903f9-16fb-497e-aba4-cec656f7a1ab",
+      "group": "Model Layer",
+      "classification": "Physical Model",
+      "notes": "Classification for physical data models or modelings."
+    }
+  ]
+}

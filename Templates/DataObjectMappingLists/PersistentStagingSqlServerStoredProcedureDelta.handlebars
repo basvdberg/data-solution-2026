@@ -1,0 +1,154 @@
+{{#each dataObjectMappings~}}
+
+CREATE OR ALTER PROCEDURE [{{lookupExtension targetDataObject.dataConnection.extensions "location"}}].[SP_{{targetDataObject.name}}] @{{../conventions.auditTrailIdColumn}} INT = 0 --Applying 0 as default value.
+AS
+
+--
+-- Persistent Staging Area Stored Procedure for {{targetDataObject.name}} using a DIRECT control framework wrapper.
+-- This template expects a data delta to already be prepared in the landing area, and performs a left join to prevent constraint violations when inserting data that might already be loaded into the PSA.
+--
+-- Generated from template '{{../templateMetadata.name}}'.
+--
+
+INSERT INTO [{{lookupExtension targetDataObject.dataConnection.extensions "datastore"}}].[{{lookupExtension targetDataObject.dataConnection.extensions "location"}}].[{{targetDataObject.name}}]
+(
+    [{{../conventions.auditTrailIdColumn}}],
+    [{{../conventions.inscriptionTimeStampColumn}}],
+    [{{../conventions.sourceTimestampColumn}}],
+    [{{../conventions.inscriptionRecordIdColumn}}],
+    [{{../conventions.changeDataColumn}}],
+    [{{../conventions.checksumColumn}}],
+    {{#each dataItemMappings}}
+    [{{targetDataItem.name}}]{{#unless @last}},{{/unless}}
+    {{/each}}
+)
+SELECT
+    @AUDIT_TRAIL_ID AS [{{../conventions.auditTrailIdColumn}}],
+    [{{../conventions.inscriptionTimeStampColumn}}],
+    [{{../conventions.sourceTimestampColumn}}],
+    [{{../conventions.inscriptionRecordIdColumn}}],
+    [{{../conventions.changeDataColumn}}],
+    [{{../conventions.checksumColumn}}],
+    {{#each dataItemMappings}}
+    [{{targetDataItem.name}}]{{#unless @last}},{{/unless}}
+    {{/each}}
+    {{!-- Debugging --}}
+    --[LKP_{{../conventions.checksumColumn}}],
+    --[LKP_{{../conventions.changeDataColumn}}],
+    --[KEY_ROW_NUMBER]
+FROM
+(
+    SELECT
+        STG.[{{../conventions.inscriptionTimeStampColumn}}],
+        STG.[{{../conventions.sourceTimestampColumn}}],
+        STG.[{{../conventions.inscriptionRecordIdColumn}}],
+        STG.[{{../conventions.changeDataColumn}}],
+        STG.[{{../conventions.checksumColumn}}],
+        {{#each dataItemMappings}}
+        STG.[{{sourceDataItems.0.name}}],
+        {{/each}}
+        COALESCE(maxsub.[LKP_{{../conventions.checksumColumn}}], 'N/A') AS [LKP_{{../conventions.checksumColumn}}],
+        COALESCE(maxsub.[LKP_{{../conventions.changeDataColumn}}], 'C') AS [LKP_{{../conventions.changeDataColumn}}],
+        CAST(ROW_NUMBER() OVER
+            (  
+                PARTITION BY
+                    {{#each businessKeyDefinitions}}{{#each businessKeyComponents}}STG.[{{dataItem.name}}]{{#unless @last}},{{/unless}}
+                    {{/each}}{{/each}}
+                ORDER BY
+                    {{#each businessKeyDefinitions}}{{#each businessKeyComponents}}STG.[{{dataItem.name}}],
+                    {{/each}}{{/each}}STG.[{{../conventions.inscriptionTimeStampColumn}}],
+                    STG.[{{../conventions.inscriptionRecordIdColumn}}]
+            )  AS INT
+        ) AS KEY_ROW_NUMBER
+    FROM [{{lookupExtension sourceDataObjects.0.dataConnection.extensions "datastore"}}].[{{lookupExtension sourceDataObjects.0.dataConnection.extensions "location"}}].[{{sourceDataObjects.0.name}}] STG
+    -- Prevent reprocessing
+    LEFT OUTER JOIN [{{lookupExtension targetDataObject.dataConnection.extensions "datastore"}}].[{{lookupExtension targetDataObject.dataConnection.extensions "location"}}].[{{targetDataObject.name}}] HSTG
+    ON    {{#each businessKeyDefinitions}}  {{#each businessKeyComponents}}
+       HSTG.[{{dataItem.name}}] = STG.[{{dataItem.name}}] AND{{/each}} {{/each}}
+       HSTG.[{{../conventions.inscriptionRecordIdColumn}}] = STG.[{{../conventions.inscriptionRecordIdColumn}}] AND
+       HSTG.[{{../conventions.inscriptionTimeStampColumn}}] = STG.[{{../conventions.inscriptionTimeStampColumn}}]
+    -- Query the most recently arrived PSA record which is not logically deleted.
+    LEFT OUTER JOIN
+    (
+        SELECT {{#each businessKeyDefinitions}}  {{#each businessKeyComponents}}
+            A.[{{dataItem.name}}], {{/each}} {{/each}}
+            A.[{{../conventions.inscriptionRecordIdColumn}}],
+            A.[{{../conventions.checksumColumn}}] AS [LKP_{{../conventions.checksumColumn}}],
+            A.[{{../conventions.changeDataColumn}}] AS [LKP_{{../conventions.changeDataColumn}}]
+        FROM [{{lookupExtension targetDataObject.dataConnection.extensions "datastore"}}].[{{lookupExtension targetDataObject.dataConnection.extensions "location"}}].[{{targetDataObject.name}}] A
+        JOIN
+        (
+            SELECT {{#each businessKeyDefinitions}}  {{#each businessKeyComponents}}
+                B.[{{dataItem.name}}], {{/each}} {{/each}}
+                {{../conventions.inscriptionTimeStampColumn}} AS MAX_{{../conventions.inscriptionTimeStampColumn}},
+                MAX({{../conventions.inscriptionRecordIdColumn}}) OVER
+                (
+                    PARTITION BY                        {{#each businessKeyDefinitions}}  {{#each businessKeyComponents}}
+                        [{{dataItem.name}}], {{/each}} {{/each}}
+                        {{../conventions.inscriptionTimeStampColumn}}
+                    ORDER BY                        {{#each businessKeyDefinitions}}  {{#each businessKeyComponents}}
+                        [{{dataItem.name}}], {{/each}} {{/each}}
+                        {{../conventions.inscriptionTimeStampColumn}}
+                ) AS MAX_{{../conventions.inscriptionRecordIdColumn}},
+                ROW_NUMBER() OVER
+                (
+                    PARTITION BY              {{#each businessKeyDefinitions}}  {{#each businessKeyComponents}}
+                        [{{dataItem.name}}]{{#unless @last}},{{/unless}} {{/each}} {{/each}}
+                    ORDER BY                        {{#each businessKeyDefinitions}}  {{#each businessKeyComponents}}
+                        [{{dataItem.name}}], {{/each}} {{/each}}
+                        {{../conventions.inscriptionTimeStampColumn}} DESC
+                ) AS MAX_ROWNUM
+            FROM [{{lookupExtension targetDataObject.dataConnection.extensions "datastore"}}].[{{lookupExtension targetDataObject.dataConnection.extensions "location"}}].[{{targetDataObject.name}}] B
+        ) C ON         {{#each businessKeyDefinitions}}  {{#each businessKeyComponents}}
+            A.[{{dataItem.name}}] = C.[{{dataItem.name}}] AND{{/each}} {{/each}}
+            A.[{{../conventions.inscriptionRecordIdColumn}}] = C.[MAX_{{../conventions.inscriptionRecordIdColumn}}] AND
+            A.[{{../conventions.inscriptionTimeStampColumn}}] = C.[MAX_{{../conventions.inscriptionTimeStampColumn}}] AND
+            1 = C.[MAX_ROWNUM]
+        WHERE {{../conventions.changeDataColumn}} != 'D'
+    ) maxsub ON     {{#each businessKeyDefinitions}}  {{#each businessKeyComponents}}
+        STG.[{{dataItem.name}}] = maxsub.[{{dataItem.name}}] AND{{/each}} {{/each}}
+        STG.[{{../conventions.inscriptionRecordIdColumn}}] = maxsub.[{{../conventions.inscriptionRecordIdColumn}}]
+    WHERE {{#each businessKeyDefinitions}}  {{#each businessKeyComponents}} {{#if @first}}
+        HSTG.[{{dataItem.name}}] IS NULL -- prevent reprocessing{{/if}}{{/each}} {{/each}}
+) sub
+WHERE
+(
+  KEY_ROW_NUMBER=1
+  AND
+  (
+    ( [{{../conventions.checksumColumn}}] != [LKP_{{../conventions.checksumColumn}}] )
+    -- The checksums are different
+    OR
+    ( [{{../conventions.checksumColumn}}] = [LKP_{{../conventions.checksumColumn}}] AND
+      [{{../conventions.changeDataColumn}}] != [LKP_{{../conventions.changeDataColumn}}] )
+    -- The checksums are the same but the CDC is different
+    -- In other words, if the hash is the same AND the CDC operation is the same then there is no change
+  )
+)
+OR
+(
+  -- It's not the most recent change in the set, so the record can be inserted as-is
+  KEY_ROW_NUMBER!=1
+)
+GO
+
+{{!--  Integration with the control framework --}}
+{{#each extensions}}
+{{#stringCompare key "hasControlFramework"}}
+/*
+-- Integration with the control framework, module registration
+EXEC [{{../../../conventions.controlFrameworkDatastore}}].[{{../../../conventions.controlFrameworkLocation}}].[RegisterModule]
+ @ModuleCode = 'm_{{../../targetDataObject.name}}'
+,@ModuleAreaCode = '{{../../../conventions.persistentStagingAreaObjectPrefix}}'
+,@Executable = 'EXEC [{{lookupExtension ../../targetDataObject.dataConnection.extensions "datastore"}}].[{{lookupExtension ../../targetDataObject.dataConnection.extensions "location"}}].[SP_{{../../targetDataObject.name}}] @AUDIT_TRAIL_ID = @ModuleInstanceId'
+,@ModuleDescription = 'Persistent Staging Area process for [{{../../sourceDataObjects.0.name}}]'
+,@ModuleSourceDataObject = '[{{lookupExtension ../../sourceDataObjects.0.dataConnection.extensions "datastore"}}].[{{lookupExtension ../../sourceDataObjects.0.dataConnection.extensions "location"}}].[{{../../sourceDataObjects.0.name}}]'
+,@ModuleTargetDataObject = '[{{lookupExtension ../../targetDataObject.dataConnection.extensions "datastore"}}].[{{lookupExtension ../../targetDataObject.dataConnection.extensions "location"}}].[{{../../targetDataObject.name}}]'
+
+-- Run the process
+EXEC [{{../../../conventions.controlFrameworkDatastore}}].[{{../../../conventions.controlFrameworkLocation}}].[RunModule]
+ @ModuleCode = 'm_{{../../targetDataObject.name}}'
+,@ModuleInstanceIdColumnName='AUDIT_TRAIL_ID'
+*/
+{{/stringCompare}}{{/each}}
+{{/each}}

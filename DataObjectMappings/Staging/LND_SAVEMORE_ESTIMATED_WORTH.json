@@ -1,0 +1,360 @@
+{
+  "id": "5392e3b5-56cd-4f02-bf51-c5fd4a5699e1",
+  "name": "LND_SAVEMORE_ESTIMATED_WORTH",
+  "dataObjectMappings": [
+    {
+      "id": "0d013660-e6d3-42b4-b74a-a63d06db7d1c",
+      "name": "ESTIMATED_WORTH to LND_SAVEMORE_ESTIMATED_WORTH",
+      "sourceDataObjects": [
+        {
+          "id": "b15ed337-90b9-45ec-b54d-051f1d8ed61d",
+          "name": "ESTIMATED_WORTH",
+          "notes": "A supporting table that values plans over time.",
+          "dataConnection": {
+            "id": "b9afa559-3a59-4404-ae0f-0c33ef9c7515",
+            "name": "Source",
+            "classifications": [
+              {
+                "id": "",
+                "group": "Solution Layer",
+                "classification": "Operational System",
+                "notes": "\u0027Source\u0027 layer, representing the operational systems or interfaces that provide data to the solution."
+              }
+            ],
+            "extensions": [
+              {
+                "key": "location",
+                "value": "dbo"
+              },
+              {
+                "key": "connectionString",
+                "value": "Data Source=.;Initial Catalog=000_Source;Integrated Security=True;Trust Server Certificate=True"
+              },
+              {
+                "key": "connectionType",
+                "value": "MSSQLDB"
+              },
+              {
+                "key": "datastore",
+                "value": "000_Source"
+              }
+            ]
+          },
+          "dataItems": [
+            {
+              "id": "7e072f68-4a85-48b7-2222-222222222222",
+              "name": "Plan_Code",
+              "ordinalPosition": 1,
+              "isPrimaryKey": true,
+              "dataType": "varchar",
+              "characterLength": 100
+            },
+            {
+              "id": "12549ee5-25c1-4e28-1111-111111111111",
+              "name": "Date_effective",
+              "ordinalPosition": 2,
+              "isPrimaryKey": true,
+              "dataType": "datetime",
+              "numericScale": 3
+            },
+            {
+              "id": "d96253d7-7b0c-4269-8504-4c5b01351362",
+              "name": "Value_Amount",
+              "ordinalPosition": 3,
+              "dataType": "numeric",
+              "numericPrecision": 18,
+              "numericScale": 0
+            }
+          ],
+          "classifications": [
+            {
+              "id": "3cb478a3-f7cb-436d-8cba-171988808add",
+              "group": "Solution Layer",
+              "classification": "Operational System",
+              "notes": "\u0027Source\u0027 layer, representing the operational systems or interfaces that provide data to the solution."
+            },
+            {
+              "id": "43b6ce73-62ba-43a5-a330-3bf9440599e4",
+              "group": "Solution Area",
+              "classification": "Operational System"
+            }
+          ],
+          "extensions": [
+            {
+              "key": "originatingSystem",
+              "value": "SAVEMORE",
+              "notes": "SaveMore source system"
+            }
+          ],
+          "templateMappings": [
+            {
+              "templateFileName": "/DataObjects/SourceSqlServerGenerateTable.handlebars"
+            },
+            {
+              "templateFileName": "/DataObjects/LandingSqlServerGenerateTable.handlebars"
+            },
+            {
+              "templateFileName": "/DataObjects/PersistentStagingSqlServerGenerateTable.handlebars"
+            }
+          ]
+        }
+      ],
+      "targetDataObject": {
+        "id": "8658cadf-0fd0-4e9c-9cdb-957e20d45ac1",
+        "name": "LND_SAVEMORE_ESTIMATED_WORTH",
+        "notes": "The landing table for the ESTIMATED WORTH data set of the SAVEMORE system.",
+        "dataConnection": {
+          "id": "c832ddba-3f0b-47a1-8820-02d443cfceef",
+          "name": "Landing",
+          "notes": "Landing area connection.",
+          "classifications": [
+            {
+              "id": "",
+              "group": "Solution Area",
+              "classification": "Landing Area",
+              "notes": "The landing/staging area, a transient temporary storage area to store data for downstream processing. Part of the Staging Layer."
+            },
+            {
+              "id": "",
+              "group": "Solution Layer",
+              "classification": "Staging Layer",
+              "notes": "Staging Layer, the ingestion layer of the data solution."
+            }
+          ],
+          "extensions": [
+            {
+              "key": "location",
+              "value": "dbo"
+            },
+            {
+              "key": "connectionString",
+              "value": "Data Source=.;Initial Catalog=100_Landing_Area;Integrated Security=True;Trust Server Certificate=True;Encrypt=True;"
+            },
+            {
+              "key": "connectionType",
+              "value": "MSSQLDB"
+            },
+            {
+              "key": "datastore",
+              "value": "100_Landing_Area"
+            }
+          ]
+        },
+        "dataItems": [
+          {
+            "id": "5e901001-0001-4905-892c-7e54bab2d217",
+            "name": "INSCRIPTION_TIMESTAMP",
+            "ordinalPosition": 1,
+            "dataType": "datetime2",
+            "numericScale": 7
+          },
+          {
+            "id": "5e901002-0002-4133-89a9-fba4a02b3f56",
+            "name": "INSCRIPTION_RECORD_ID",
+            "ordinalPosition": 2,
+            "dataType": "int"
+          },
+          {
+            "id": "5e901003-0003-46a8-bcbf-8c8568ac0e07",
+            "name": "SOURCE_TIMESTAMP",
+            "ordinalPosition": 3,
+            "dataType": "datetime2",
+            "numericScale": 7
+          },
+          {
+            "id": "5e901004-0004-44a8-b3d4-a8e595548393",
+            "name": "CHANGE_DATA_INDICATOR",
+            "ordinalPosition": 4,
+            "dataType": "varchar",
+            "characterLength": 100
+          },
+          {
+            "id": "5e901005-0005-4e72-af6b-ceff0437c198",
+            "name": "AUDIT_TRAIL_ID",
+            "ordinalPosition": 5,
+            "dataType": "int"
+          },
+          {
+            "id": "5e901006-0006-438d-8e61-c00ab7b7e3f4",
+            "name": "CHECKSUM",
+            "ordinalPosition": 6,
+            "dataType": "binary",
+            "characterLength": 16
+          },
+          {
+            "id": "13b3c072-e8ce-421f-be6a-443d7de8b6cd",
+            "name": "PLAN_CODE",
+            "ordinalPosition": 7,
+            "dataType": "nvarchar",
+            "characterLength": 100
+          },
+          {
+            "id": "ec98dad9-e8b2-42ac-b05e-3ef92f0a700e",
+            "name": "DATE_EFFECTIVE",
+            "ordinalPosition": 8,
+            "dataType": "datetime2",
+            "numericScale": 7
+          },
+          {
+            "id": "8804b208-469c-40f6-a3bf-90f00bc7d288",
+            "name": "VALUE_AMOUNT",
+            "ordinalPosition": 9,
+            "dataType": "numeric",
+            "numericPrecision": 38,
+            "numericScale": 20
+          }
+        ],
+        "classifications": [
+          {
+            "id": "4069bbf5-10bd-4b1f-a112-8d7ebd5c97a4",
+            "group": "Solution Area",
+            "classification": "Landing Area",
+            "notes": "The landing/staging area, a transient temporary storage area to store data for downstream processing. Part of the Staging Layer."
+          },
+          {
+            "id": "aed7703d-ab04-4a79-ac53-5abb170c4c1b",
+            "group": "Solution Layer",
+            "classification": "Staging Layer",
+            "notes": "Staging Layer, the ingestion layer of the data solution."
+          }
+        ]
+      },
+      "relationships": [
+        {
+          "id": "f1a2b3c4-0005-4000-8000-000000000005",
+          "name": "PSA lookup for delta comparison",
+          "type": "Lookup",
+          "cardinality": "NotDefined",
+          "relatedDataObjectId": "174aa420-19f8-419c-bedf-4c66360c9b6e"
+        }
+      ],
+      "dataItemMappings": [
+        {
+          "id": "0950b0bd-272b-4d49-bbb3-d196c2959a25",
+          "name": "",
+          "sourceDataItems": [
+            {
+              "id": "7e072f68-4a85-48b7-2222-222222222222",
+              "name": "Plan_Code",
+              "ordinalPosition": 1,
+              "isPrimaryKey": true,
+              "dataType": "varchar",
+              "characterLength": 100
+            }
+          ],
+          "targetDataItem": {
+            "id": "13b3c072-e8ce-421f-be6a-443d7de8b6cd",
+            "name": "PLAN_CODE",
+            "ordinalPosition": 7,
+            "dataType": "nvarchar",
+            "characterLength": 100
+          }
+        },
+        {
+          "id": "32dde233-86de-43aa-a9e8-aeffeebc9a44",
+          "name": "",
+          "sourceDataItems": [
+            {
+              "id": "12549ee5-25c1-4e28-1111-111111111111",
+              "name": "Date_effective",
+              "ordinalPosition": 2,
+              "isPrimaryKey": true,
+              "dataType": "datetime",
+              "numericScale": 3
+            }
+          ],
+          "targetDataItem": {
+            "id": "ec98dad9-e8b2-42ac-b05e-3ef92f0a700e",
+            "name": "DATE_EFFECTIVE",
+            "ordinalPosition": 8,
+            "dataType": "datetime2",
+            "numericScale": 7
+          }
+        },
+        {
+          "id": "7be0d80e-8d57-bc5f-99c2-edabad8df1d7",
+          "name": "Value_Amount -\u003E VALUE_AMOUNT",
+          "sourceDataItems": [
+            {
+              "id": "d96253d7-7b0c-4269-8504-4c5b01351362",
+              "name": "Value_Amount",
+              "ordinalPosition": 3,
+              "dataType": "numeric",
+              "numericPrecision": 18,
+              "numericScale": 0
+            }
+          ],
+          "targetDataItem": {
+            "id": "8804b208-469c-40f6-a3bf-90f00bc7d288",
+            "name": "VALUE_AMOUNT",
+            "ordinalPosition": 9,
+            "dataType": "numeric",
+            "numericPrecision": 38,
+            "numericScale": 20
+          }
+        }
+      ],
+      "businessKeyDefinitions": [
+        {
+          "id": "1b732141-81bb-4ac8-9f24-9b2e6f58b60f",
+          "name": "ESTIMATED_WORTH to LND_SAVEMORE_ESTIMATED_WORTH for SAVEMORE_ESTIMATED_WORTH_SK",
+          "surrogateKey": "SAVEMORE_ESTIMATED_WORTH_SK",
+          "businessKeyComponents": [
+            {
+              "dataItem": {
+                "id": "7e072f68-4a85-48b7-2222-222222222222",
+                "name": "Plan_Code",
+                "ordinalPosition": 1,
+                "isPrimaryKey": true,
+                "dataType": "varchar",
+                "characterLength": 100
+              }
+            },
+            {
+              "ordinalPosition": 1,
+              "dataItem": {
+                "id": "12549ee5-25c1-4e28-1111-111111111111",
+                "name": "Date_effective",
+                "ordinalPosition": 2,
+                "isPrimaryKey": true,
+                "dataType": "datetime",
+                "numericScale": 3
+              }
+            }
+          ]
+        }
+      ],
+      "extensions": [
+        {
+          "key": "hasControlFramework",
+          "value": "true",
+          "notes": "Integration with Control Framework"
+        },
+        {
+          "key": "hasTestingFramework",
+          "value": "true",
+          "notes": "Integration with Testing Framework"
+        }
+      ]
+    }
+  ],
+  "classifications": [
+    {
+      "id": "4069bbf5-10bd-4b1f-a112-8d7ebd5c97a4",
+      "group": "Solution Area",
+      "classification": "Landing Area",
+      "notes": "The landing/staging area, a transient temporary storage area to store data for downstream processing. Part of the Staging Layer."
+    },
+    {
+      "id": "aed7703d-ab04-4a79-ac53-5abb170c4c1b",
+      "group": "Solution Layer",
+      "classification": "Staging Layer",
+      "notes": "Staging Layer, the ingestion layer of the data solution."
+    }
+  ],
+  "templateMappings": [
+    {
+      "templateFileName": "/DataObjectMappingLists/LandingSqlServerStoredProcedureDelta.handlebars"
+    }
+  ]
+}

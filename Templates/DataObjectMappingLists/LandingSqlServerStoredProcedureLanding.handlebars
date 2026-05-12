@@ -1,0 +1,76 @@
+{{#each dataObjectMappings~}}
+CREATE OR ALTER PROCEDURE [{{lookupExtension targetDataObject.dataConnection.extensions "location"}}].[SP_{{targetDataObject.name}}] @{{../conventions.auditTrailIdColumn}} INT = 0 -- Applying 0 as default value
+
+AS
+
+--
+-- Staging Area Stored Procedure for {{targetDataObject.name}} using a DIRECT control framework wrapper.
+-- This template copies all data available in the source data object into the landing area.
+-- When the data is available in the landing area, subsequent processes can be used to load the data into downstream objects or used to derive data delta.
+--
+-- Generated from template '{{../templateMetadata.name}}'.
+--
+
+TRUNCATE TABLE [{{lookupExtension targetDataObject.dataConnection.extensions "datastore"}}].[{{lookupExtension targetDataObject.dataConnection.extensions "location"}}].[{{targetDataObject.name}}];
+
+WITH SOURCE_CTE AS
+(
+  -- The source data object, which will be copied in its entirety.
+  SELECT
+{{#each dataItemMappings}}
+     [{{sourceDataItems.0.name}}] AS [{{targetDataItem.name}}],
+{{/each}}
+     HASHBYTES('MD5',
+{{#each dataItemMappings}}
+        ISNULL(RTRIM(CONVERT(NVARCHAR(100),[{{sourceDataItems.0.name}}])), 'N/A') + '#~!'{{#unless @last}} +{{/unless}}
+{{/each}}
+     ) AS [{{../conventions.checksumColumn}}],
+{{!-- Source row Id implemented for when not using identify column in the staging table --}}
+     ROW_NUMBER() OVER ( ORDER BY  {{#each businessKeyDefinitions}}{{#each businessKeyComponents}}[{{dataItem.name}}] {{#unless @last}},{{/unless}}{{/each}}{{/each}}) AS {{../conventions.inscriptionRecordIdColumn}}
+  FROM [{{lookupExtension sourceDataObjects.0.dataConnection.extensions "datastore"}}].[{{lookupExtension sourceDataObjects.0.dataConnection.extensions "location"}}].[{{sourceDataObjects.0.name}}]
+)
+INSERT INTO [{{lookupExtension targetDataObject.dataConnection.extensions "datastore"}}].[{{lookupExtension targetDataObject.dataConnection.extensions "location"}}].[{{stringUpper targetDataObject.name}}]
+(
+   [{{../conventions.auditTrailIdColumn}}],
+{{#each dataItemMappings}}
+   [{{targetDataItem.name}}],
+{{/each}}
+   [{{../conventions.checksumColumn}}],
+   [{{../conventions.changeDataColumn}}],
+{{!-- Source row Id implemented for when not using identify column in the staging table --}}
+   --[{{../conventions.inscriptionRecordIdColumn}}],
+   [{{../conventions.sourceTimestampColumn}}]
+)
+SELECT
+   @AUDIT_TRAIL_ID AS [{{../conventions.auditTrailIdColumn}}],
+{{#each dataItemMappings}}
+   [{{targetDataItem.name}}],
+{{/each}}
+   [{{../conventions.checksumColumn}}],
+{{!-- Because no CDC is applied, the change data indicator is always 'C'--}}
+   'C' {{../conventions.changeDataColumn}},
+{{!-- Source row Id implemented for when not using identify column in the staging table --}}
+   --ROW_NUMBER() OVER ( ORDER BY  {{#each businessKeyDefinitions}}{{#each businessKeyComponents}}CASE WHEN SOURCE_CTE.[{{dataItem.name}}] IS NULL THEN PSA_CTE.[{{dataItem.name}}] ELSE SOURCE_CTE.[{{dataItem.name}}] END{{#unless @last}},{{/unless}}{{/each}}{{/each}}) AS {{../conventions.inscriptionRecordIdColumn}},
+  SYSDATETIME() AS [{{../conventions.sourceTimestampColumn}}]
+FROM SOURCE_CTE
+GO
+
+{{!--  Integration with the control framework --}}
+/*
+{{#each extensions}}
+{{#stringCompare key "hasControlFramework"}}
+-- Integration with the control framework, module registration.
+EXEC [{{../../../conventions.controlFrameworkDatastore}}].[{{../../../conventions.controlFrameworkLocation}}].[RegisterModule]
+ @ModuleCode = 'm_{{../../targetDataObject.name}}'
+,@ModuleAreaCode = '{{../../../conventions.landingAreaObjectPrefix}}'
+,@Executable = 'EXEC [{{lookupExtension ../../targetDataObject.dataConnection.extensions "datastore"}}].[{{lookupExtension ../../targetDataObject.dataConnection.extensions "location"}}].[SP_{{../../targetDataObject.name}}] @AUDIT_TRAIL_ID = @ModuleInstanceId'
+,@ModuleDescription = 'Staging Area process for [{{../../sourceDataObjects.0.name}}]'
+,@ModuleSourceDataObject = '[{{lookupExtension ../../sourceDataObjects.0.dataConnection.extensions "datastore"}}].[{{lookupExtension ../../sourceDataObjects.0.dataConnection.extensions "location"}}].[{{../../sourceDataObjects.0.name}}]'
+,@ModuleTargetDataObject = '[{{lookupExtension ../../targetDataObject.dataConnection.extensions "datastore"}}].[{{lookupExtension ../../targetDataObject.dataConnection.extensions "location"}}].[{{../../targetDataObject.name}}]'
+
+-- Example: run the process.
+EXEC [{{../../../conventions.controlFrameworkDatastore}}].[{{../../../conventions.controlFrameworkLocation}}].[RunModule]
+ @ModuleCode = 'm_{{../../targetDataObject.name}}'
+,@ModuleInstanceIdColumnName='AUDIT_TRAIL_ID'
+{{/stringCompare}}{{/each}}*/
+{{/each}}

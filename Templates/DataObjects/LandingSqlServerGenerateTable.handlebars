@@ -1,0 +1,28 @@
+--
+-- Landing Area table creation statement for [{{./conventions.landingAreaObjectDatastore}}].[{{./conventions.landingAreaObjectLocation}}].[{{./conventions.landingAreaObjectPrefix}}_{{lookupExtension extensions "originatingSystem"}}_{{name}}].
+--
+-- Generated from template '{{templateMetadata.name}}'.
+--
+
+DROP TABLE IF EXISTS [{{./conventions.landingAreaObjectDatastore}}].[{{./conventions.landingAreaObjectLocation}}].[{{./conventions.landingAreaObjectPrefix}}_{{lookupExtension extensions "originatingSystem"}}_{{name}}];
+
+CREATE TABLE [{{./conventions.landingAreaObjectDatastore}}].[{{./conventions.landingAreaObjectLocation}}].[{{./conventions.landingAreaObjectPrefix}}_{{lookupExtension extensions "originatingSystem"}}_{{name}}]
+(
+    [{{./conventions.inscriptionTimeStampColumn}}] [DATETIME2](7) NOT NULL DEFAULT (SYSDATETIME())
+   ,[{{./conventions.inscriptionRecordIdColumn}}] INT IDENTITY(1,1) NOT NULL
+   ,[{{./conventions.sourceTimestampColumn}}] [DATETIME2](7) NOT NULL
+   ,[{{./conventions.changeDataColumn}}] [CHAR](1) NOT NULL
+   ,[{{./conventions.auditTrailIdColumn}}] [INT] NOT NULL
+   ,[{{./conventions.checksumColumn}}] BINARY(16) NOT NULL
+{{#each dataItems}}
+   ,[{{~stringUpper name~}}] {{!-- Add any type conversions below --}}
+   {{~#stringCompare dataType "int"}}INT{{else}}
+   {{~#stringCompare dataType "date"}}DATETIME2(7){{else}}
+   {{~#stringCompare dataType "datetime"}}DATETIME2(7){{else}}
+   {{~#stringCompare dataType "decimal"}}NUMERIC(38,20){{else}}
+   {{~#stringCompare dataType "number"}}NUMERIC(38,20){{else}}
+   {{~#stringCompare dataType "numeric"}}NUMERIC(38,20){{else}}   
+   {{~#stringCompare dataType "varchar"}}NVARCHAR({{#if isPrimaryKey}}100{{else}}MAX{{/if}}){{else}}
+   {{/stringCompare}}{{/stringCompare}}{{/stringCompare}}{{/stringCompare}}{{/stringCompare}}{{/stringCompare}}{{/stringCompare}} NOT NULL
+{{/each}}
+);

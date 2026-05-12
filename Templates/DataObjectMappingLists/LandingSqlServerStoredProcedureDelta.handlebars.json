@@ -1,0 +1,20 @@
+{
+  "name": "Landing Sql Server Stored Procedure Delta",
+  "templateTarget": "DataObjectMappingList",
+  "templateType": "Handlebars",
+  "outputType": "DataLogistics",
+  "outputFileConvention": "Databases/{{./conventions.landingAreaObjectDatastore}}/{{./conventions.landingAreaObjectLocation}}//Stored Procedures/{{dataObjectMappings.0.targetDataObject.name}}.sql",
+  "classifications": [
+    {
+      "id": "4069bbf5-10bd-4b1f-a112-8d7ebd5c97a4",
+      "group": "Solution Area",
+      "classification": "Landing Area"
+    },
+    {
+      "id": "aed7703d-ab04-4a79-ac53-5abb170c4c1b",
+      "group": "Solution Layer",
+      "classification": "Staging Layer"
+    }
+  ],
+  "notes": "Staging Area Stored Procedure using a DIRECT control framework wrapper. \n This template prepares a data delta / differential using a full outer join and loads this into the landing area.\nThe resulting data set contains the data delta at the point of execution."
+}

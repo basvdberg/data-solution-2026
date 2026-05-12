@@ -1,0 +1,37 @@
+{
+  "id": "c832ddba-3f0b-47a1-8820-02d443cfceef",
+  "name": "Landing",
+  "notes": "Landing area connection.",
+  "classifications": [
+    {
+      "id": "",
+      "group": "Solution Area",
+      "classification": "Landing Area",
+      "notes": "The landing/staging area, a transient temporary storage area to store data for downstream processing. Part of the Staging Layer."
+    },
+    {
+      "id": "",
+      "group": "Solution Layer",
+      "classification": "Staging Layer",
+      "notes": "Staging Layer, the ingestion layer of the data solution."
+    }
+  ],
+  "extensions": [
+    {
+      "key": "location",
+      "value": "dbo"
+    },
+    {
+      "key": "connectionString",
+      "value": "Data Source=.;Initial Catalog=100_Landing_Area;Integrated Security=True;Trust Server Certificate=True;Encrypt=True;"
+    },
+    {
+      "key": "connectionType",
+      "value": "MSSQLDB"
+    },
+    {
+      "key": "datastore",
+      "value": "100_Landing_Area"
+    }
+  ]
+}

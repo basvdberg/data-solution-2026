@@ -1,0 +1,14 @@
+{
+  "name": "Readme",
+  "templateTarget": "NoMetadata",
+  "templateType": "Handlebars",
+  "outputType": "Documentation",
+  "outputFileConvention": "README.md",
+  "classifications": [
+    {
+      "id": "7ae84e95-a3ec-4bd7-bc1d-45fe1c9aa2aa",
+      "group": "Deployment",
+      "classification": "Deployment"
+    }
+  ]
+}

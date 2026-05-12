@@ -1,0 +1,468 @@
+{
+  "id": "49cfc68a-90e3-4388-a7e0-65a2f3bce292",
+  "name": "PSA_SAVEMORE_PERSONALISED_COSTING",
+  "dataObjectMappings": [
+    {
+      "id": "830be532-2283-4cff-8c4b-5a9f5dcd4012",
+      "name": "LND_SAVEMORE_PERSONALISED_COSTING to PSA_SAVEMORE_PERSONALISED_COSTING",
+      "sourceDataObjects": [
+        {
+          "id": "d9009bae-e5c6-4d60-a5d9-935b6e20df4b",
+          "name": "LND_SAVEMORE_PERSONALISED_COSTING",
+          "notes": "The landing table for the PERSONALISED COSTING data set of the SAVEMORE system.",
+          "dataConnection": {
+            "id": "c832ddba-3f0b-47a1-8820-02d443cfceef",
+            "name": "Landing",
+            "notes": "Landing area connection.",
+            "classifications": [
+              {
+                "id": "",
+                "group": "Solution Area",
+                "classification": "Landing Area",
+                "notes": "The landing/staging area, a transient temporary storage area to store data for downstream processing. Part of the Staging Layer."
+              },
+              {
+                "id": "",
+                "group": "Solution Layer",
+                "classification": "Staging Layer",
+                "notes": "Staging Layer, the ingestion layer of the data solution."
+              }
+            ],
+            "extensions": [
+              {
+                "key": "location",
+                "value": "dbo"
+              },
+              {
+                "key": "connectionString",
+                "value": "Data Source=.;Initial Catalog=100_Landing_Area;Integrated Security=True;Trust Server Certificate=True;Encrypt=True;"
+              },
+              {
+                "key": "connectionType",
+                "value": "MSSQLDB"
+              },
+              {
+                "key": "datastore",
+                "value": "100_Landing_Area"
+              }
+            ]
+          },
+          "dataItems": [
+            {
+              "id": "5e903001-0001-4905-892c-7e54bab2d217",
+              "name": "INSCRIPTION_TIMESTAMP",
+              "ordinalPosition": 1,
+              "dataType": "datetime2",
+              "numericScale": 7
+            },
+            {
+              "id": "5e903002-0002-4133-89a9-fba4a02b3f56",
+              "name": "INSCRIPTION_RECORD_ID",
+              "ordinalPosition": 2,
+              "dataType": "int"
+            },
+            {
+              "id": "5e903003-0003-46a8-bcbf-8c8568ac0e07",
+              "name": "SOURCE_TIMESTAMP",
+              "ordinalPosition": 3,
+              "dataType": "datetime2",
+              "numericScale": 7
+            },
+            {
+              "id": "5e903004-0004-44a8-b3d4-a8e595548393",
+              "name": "CHANGE_DATA_INDICATOR",
+              "ordinalPosition": 4,
+              "dataType": "varchar",
+              "characterLength": 100
+            },
+            {
+              "id": "5e903005-0005-4e72-af6b-ceff0437c198",
+              "name": "AUDIT_TRAIL_ID",
+              "ordinalPosition": 5,
+              "dataType": "int"
+            },
+            {
+              "id": "5e903006-0006-438d-8e61-c00ab7b7e3f4",
+              "name": "CHECKSUM",
+              "ordinalPosition": 6,
+              "dataType": "binary",
+              "characterLength": 16
+            },
+            {
+              "id": "6ba55dcb-5ed4-4a66-8d25-be8ee77cfe98",
+              "name": "MEMBER",
+              "ordinalPosition": 7,
+              "dataType": "int"
+            },
+            {
+              "id": "52362ebb-847d-47ec-a729-a86212ca6856",
+              "name": "SEGMENT",
+              "ordinalPosition": 8,
+              "dataType": "nvarchar",
+              "characterLength": 100
+            },
+            {
+              "id": "bd9d2dde-bdae-4908-8c5d-3f66788b9f67",
+              "name": "PLAN_CODE",
+              "ordinalPosition": 9,
+              "dataType": "nvarchar",
+              "characterLength": 100
+            },
+            {
+              "id": "66c0a642-6667-4204-8a49-38134a952655",
+              "name": "DATE_EFFECTIVE",
+              "ordinalPosition": 10,
+              "dataType": "datetime2",
+              "numericScale": 7
+            },
+            {
+              "id": "f095ed5b-8d41-4b2b-9796-6941411ab60d",
+              "name": "MONTHLY_COST",
+              "ordinalPosition": 11,
+              "dataType": "numeric",
+              "numericPrecision": 38,
+              "numericScale": 20
+            }
+          ],
+          "classifications": [
+            {
+              "id": "4069bbf5-10bd-4b1f-a112-8d7ebd5c97a4",
+              "group": "Solution Area",
+              "classification": "Landing Area",
+              "notes": "The landing/staging area, a transient temporary storage area to store data for downstream processing. Part of the Staging Layer."
+            },
+            {
+              "id": "aed7703d-ab04-4a79-ac53-5abb170c4c1b",
+              "group": "Solution Layer",
+              "classification": "Staging Layer",
+              "notes": "Staging Layer, the ingestion layer of the data solution."
+            }
+          ]
+        }
+      ],
+      "targetDataObject": {
+        "id": "a80d595d-4335-492d-abc2-b1356fd6660f",
+        "name": "PSA_SAVEMORE_PERSONALISED_COSTING",
+        "notes": "The persistent staging area table for the PERSONALISED COSTING data set of the SAVEMORE system.",
+        "dataConnection": {
+          "id": "6fe74289-e51a-42f7-85ba-3720dfdc3cda",
+          "name": "PSA",
+          "classifications": [
+            {
+              "id": "",
+              "group": "Solution Area",
+              "classification": "Persistent Staging Area",
+              "notes": "Persistent Staging Area (PSA), immutable historized data recorded as transactions. Part of the Staging Layer."
+            },
+            {
+              "id": "",
+              "group": "Solution Layer",
+              "classification": "Staging Layer",
+              "notes": "Staging Layer, the ingestion layer of the data solution."
+            }
+          ],
+          "extensions": [
+            {
+              "key": "location",
+              "value": "dbo"
+            },
+            {
+              "key": "connectionString",
+              "value": "Data Source=.;Initial Catalog=150_Persistent_Staging_Area;Integrated Security=True;Trust Server Certificate=True;Encrypt=True;"
+            },
+            {
+              "key": "connectionType",
+              "value": "MSSQLDB"
+            },
+            {
+              "key": "datastore",
+              "value": "150_Persistent_Staging_Area"
+            }
+          ]
+        },
+        "dataItems": [
+          {
+            "id": "95a03001-0001-4905-892c-7e54bab2d217",
+            "name": "INSCRIPTION_TIMESTAMP",
+            "ordinalPosition": 1,
+            "isPrimaryKey": true,
+            "dataType": "datetime2",
+            "numericScale": 7
+          },
+          {
+            "id": "95a03002-0002-4133-89a9-fba4a02b3f56",
+            "name": "INSCRIPTION_RECORD_ID",
+            "ordinalPosition": 2,
+            "isPrimaryKey": true,
+            "dataType": "int"
+          },
+          {
+            "id": "95a03003-0003-46a8-bcbf-8c8568ac0e07",
+            "name": "SOURCE_TIMESTAMP",
+            "ordinalPosition": 3,
+            "dataType": "datetime2",
+            "numericScale": 7
+          },
+          {
+            "id": "95a03004-0004-44a8-b3d4-a8e595548393",
+            "name": "CHANGE_DATA_INDICATOR",
+            "ordinalPosition": 4,
+            "dataType": "varchar",
+            "characterLength": 100
+          },
+          {
+            "id": "95a03005-0005-4e72-af6b-ceff0437c198",
+            "name": "AUDIT_TRAIL_ID",
+            "ordinalPosition": 5,
+            "dataType": "int"
+          },
+          {
+            "id": "95a03006-0006-438d-8e61-c00ab7b7e3f4",
+            "name": "CHECKSUM",
+            "ordinalPosition": 6,
+            "dataType": "binary",
+            "characterLength": 16
+          },
+          {
+            "id": "2d540c78-7fc2-4a28-835f-ef1a76c00ce6",
+            "name": "MEMBER",
+            "ordinalPosition": 7,
+            "isPrimaryKey": true,
+            "dataType": "int"
+          },
+          {
+            "id": "9bd9ddb7-3ee3-4d9e-9df1-1528ca16d6fe",
+            "name": "SEGMENT",
+            "ordinalPosition": 8,
+            "isPrimaryKey": true,
+            "dataType": "nvarchar",
+            "characterLength": 100
+          },
+          {
+            "id": "460a3c4c-b9a4-4f70-80ff-4362b01fda34",
+            "name": "PLAN_CODE",
+            "ordinalPosition": 9,
+            "isPrimaryKey": true,
+            "dataType": "nvarchar",
+            "characterLength": 100
+          },
+          {
+            "id": "7210acae-4cc0-46a6-a1e1-547c89014771",
+            "name": "DATE_EFFECTIVE",
+            "ordinalPosition": 10,
+            "isPrimaryKey": true,
+            "dataType": "datetime2",
+            "numericScale": 7
+          },
+          {
+            "id": "68f7187e-8cbb-4004-a717-d46d28896aba",
+            "name": "MONTHLY_COST",
+            "ordinalPosition": 11,
+            "dataType": "numeric",
+            "numericPrecision": 38,
+            "numericScale": 20
+          }
+        ],
+        "classifications": [
+          {
+            "id": "241e870d-82f1-4437-87bf-48d3e0e304cf",
+            "group": "Solution Area",
+            "classification": "Persistent Staging Area",
+            "notes": "Persistent Staging Area (PSA), immutable historized data recorded as transactions. Part of the Staging Layer."
+          },
+          {
+            "id": "aed7703d-ab04-4a79-ac53-5abb170c4c1b",
+            "group": "Solution Layer",
+            "classification": "Staging Layer",
+            "notes": "Staging Layer, the ingestion layer of the data solution."
+          }
+        ]
+      },
+      "dataItemMappings": [
+        {
+          "id": "295e6045-76f1-4c5f-949a-887c8d7bb3ce",
+          "name": "",
+          "sourceDataItems": [
+            {
+              "id": "6ba55dcb-5ed4-4a66-8d25-be8ee77cfe98",
+              "name": "MEMBER",
+              "ordinalPosition": 7,
+              "dataType": "int"
+            }
+          ],
+          "targetDataItem": {
+            "id": "2d540c78-7fc2-4a28-835f-ef1a76c00ce6",
+            "name": "MEMBER",
+            "ordinalPosition": 7,
+            "isPrimaryKey": true,
+            "dataType": "int"
+          }
+        },
+        {
+          "id": "c31eddc7-5889-4968-8294-7aa119e5bd1f",
+          "name": "",
+          "sourceDataItems": [
+            {
+              "id": "bd9d2dde-bdae-4908-8c5d-3f66788b9f67",
+              "name": "PLAN_CODE",
+              "ordinalPosition": 9,
+              "dataType": "nvarchar",
+              "characterLength": 100
+            }
+          ],
+          "targetDataItem": {
+            "id": "460a3c4c-b9a4-4f70-80ff-4362b01fda34",
+            "name": "PLAN_CODE",
+            "ordinalPosition": 9,
+            "isPrimaryKey": true,
+            "dataType": "nvarchar",
+            "characterLength": 100
+          }
+        },
+        {
+          "id": "e8592db8-b93c-4363-a3f1-484865696042",
+          "name": "",
+          "sourceDataItems": [
+            {
+              "id": "66c0a642-6667-4204-8a49-38134a952655",
+              "name": "DATE_EFFECTIVE",
+              "ordinalPosition": 10,
+              "dataType": "datetime2",
+              "numericScale": 7
+            }
+          ],
+          "targetDataItem": {
+            "id": "7210acae-4cc0-46a6-a1e1-547c89014771",
+            "name": "DATE_EFFECTIVE",
+            "ordinalPosition": 10,
+            "isPrimaryKey": true,
+            "dataType": "datetime2",
+            "numericScale": 7
+          }
+        },
+        {
+          "id": "c80556dc-a067-4108-8527-e4a20eebbb1d",
+          "name": "",
+          "sourceDataItems": [
+            {
+              "id": "f095ed5b-8d41-4b2b-9796-6941411ab60d",
+              "name": "MONTHLY_COST",
+              "ordinalPosition": 11,
+              "dataType": "numeric",
+              "numericPrecision": 38,
+              "numericScale": 20
+            }
+          ],
+          "targetDataItem": {
+            "id": "68f7187e-8cbb-4004-a717-d46d28896aba",
+            "name": "MONTHLY_COST",
+            "ordinalPosition": 11,
+            "dataType": "numeric",
+            "numericPrecision": 38,
+            "numericScale": 20
+          }
+        },
+        {
+          "id": "cbfa4f8f-296b-4a58-8a06-346801463609",
+          "name": "",
+          "sourceDataItems": [
+            {
+              "id": "52362ebb-847d-47ec-a729-a86212ca6856",
+              "name": "SEGMENT",
+              "ordinalPosition": 8,
+              "dataType": "nvarchar",
+              "characterLength": 100
+            }
+          ],
+          "targetDataItem": {
+            "id": "9bd9ddb7-3ee3-4d9e-9df1-1528ca16d6fe",
+            "name": "SEGMENT",
+            "ordinalPosition": 8,
+            "isPrimaryKey": true,
+            "dataType": "nvarchar",
+            "characterLength": 100
+          }
+        }
+      ],
+      "businessKeyDefinitions": [
+        {
+          "id": "dd4911e2-d135-46a9-aa31-e1449e144d99",
+          "name": "LND_SAVEMORE_PERSONALISED_COSTING to PSA_SAVEMORE_PERSONALISED_COSTING for SAVEMORE_PERSONALISED_COSTING_SK",
+          "surrogateKey": "SAVEMORE_PERSONALISED_COSTING_SK",
+          "businessKeyComponents": [
+            {
+              "dataItem": {
+                "id": "6ba55dcb-5ed4-4a66-8d25-be8ee77cfe98",
+                "name": "MEMBER",
+                "ordinalPosition": 7,
+                "dataType": "int"
+              }
+            },
+            {
+              "ordinalPosition": 1,
+              "dataItem": {
+                "id": "9bd9ddb7-3ee3-4d9e-9df1-1528ca16d6fe",
+                "name": "SEGMENT",
+                "ordinalPosition": 8,
+                "isPrimaryKey": true,
+                "dataType": "nvarchar",
+                "characterLength": 100
+              }
+            },
+            {
+              "ordinalPosition": 2,
+              "dataItem": {
+                "id": "bd9d2dde-bdae-4908-8c5d-3f66788b9f67",
+                "name": "PLAN_CODE",
+                "ordinalPosition": 9,
+                "dataType": "nvarchar",
+                "characterLength": 100
+              }
+            },
+            {
+              "ordinalPosition": 3,
+              "dataItem": {
+                "id": "66c0a642-6667-4204-8a49-38134a952655",
+                "name": "DATE_EFFECTIVE",
+                "ordinalPosition": 10,
+                "dataType": "datetime2",
+                "numericScale": 7
+              }
+            }
+          ]
+        }
+      ],
+      "extensions": [
+        {
+          "key": "hasControlFramework",
+          "value": "true",
+          "notes": "Integration with Control Framework"
+        },
+        {
+          "key": "hasTestingFramework",
+          "value": "true",
+          "notes": "Integration with Testing Framework"
+        }
+      ]
+    }
+  ],
+  "classifications": [
+    {
+      "id": "241e870d-82f1-4437-87bf-48d3e0e304cf",
+      "group": "Solution Area",
+      "classification": "Persistent Staging Area",
+      "notes": "Persistent Staging Area (PSA), immutable historized data recorded as transactions. Part of the Staging Layer."
+    },
+    {
+      "id": "aed7703d-ab04-4a79-ac53-5abb170c4c1b",
+      "group": "Solution Layer",
+      "classification": "Staging Layer",
+      "notes": "Staging Layer, the ingestion layer of the data solution."
+    }
+  ],
+  "templateMappings": [
+    {
+      "templateFileName": "/DataObjectMappingLists/PersistentStagingSqlServerStoredProcedureDelta.handlebars"
+    }
+  ]
+}

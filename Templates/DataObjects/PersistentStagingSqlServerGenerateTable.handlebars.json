@@ -1,0 +1,20 @@
+{
+  "name": "Persistent Staging Area Create Table",
+  "templateTarget": "DataObject",
+  "templateType": "Handlebars",
+  "outputType": "DataDefinition",
+  "outputFileConvention": "Databases/{{./conventions.persistentStagingAreaObjectDatastore}}/{{./conventions.persistentStagingAreaObjectLocation}}/Tables/{{./conventions.persistentStagingAreaObjectPrefix}}_{{lookupExtension extensions \u0022originatingSystem\u0022}}_{{name}}.sql",
+  "classifications": [
+    {
+      "id": "241e870d-82f1-4437-87bf-48d3e0e304cf",
+      "group": "Solution Area",
+      "classification": "Persistent Staging Area"
+    },
+    {
+      "id": "aed7703d-ab04-4a79-ac53-5abb170c4c1b",
+      "group": "Solution Layer",
+      "classification": "Staging Layer"
+    }
+  ],
+  "notes": "Persistent Staging Area table creation (DDL)."
+}

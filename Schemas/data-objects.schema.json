@@ -1,0 +1,226 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/data-engineering-in-2026/data-objects.schema.json",
+  "title": "Data Object",
+  "description": "Definition of a single Data Object (table, file, or query) with its connection, columns, classifications, extensions, and template mappings used for code generation. One Data Object is stored per file. Custom fields are allowed at every level so consumers can extend the format.",
+  "type": "object",
+  "required": [
+    "name"
+  ],
+  "properties": {
+    "id": {
+      "title": "Id",
+      "description": "Optional unique identifier (UUID) for the Data Object.",
+      "type": "string",
+      "format": "uuid"
+    },
+    "name": {
+      "title": "Name",
+      "description": "Mandatory unique name of the Data Object (table or file).",
+      "type": "string",
+      "minLength": 1
+    },
+    "notes": {
+      "title": "Notes",
+      "description": "Free-form description or notes about the Data Object.",
+      "type": "string"
+    },
+    "dataConnection": {
+      "$ref": "#/definitions/dataConnection"
+    },
+    "dataItems": {
+      "title": "Data Items",
+      "description": "Collection of columns / attributes that make up the Data Object.",
+      "type": "array",
+      "items": { "$ref": "#/definitions/dataItem" }
+    },
+    "queryCode": {
+      "title": "Query Code",
+      "description": "Optional query body when this Data Object is sourced from a query rather than a physical table.",
+      "type": "string"
+    },
+    "queryLanguage": {
+      "title": "Query Language",
+      "description": "Language of queryCode (e.g. SQL).",
+      "type": "string"
+    },
+    "classifications": {
+      "title": "Classifications",
+      "description": "Classification tags applied to the Data Object.",
+      "type": "array",
+      "items": { "$ref": "#/definitions/classification" },
+      "uniqueItems": true
+    },
+    "extensions": {
+      "title": "Extensions",
+      "description": "Free-form key/value pairs for additional context.",
+      "type": "array",
+      "items": { "$ref": "#/definitions/extension" },
+      "uniqueItems": true
+    },
+    "templateMappings": {
+      "title": "Template Mappings",
+      "description": "Code-generation templates associated with this Data Object.",
+      "type": "array",
+      "items": { "$ref": "#/definitions/templateMapping" }
+    }
+  },
+  "definitions": {
+    "dataConnection": {
+      "title": "Data Connection",
+      "description": "Connectivity details for a Data Object.",
+      "type": "object",
+      "required": [ "name" ],
+      "properties": {
+        "id": {
+          "title": "Id",
+          "description": "Optional unique identifier. May be empty.",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "description": "Connection token, key, or string identifying the connection.",
+          "type": "string",
+          "minLength": 1
+        },
+        "classifications": {
+          "title": "Classifications",
+          "type": "array",
+          "items": { "$ref": "#/definitions/classification" },
+          "uniqueItems": true
+        },
+        "extensions": {
+          "title": "Extensions",
+          "type": "array",
+          "items": { "$ref": "#/definitions/extension" },
+          "uniqueItems": true
+        }
+      }
+    },
+    "dataItem": {
+      "title": "Data Item",
+      "description": "An individual column or attribute of a Data Object.",
+      "type": "object",
+      "required": [ "name" ],
+      "properties": {
+        "id": {
+          "title": "Id",
+          "description": "Optional unique identifier for the Data Item.",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "description": "Unique name of the column / attribute.",
+          "type": "string",
+          "minLength": 1
+        },
+        "dataType": {
+          "title": "Data Type",
+          "description": "Data type of the Data Item (e.g. int, varchar, date). See follow-ups.md for the planned controlled vocabulary.",
+          "type": "string"
+        },
+        "ordinalPosition": {
+          "title": "Ordinal Position",
+          "description": "Position of the column within the Data Object (1-based).",
+          "type": "integer",
+          "minimum": 1
+        },
+        "characterLength": {
+          "title": "Character Length",
+          "description": "Length for character/text types.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "numericPrecision": {
+          "title": "Numeric Precision",
+          "description": "Total number of digits for numeric types.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "numericScale": {
+          "title": "Numeric Scale",
+          "description": "Number of digits to the right of the decimal point.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "isPrimaryKey": {
+          "title": "Is Primary Key",
+          "description": "Indicates whether this column is part of the primary key.",
+          "type": "boolean"
+        }
+      }
+    },
+    "classification": {
+      "title": "Classification",
+      "description": "A tag describing the Data Object, grouped under a classification category.",
+      "type": "object",
+      "required": [ "classification" ],
+      "properties": {
+        "id": {
+          "title": "Id",
+          "description": "Optional unique identifier. May be empty.",
+          "type": "string"
+        },
+        "group": {
+          "title": "Group",
+          "description": "Logical grouping for the classification (e.g. 'Solution Layer', 'Solution Area').",
+          "type": "string"
+        },
+        "classification": {
+          "title": "Classification",
+          "description": "The classification value itself.",
+          "type": "string",
+          "minLength": 1
+        },
+        "notes": {
+          "title": "Notes",
+          "description": "Optional free-form notes for the classification.",
+          "type": "string"
+        }
+      }
+    },
+    "extension": {
+      "title": "Extension",
+      "description": "Free-form key/value pair for additional metadata.",
+      "type": "object",
+      "required": [ "key" ],
+      "properties": {
+        "id": {
+          "title": "Id",
+          "description": "Optional unique identifier.",
+          "type": "string"
+        },
+        "key": {
+          "title": "Key",
+          "description": "The key of the key/value pair.",
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "title": "Value",
+          "description": "The value of the key/value pair.",
+          "type": "string"
+        },
+        "notes": {
+          "title": "Notes",
+          "description": "Optional free-form notes for the extension.",
+          "type": "string"
+        }
+      }
+    },
+    "templateMapping": {
+      "title": "Template Mapping",
+      "description": "Association of a code-generation template with the Data Object.",
+      "type": "object",
+      "required": [ "templateFileName" ],
+      "properties": {
+        "templateFileName": {
+          "title": "Template File Name",
+          "description": "Path or filename of the template (e.g. Handlebars file) used for code generation.",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

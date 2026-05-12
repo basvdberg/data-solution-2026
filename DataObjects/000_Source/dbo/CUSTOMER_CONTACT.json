@@ -1,0 +1,89 @@
+{
+  "id": "8e10e555-e103-4a42-8d5a-af0beb82f15d",
+  "name": "CUSTOMER_CONTACT",
+  "notes": "Customer contact information, specifically the best number to contact the customer.",
+  "dataConnection": {
+    "id": "b9afa559-3a59-4404-ae0f-0c33ef9c7515",
+    "name": "Source",
+    "classifications": [
+      {
+        "id": "",
+        "group": "Solution Layer",
+        "classification": "Operational System",
+        "notes": "\u0027Source\u0027 layer, representing the operational systems or interfaces that provide data to the solution."
+      }
+    ],
+    "extensions": [
+      {
+        "key": "location",
+        "value": "dbo"
+      },
+      {
+        "key": "connectionString",
+        "value": "Data Source=.;Initial Catalog=000_Source;Integrated Security=True;Trust Server Certificate=True"
+      },
+      {
+        "key": "connectionType",
+        "value": "MSSQLDB"
+      },
+      {
+        "key": "datastore",
+        "value": "000_Source"
+      }
+    ]
+  },
+  "dataItems": [
+    {
+      "id": "a3333333-3333-3333-3333-333333333333",
+      "name": "CustomerID",
+      "ordinalPosition": 1,
+      "isPrimaryKey": true,
+      "dataType": "int"
+    },
+    {
+      "id": "58dad5e0-e601-40f3-a866-4e6ccf237c80",
+      "name": "Contact_Number",
+      "ordinalPosition": 2,
+      "isPrimaryKey": true,
+      "dataType": "int"
+    },
+    {
+      "id": "d727fca7-3e58-43c0-1111-111111111111",
+      "name": "Valid_From",
+      "ordinalPosition": 3,
+      "dataType": "date",
+      "numericScale": 0
+    }
+  ],
+  "classifications": [
+    {
+      "id": "3cb478a3-f7cb-436d-8cba-171988808add",
+      "group": "Solution Layer",
+      "classification": "Operational System",
+      "notes": "\u0027Source\u0027 layer, representing the operational systems or interfaces that provide data to the solution."
+    },
+    {
+      "id": "43b6ce73-62ba-43a5-a330-3bf9440599e4",
+      "group": "Solution Area",
+      "classification": "Operational System"
+    }
+  ],
+  "extensions": [
+    {
+      "key": "originatingSystem",
+      "value": "SAVEMORE",
+      "notes": "SaveMore source system"
+    }
+  ],
+  "templateMappings": [
+    {
+      "templateFileName": "/DataObjects/SourceSqlServerGenerateTable.handlebars"
+    },
+    {
+      "templateFileName": "/DataObjects/LandingSqlServerGenerateTable.handlebars"
+    },
+    {
+      "templateFileName": "/DataObjects/PersistentStagingSqlServerGenerateTable.handlebars"
+    }
+  ]
+}

@@ -1,0 +1,137 @@
+{{#each dataObjectMappings~}}
+CREATE OR ALTER PROCEDURE [SP_{{targetDataObject.name}}] @{{../conventions.auditTrailIdColumn}} INT = 0 --Applying 0 as default value.
+AS
+
+--
+-- Persistent Staging Area Stored Procedure for {{targetDataObject.name}} using a DIRECT control framework wrapper.
+-- This template expects a full copy of incoming data to be available in the source object e.g. the source or landing area, and performs a full outer join to detects data changes.
+--
+-- Generated from template '{{../templateMetadata.name}}'.
+--
+
+WITH STG_CTE AS
+(
+SELECT
+{{#each dataItemMappings}}
+   [{{sourceDataItems.0.name}}] AS [{{targetDataItem.name}}],
+{{/each}}
+   HASHBYTES('MD5',
+{{#each dataItemMappings}}
+      ISNULL(RTRIM(CONVERT(NVARCHAR(100),[{{sourceDataItems.0.name}}])), 'N/A') + '#~!'{{#unless @last}} +{{/unless}}
+{{/each}}
+   ) AS [{{../conventions.checksumColumn}}]
+FROM [{{lookupExtension sourceDataObjects.0.dataConnection.extensions "datastore"}}].[{{lookupExtension sourceDataObjects.0.dataConnection.extensions "location"}}].[{{sourceDataObjects.0.name}}]
+),
+PSA_CTE AS
+(
+    -- Query the most recently arrived PSA record which is not logically deleted for comparison.
+    SELECT
+        A.[{{../conventions.checksumColumn}}] AS [{{../conventions.checksumColumn}}],
+        {{#each dataItemMappings}}
+        A.[{{targetDataItem.name}}] AS [{{targetDataItem.name}}]{{#unless @last}},{{/unless}}
+        {{/each}}
+    FROM [{{lookupExtension targetDataObject.dataConnection.extensions "datastore"}}].[{{lookupExtension targetDataObject.dataConnection.extensions "location"}}].[{{targetDataObject.name}}] A
+    JOIN
+    (
+    SELECT {{#each businessKeyDefinitions}}  {{#each businessKeyComponents}}
+        B.[{{dataItem.name}}], {{/each}} {{/each}}
+        [{{../conventions.inscriptionTimeStampColumn}}] AS [MAX_{{../conventions.inscriptionTimeStampColumn}}],
+        MAX([{{../conventions.inscriptionRecordIdColumn}}]) OVER
+        (
+            PARTITION BY            {{#each businessKeyDefinitions}}  {{#each businessKeyComponents}}
+                [{{dataItem.name}}], {{/each}} {{/each}}
+                [{{../conventions.inscriptionTimeStampColumn}}]
+            ORDER BY            {{#each businessKeyDefinitions}}  {{#each businessKeyComponents}}
+                [{{dataItem.name}}], {{/each}} {{/each}}
+                [{{../conventions.inscriptionTimeStampColumn}}]
+         ) AS [MAX_{{../conventions.inscriptionRecordIdColumn}}],
+         ROW_NUMBER() OVER
+         (
+            PARTITION BY              {{#each businessKeyDefinitions}}  {{#each businessKeyComponents}}
+                [{{dataItem.name}}]{{#unless @last}},{{/unless}} {{/each}} {{/each}}
+            ORDER BY                {{#each businessKeyDefinitions}}  {{#each businessKeyComponents}}
+                [{{dataItem.name}}], {{/each}} {{/each}}
+                {{../conventions.inscriptionTimeStampColumn}} DESC
+         ) AS MAX_ROWNUM
+        FROM [{{lookupExtension targetDataObject.dataConnection.extensions "datastore"}}].[{{lookupExtension targetDataObject.dataConnection.extensions "location"}}].[{{targetDataObject.name}}] B
+    ) C ON         {{#each businessKeyDefinitions}}  {{#each businessKeyComponents}}
+        A.[{{dataItem.name}}] = C.[{{dataItem.name}}] AND{{/each}} {{/each}}
+        A.[{{../conventions.inscriptionRecordIdColumn}}] = C.[MAX_{{../conventions.inscriptionRecordIdColumn}}] AND
+        A.[{{../conventions.inscriptionTimeStampColumn}}] = C.[MAX_{{../conventions.inscriptionTimeStampColumn}}] AND
+        1 = C.[MAX_ROWNUM]
+    WHERE {{../conventions.changeDataColumn}} != 'D'
+)
+INSERT INTO [{{lookupExtension targetDataObject.dataConnection.extensions "datastore"}}].[{{lookupExtension targetDataObject.dataConnection.extensions "location"}}].[{{targetDataObject.name}}]
+(
+   [{{../conventions.inscriptionTimeStampColumn}}],
+   [{{../conventions.inscriptionRecordIdColumn}}],
+   [{{../conventions.sourceTimestampColumn}}],
+   [{{../conventions.changeDataColumn}}],
+   [{{../conventions.auditTrailIdColumn}}],
+   [{{../conventions.checksumColumn}}],
+{{#each dataItemMappings}}
+   [{{targetDataItem.name}}]{{#unless @last}},{{/unless}}
+{{/each}}
+)
+SELECT
+   -- Framework columns
+   SYSDATETIME() [{{../conventions.inscriptionTimeStampColumn}}],
+   ROW_NUMBER() OVER
+      (ORDER BY
+{{#each businessKeyDefinitions}}{{#each businessKeyComponents}}CASE WHEN STG_CTE.[{{dataItem.name}}] IS NULL THEN PSA_CTE.[{{dataItem.name}}] ELSE STG_CTE.[{{dataItem.name}}] END{{#unless @last}},{{/unless}}{{/each}}{{/each}}
+      ) AS [{{../conventions.inscriptionRecordIdColumn}}],
+   SYSDATETIME() [{{../conventions.sourceTimestampColumn}}],
+   CASE
+      WHEN STG_CTE.{{#each businessKeyDefinitions}}{{#each businessKeyComponents}}{{#if @first}}[{{stringUpper dataItem.name}}]{{/if}}{{/each}}{{/each}} IS NULL THEN 'D'
+      WHEN PSA_CTE.{{#each businessKeyDefinitions}}{{#each businessKeyComponents}}{{#if @first}}[{{stringUpper dataItem.name}}]{{/if}}{{/each}}{{/each}} IS NULL THEN 'C' --Inserts are also C
+      WHEN STG_CTE.{{#each businessKeyDefinitions}}{{#each businessKeyComponents}}{{#if @first}}[{{stringUpper dataItem.name}}]{{/if}}{{/each}}{{/each}}  IS NOT NULL
+         AND PSA_CTE.{{#each businessKeyDefinitions}}{{#each businessKeyComponents}}{{#if @first}}[{{stringUpper dataItem.name}}]{{/if}}{{/each}}{{/each}} IS NOT NULL
+         AND STG_CTE.[{{../conventions.checksumColumn}}]  != PSA_CTE.[{{../conventions.checksumColumn}}] THEN 'C' ELSE 'No Change'
+   END AS {{../conventions.changeDataColumn}},
+   @AUDIT_TRAIL_ID AS [{{../conventions.auditTrailIdColumn}}],
+   CASE
+     WHEN STG_CTE.{{#each businessKeyDefinitions}}{{#each businessKeyComponents}}{{#if @first}}[{{stringUpper dataItem.name}}]{{/if}}{{/each}}{{/each}} IS NULL
+     THEN PSA_CTE.[{{../conventions.checksumColumn}}]
+     ELSE STG_CTE.[{{../conventions.checksumColumn}}]
+   END AS [{{../conventions.checksumColumn}}],
+   -- Regular columns
+{{#each dataItemMappings}}
+   CASE
+     WHEN STG_CTE.{{#each ../businessKeyDefinitions}}{{#each businessKeyComponents}}{{#if @first}}[{{dataItem.name}}]{{/if}}{{/each}}{{/each}} IS NULL
+     THEN PSA_CTE.[{{targetDataItem.name}}]
+     ELSE STG_CTE.[{{sourceDataItems.0.name}}]
+   END AS [{{targetDataItem.name}}]{{#unless @last}},{{/unless}}{{/each}}
+FROM STG_CTE
+FULL OUTER JOIN PSA_CTE ON {{#each businessKeyDefinitions}}  {{#each businessKeyComponents}}
+    PSA_CTE.[{{stringUpper dataItem.name}}] = STG_CTE.[{{stringUpper dataItem.name}}]{{#unless @last}} AND{{/unless}}{{/each}} {{/each}}
+WHERE
+(
+   CASE
+      WHEN {{#each businessKeyDefinitions}}{{#each businessKeyComponents}}{{#if @first}}STG_CTE.[{{stringUpper dataItem.name}}] IS NULL THEN 'D'{{/if}}{{/each}}{{/each}}
+      WHEN {{#each businessKeyDefinitions}}{{#each businessKeyComponents}}{{#if @first}}PSA_CTE.[{{stringUpper dataItem.name}}] IS NULL THEN 'C'{{/if}}{{/each}}{{/each}}
+      WHEN {{#each businessKeyDefinitions}}{{#each businessKeyComponents}}{{#if @first}}PSA_CTE.[{{stringUpper dataItem.name}}] IS NOT NULL AND PSA_CTE.[{{stringUpper dataItem.name}}] IS NOT NULL AND STG_CTE.[{{../../../conventions.checksumColumn}}] != PSA_CTE.[{{../../../conventions.checksumColumn}}] THEN 'C'{{/if}}{{/each}}{{/each}}
+      ELSE 'No Change'
+   END
+) != 'No Change'
+GO
+
+{{!--  Integration with the control framework --}}
+{{#each extensions}}
+{{#stringCompare key "hasControlFramework"}}
+/*
+-- Integration with the control framework, module registration
+EXEC [{{../../../conventions.controlFrameworkDatastore}}].[{{../../../conventions.controlFrameworkLocation}}].[RegisterModule]
+ @ModuleCode = 'm_{{../../targetDataObject.name}}'
+,@ModuleAreaCode = '{{../../../conventions.persistentStagingAreaObjectPrefix}}'
+,@Executable = 'EXEC [{{lookupExtension ../../targetDataObject.dataConnection.extensions "datastore"}}].[{{lookupExtension ../../targetDataObject.dataConnection.extensions "location"}}].[SP_{{../../targetDataObject.name}}] @AUDIT_TRAIL_ID = @ModuleInstanceId'
+,@ModuleDescription = 'Persistent Staging Area process for [{{../../sourceDataObjects.0.name}}]'
+,@ModuleSourceDataObject = '[{{lookupExtension ../../sourceDataObjects.0.dataConnection.extensions "datastore"}}].[{{lookupExtension ../../sourceDataObjects.0.dataConnection.extensions "location"}}].[{{../../sourceDataObjects.0.name}}]'
+,@ModuleTargetDataObject = '[{{lookupExtension ../../targetDataObject.dataConnection.extensions "datastore"}}].[{{lookupExtension ../../targetDataObject.dataConnection.extensions "location"}}].[{{../../targetDataObject.name}}]'
+
+-- Run the process
+EXEC [{{../../../conventions.controlFrameworkDatastore}}].[{{../../../conventions.controlFrameworkLocation}}].[RunModule]
+ @ModuleCode = 'm_{{../../targetDataObject.name}}'
+,@ModuleInstanceIdColumnName='AUDIT_TRAIL_ID'
+*/
+{{/stringCompare}}{{/each}}
+{{/each}}

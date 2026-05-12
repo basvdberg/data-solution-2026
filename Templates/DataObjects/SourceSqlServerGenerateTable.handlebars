@@ -1,0 +1,20 @@
+--
+-- Source table creation statement for [{{lookupExtension dataConnection.extensions "datastore"}}].[{{lookupExtension dataConnection.extensions "location"}}].[{{name}}].
+--
+-- Generated from template '{{templateMetadata.name}}'.
+--
+
+DROP TABLE IF EXISTS [{{lookupExtension dataConnection.extensions "datastore"}}].[{{lookupExtension dataConnection.extensions "location"}}].[{{name}}];
+
+CREATE TABLE [{{lookupExtension dataConnection.extensions "datastore"}}].[{{lookupExtension dataConnection.extensions "location"}}].[{{name}}]
+(
+{{#each dataItems}}
+  [{{name}}] {{stringUpper dataType}}{{#if characterLength}}({{characterLength}}){{/if}}{{#if numericPrecision}}({{numericPrecision}},{{numericScale}}){{/if}},
+{{/each}}
+  CONSTRAINT [PK_{{name}}] PRIMARY KEY CLUSTERED
+    (
+{{#each dataItems}}
+{{#if isPrimaryKey}}      {{#if @index}},{{/if}}[{{name}}]
+{{/if}}
+{{/each}}    )
+);

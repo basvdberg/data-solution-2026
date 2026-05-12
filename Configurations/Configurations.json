@@ -1,0 +1,10 @@
+{
+  "classificationStoragePath": "/Classifications",
+  "conventionStoragePath": "/Conventions",
+  "connectionStoragePath": "/Connections",
+  "dataObjectStoragePath": "/DataObjects",
+  "dataObjectMappingStoragePath": "/DataObjectMappings",
+  "settingsStoragePath": "/Settings",
+  "templateStoragePath": "/Templates",
+  "outputStoragePath": "/Output"
+}

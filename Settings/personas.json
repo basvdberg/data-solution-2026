@@ -1,0 +1,152 @@
+[
+  {
+    "id": "business-user",
+    "name": "Business User",
+    "description": "Simplified view for conceptual modeling and data classification.",
+    "icon": "BusinessCenter",
+    "visiblePageAddresses": [
+      "/dataobjects",
+      "/graph",
+      "/classifications"
+    ],
+    "graphPreferences": {
+      "availableGraphModes": [
+        "DirectedGraph"
+      ],
+      "defaultGraphMode": "DirectedGraph",
+      "directedGraphNodeStyle": "StickyNote",
+      "modelNodeStyle": "StickyNote",
+      "dataItemStyle": "BulletList",
+      "layoutAlgorithm": "Force",
+      "animatedEdges": false,
+      "showConventionDataItems": false,
+      "classificationNodeStyles": []
+    },
+    "showMetadataTabs": false,
+    "isBuiltIn": true,
+    "sortOrder": 1
+  },
+  {
+    "id": "data-modeler",
+    "name": "Data Modeler",
+    "description": "Full modeling capabilities with entity-relationship focus.",
+    "icon": "Schema",
+    "visiblePageAddresses": [
+      "/dataobjects",
+      "/connections",
+      "/graph",
+      "/conventions",
+      "/classifications",
+      "/dataobjectmappings"
+    ],
+    "graphPreferences": {
+      "availableGraphModes": [
+        "Model"
+      ],
+      "defaultGraphMode": "Model",
+      "directedGraphNodeStyle": "Default",
+      "modelNodeStyle": "Default",
+      "dataItemStyle": "SeparateNode",
+      "layoutAlgorithm": "Elk",
+      "animatedEdges": true,
+      "showConventionDataItems": true,
+      "classificationNodeStyles": [
+        {
+          "classification": "Source",
+          "nodeStyle": "Default",
+          "headerColor": "#5b7db1"
+        },
+        {
+          "classification": "Landing",
+          "nodeStyle": "Default",
+          "headerColor": "#5b7db1"
+        },
+        {
+          "classification": "Persistent Staging Area",
+          "nodeStyle": "Default",
+          "headerColor": "#5b7db1"
+        },
+        {
+          "classification": "Operational System",
+          "nodeStyle": "Default",
+          "headerColor": "#5b7db1"
+        },
+        {
+          "classification": "Landing Area",
+          "nodeStyle": "Default",
+          "headerColor": "#5b7db1"
+        }
+      ]
+    },
+    "showMetadataTabs": false,
+    "isBuiltIn": true,
+    "sortOrder": 2
+  },
+  {
+    "id": "developer",
+    "name": "Developer",
+    "description": "Full access to all pages, code generation, and ETL mapping.",
+    "icon": "Code",
+    "visiblePageAddresses": [
+      "/generator",
+      "/logs",
+      "/dataobjects",
+      "/files",
+      "/preview",
+      "/connections",
+      "/graph",
+      "/conventions",
+      "/classifications",
+      "/dataobjectmappings",
+      "/templates"
+    ],
+    "graphPreferences": {
+      "availableGraphModes": [
+        "DirectedGraph",
+        "Model"
+      ],
+      "defaultGraphMode": "DirectedGraph",
+      "directedGraphNodeStyle": "Default",
+      "modelNodeStyle": "Default",
+      "dataItemStyle": "SeparateNode",
+      "layoutAlgorithm": "Dagre",
+      "animatedEdges": true,
+      "showConventionDataItems": true,
+      "classificationNodeStyles": [
+        {
+          "classification": "Source",
+          "nodeStyle": "Default",
+          "headerColor": "#6E8BA5",
+          "bodyColor": "#8FA8BE"
+        },
+        {
+          "classification": "Landing",
+          "nodeStyle": "Default",
+          "headerColor": "#CC7020",
+          "bodyColor": "#F08C38"
+        },
+        {
+          "classification": "Persistent Staging Area",
+          "nodeStyle": "Default",
+          "headerColor": "#8848B0",
+          "bodyColor": "#A862D0"
+        },
+        {
+          "classification": "Operational System",
+          "nodeStyle": "Default",
+          "headerColor": "#6E8BA5",
+          "bodyColor": "#8FA8BE"
+        },
+        {
+          "classification": "Landing Area",
+          "nodeStyle": "Default",
+          "headerColor": "#CC7020",
+          "bodyColor": "#F08C38"
+        }
+      ]
+    },
+    "showMetadataTabs": true,
+    "isBuiltIn": true,
+    "sortOrder": 3
+  }
+]

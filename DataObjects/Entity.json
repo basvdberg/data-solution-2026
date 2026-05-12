@@ -1,0 +1,63 @@
+{
+  "id": "6bae16a9-26b4-43bd-b782-23d31760a6ad",
+  "name": "Entity",
+  "notes": "Logical business data model entity with definition and description.",
+  "dataConnection": {
+    "id": "48b83b6e-4021-4552-98d4-768e873807af",
+    "name": "Sandbox",
+    "extensions": [
+      {
+        "key": "location",
+        "value": "dbo"
+      },
+      {
+        "key": "connectionString",
+        "value": "Data Source=.;Initial Catalog=Sandbox;Integrated Security=True;Trust Server Certificate=True;Encrypt=True;"
+      },
+      {
+        "key": "connectionType",
+        "value": "MSSQLDB"
+      },
+      {
+        "key": "datastore",
+        "value": "Sandbox"
+      }
+    ]
+  },
+  "dataItems": [
+    {
+      "id": "9c629f12-4956-424d-b6e4-e721fef8c60e",
+      "name": "Definition",
+      "notes": "Formal definition of the entity.",
+      "ordinalPosition": 1,
+      "dataType": "nvarchar",
+      "characterLength": 4000
+    },
+    {
+      "id": "1ee674c5-7329-439c-98f6-fca942c45815",
+      "name": "Description",
+      "notes": "Description of the entity.",
+      "ordinalPosition": 2,
+      "dataType": "nvarchar",
+      "characterLength": 4000
+    }
+  ],
+  "classifications": [
+    {
+      "id": "6860f248-c3fd-451a-ad12-201c700822ad",
+      "group": "Model Layer",
+      "classification": "Logical Model",
+      "notes": "Logical Data Model for entities and attributes."
+    },
+    {
+      "id": "e9eee2e0-9df2-453d-b4ec-61e2cad7bbd7",
+      "group": "System of Record",
+      "classification": "Business Glossary"
+    },
+    {
+      "id": "fa5f2c09-f56b-486e-9450-5eda54542bb4",
+      "group": "System of Reference",
+      "classification": "Business Glossary"
+    }
+  ]
+}

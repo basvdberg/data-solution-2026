@@ -1,0 +1,93 @@
+# Project documentation
+
+## Data Objects
+
+The overview of data object definitions. These are files or tables that act as data stores.
+
+{{!-- Source objects --}}
+{{#each dataObjects}}
+{{~#if @first}}### Operational system data sets (sources)
+
+> [!NOTE]
+> This section covers all data objects that have the 'Source' classification.{{/if}}{{#hasClassification classifications "Operational System"}}
+
+**{{name}}**
+
+* Data Definition code location: `.\\{{../../conventions.sourceObjectDatastore}}\Databases\\{{../../conventions.sourceObjectLocation}}\Tables\\{{name}}.sql`
+{{#if notes}}* {{notes}}{{~/if}}{{/hasClassification~}}
+{{/each}}
+{{!-- Spacer --}}
+{{#if false}}
+
+{{else}}
+
+
+{{/if}}
+{{!-- Landing objects --}}
+{{#each dataObjects~}}
+
+{{#if @first}}### Landing area objects
+
+> [!NOTE]
+> The landing/staging objects that act to initially copy the data (or data delta) from the source objects.
+> These are the data objects with the 'Landing' classification.{{/if}}{{#hasClassification classifications "Landing Area"}}
+
+**{{name}}**
+
+* Data Definition code location: `.\\{{../../conventions.landingAreaObjectDatastore}}\Databases\\{{../../conventions.landingAreaObjectLocation}}\Tables\\{{name}}.sql`
+{{#if notes}}* {{notes}}{{~/if}}{{/hasClassification~}}
+{{~/each}}
+{{!-- Spacer --}}
+{{#if false}}
+
+{{else}}
+
+
+{{/if}}
+{{!-- Persistent Staging objects --}}
+{{#each dataObjects~}}
+
+{{#if @first}}### Persistent Staging Area (PSA) objects
+
+> [!NOTE]
+> The historized and timestamped archive of transactions collected from the source objects over time.
+> These are the data objects with the 'Persistent Staging' classification.{{/if}}{{#hasClassification classifications "Persistent Staging Area"}}
+
+**{{name}}**
+
+* Data Definition code location: `.\\{{../../conventions.persistentStagingAreaObjectDatastore}}\Databases\\{{../../conventions.persistentStagingAreaObjectLocation}}\Tables\\{{name}}.sql`
+{{#if notes}}* {{notes}}{{~/if}}{{/hasClassification~}}
+{{~/each}}
+{{!-- Spacer --}}
+{{#if false}}
+
+{{else}}
+
+{{/if}}
+
+## Data Logistics Processes
+
+{{!-- Landing mappings --}}
+{{#each dataObjectMappings}}
+{{~#if @first}}### Landing area data logistics processes
+{{/if}}{{#hasClassification classifications "Landing Area"}}
+**{{name}}**
+
+* Code location: `.\\{{../../conventions.landingAreaObjectDatastore}}{{../../conventions.landingAreaObjectLocation}}\Stored Procedures\\{{name}}.sql`
+{{#if notes}}* {{notes}}{{~/if}}{{/hasClassification~}}
+{{/each}}
+{{!-- Spacer --}}
+{{#if false}}
+
+{{else}}
+
+{{/if}}
+{{!-- Persistent Staging objects --}}
+{{#each dataObjectMappings}}
+{{~#if @first}}### Persistent Staging data logistics processes
+{{/if}}{{#hasClassification classifications "Persistent Staging Area"}}
+**{{name}}**
+
+* Code location `.\\{{../../conventions.persistentStagingAreaObjectDatastore}}\Databases\\{{../../conventions.persistentStagingAreaObjectLocation}}\Stored Procedures\\{{name}}.sql`
+{{#if notes}}* {{notes}}{{~/if}}{{/hasClassification~}}
+{{/each}}

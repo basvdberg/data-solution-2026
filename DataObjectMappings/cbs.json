@@ -1,0 +1,68 @@
+{
+  "name": "CBS OData ingestion mappings",
+  "notes": "Configuration for ingesting Dutch government (CBS) OData v4 feeds into the local 000_Source landing zone. Each dataObjectMapping is self-contained; top-level extensions hold defaults that drivers may merge under per-mapping overrides.",
+  "classifications": [
+    { "classification": "source:cbs" },
+    { "classification": "protocol:odata_v4" }
+  ],
+  "extensions": [
+    { "key": "default_change_detection_endpoint", "value": "Properties" },
+    { "key": "default_change_detection_field", "value": "Modified" },
+    { "key": "default_odata_page_size", "value": "10000" }
+  ],
+  "dataObjectMappings": [
+    {
+      "id": "cbs-84583NED",
+      "name": "CBS 84583NED to 000_Source landing",
+      "enabled": true,
+      "classifications": [
+        { "classification": "interface_type:odata_v4" },
+        { "classification": "trigger:source_change" }
+      ],
+      "extensions": [
+        { "key": "change_detection_endpoint", "value": "Properties" },
+        { "key": "change_detection_field", "value": "Modified" },
+        { "key": "odata_page_size", "value": "10000" },
+        { "key": "landing_path_template", "value": "./Data/000_Source/{dataset}/{table}/{date}.parquet" }
+      ],
+      "sourceDataObjects": [
+        {
+          "name": "Observations",
+          "dataConnection": {
+            "name": "cbs-odata-v1",
+            "extensions": [
+              { "key": "base_url", "value": "https://datasets.cbs.nl/odata/v1/CBS/84583NED" }
+            ]
+          }
+        },
+        {
+          "name": "RegioSCodes",
+          "dataConnection": {
+            "name": "cbs-odata-v1",
+            "extensions": [
+              { "key": "base_url", "value": "https://datasets.cbs.nl/odata/v1/CBS/84583NED" }
+            ]
+          }
+        },
+        {
+          "name": "PeriodenCodes",
+          "dataConnection": {
+            "name": "cbs-odata-v1",
+            "extensions": [
+              { "key": "base_url", "value": "https://datasets.cbs.nl/odata/v1/CBS/84583NED" }
+            ]
+          }
+        }
+      ],
+      "targetDataObject": {
+        "name": "84583NED",
+        "dataConnection": {
+          "name": "source-landing",
+          "extensions": [
+            { "key": "path", "value": "./Data/000_Source/84583NED" }
+          ]
+        }
+      }
+    }
+  ]
+}

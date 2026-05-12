@@ -1,0 +1,15 @@
+--
+-- Database creation and deployment script for {{conventions.solutionName}}.
+--
+-- Generated from template '{{templateMetadata.name}}'.
+--
+
+{{#each connections}}
+-- Creating database for connection: {{name}}
+IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'{{lookupExtension extensions "datastore"}}')
+BEGIN
+    CREATE DATABASE [{{lookupExtension extensions "datastore"}}];
+END
+GO
+
+{{/each}}

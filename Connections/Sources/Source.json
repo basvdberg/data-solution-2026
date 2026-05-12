@@ -1,0 +1,30 @@
+{
+  "id": "b9afa559-3a59-4404-ae0f-0c33ef9c7515",
+  "name": "Source",
+  "classifications": [
+    {
+      "id": "",
+      "group": "Solution Layer",
+      "classification": "Operational System",
+      "notes": "\u0027Source\u0027 layer, representing the operational systems or interfaces that provide data to the solution."
+    }
+  ],
+  "extensions": [
+    {
+      "key": "location",
+      "value": "dbo"
+    },
+    {
+      "key": "connectionString",
+      "value": "Data Source=.;Initial Catalog=000_Source;Integrated Security=True;Trust Server Certificate=True"
+    },
+    {
+      "key": "connectionType",
+      "value": "MSSQLDB"
+    },
+    {
+      "key": "datastore",
+      "value": "000_Source"
+    }
+  ]
+}

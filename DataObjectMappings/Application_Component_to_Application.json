@@ -1,0 +1,130 @@
+{
+  "id": "f3982168-53b8-4b1f-9671-3966c384fea8",
+  "name": "Application_Component_to_Application",
+  "notes": "Mapping between Application Component and Application.",
+  "dataObjectMappings": [
+    {
+      "id": "32b22c57-fa9f-46ff-bffd-456a9b26c4e9",
+      "name": "Application Component to Application",
+      "notes": "Relationship from application component to application.",
+      "sourceDataObjects": [
+        {
+          "id": "d27f7b72-e8fc-4e50-82fd-e15ae6d469f0",
+          "name": "Application Component",
+          "notes": "Application component with application classification.",
+          "dataConnection": {
+            "id": "48b83b6e-4021-4552-98d4-768e873807af",
+            "name": "Sandbox",
+            "extensions": [
+              {
+                "key": "location",
+                "value": "dbo"
+              },
+              {
+                "key": "connectionString",
+                "value": "Data Source=.;Initial Catalog=Sandbox;Integrated Security=True;Trust Server Certificate=True;Encrypt=True;"
+              },
+              {
+                "key": "connectionType",
+                "value": "MSSQLDB"
+              },
+              {
+                "key": "datastore",
+                "value": "Sandbox"
+              }
+            ]
+          },
+          "dataItems": [],
+          "classifications": [
+            {
+              "id": "9043bcbd-5696-4488-9ac9-e7dc601e713d",
+              "group": "Model Layer",
+              "classification": "Application",
+              "notes": "Classification for applications, components, functions and interfaces."
+            },
+            {
+              "id": "5e67e1ff-0294-498b-b0e8-dba6b6d9176e",
+              "group": "System of Record",
+              "classification": "Enterprise Architecture"
+            },
+            {
+              "id": "22f4205b-371a-493d-9f9c-7e5a9cf2060f",
+              "group": "System of Reference",
+              "classification": "Data Dictionary"
+            }
+          ]
+        }
+      ],
+      "targetDataObject": {
+        "id": "70af2142-f821-462a-9b36-acb85b4ee91b",
+        "name": "Application",
+        "notes": "Application with application classification and owner.",
+        "dataConnection": {
+          "id": "48b83b6e-4021-4552-98d4-768e873807af",
+          "name": "Sandbox",
+          "extensions": [
+            {
+              "key": "location",
+              "value": "dbo"
+            },
+            {
+              "key": "connectionString",
+              "value": "Data Source=.;Initial Catalog=Sandbox;Integrated Security=True;Trust Server Certificate=True;Encrypt=True;"
+            },
+            {
+              "key": "connectionType",
+              "value": "MSSQLDB"
+            },
+            {
+              "key": "datastore",
+              "value": "Sandbox"
+            }
+          ]
+        },
+        "dataItems": [
+          {
+            "id": "95b138ac-de6f-4a4b-bbce-70ee485f5617",
+            "name": "Owner",
+            "ordinalPosition": 1,
+            "dataType": "nvarchar",
+            "characterLength": 4000
+          }
+        ],
+        "classifications": [
+          {
+            "id": "9043bcbd-5696-4488-9ac9-e7dc601e713d",
+            "group": "Model Layer",
+            "classification": "Application",
+            "notes": "Classification for applications, components, functions and interfaces."
+          },
+          {
+            "id": "22f4205b-371a-493d-9f9c-7e5a9cf2060f",
+            "group": "System of Reference",
+            "classification": "Data Dictionary"
+          },
+          {
+            "id": "5e67e1ff-0294-498b-b0e8-dba6b6d9176e",
+            "group": "System of Record",
+            "classification": "Enterprise Architecture"
+          }
+        ]
+      },
+      "classifications": [
+        {
+          "id": "9043bcbd-5696-4488-9ac9-e7dc601e713d",
+          "group": "Model Layer",
+          "classification": "Application",
+          "notes": "Classification for applications, components, functions and interfaces."
+        }
+      ]
+    }
+  ],
+  "classifications": [
+    {
+      "id": "9043bcbd-5696-4488-9ac9-e7dc601e713d",
+      "group": "Model Layer",
+      "classification": "Application",
+      "notes": "Classification for applications, components, functions and interfaces."
+    }
+  ]
+}

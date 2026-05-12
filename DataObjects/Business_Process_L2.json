@@ -1,0 +1,73 @@
+{
+  "id": "b5dc9d9d-b43f-4da4-96f2-bc02959da81e",
+  "name": "Business Process L2",
+  "notes": "Business process L2 with Process Management (BPMN) classification and core process fields.",
+  "dataConnection": {
+    "id": "48b83b6e-4021-4552-98d4-768e873807af",
+    "name": "Sandbox",
+    "extensions": [
+      {
+        "key": "location",
+        "value": "dbo"
+      },
+      {
+        "key": "connectionString",
+        "value": "Data Source=.;Initial Catalog=Sandbox;Integrated Security=True;Trust Server Certificate=True;Encrypt=True;"
+      },
+      {
+        "key": "connectionType",
+        "value": "MSSQLDB"
+      },
+      {
+        "key": "datastore",
+        "value": "Sandbox"
+      }
+    ]
+  },
+  "dataItems": [
+    {
+      "id": "3b3694fe-b490-4eb5-81a6-1aa0e89ba938",
+      "name": "Process Goal",
+      "ordinalPosition": 1,
+      "dataType": "nvarchar",
+      "characterLength": 4000
+    },
+    {
+      "id": "3abd1d20-569b-4a56-8058-7f357d31a399",
+      "name": "Process Description",
+      "ordinalPosition": 2,
+      "dataType": "nvarchar",
+      "characterLength": 4000
+    },
+    {
+      "id": "1e90cb23-3f92-41d5-b4ee-61db6dde9f26",
+      "name": "Process Documentation",
+      "ordinalPosition": 3,
+      "dataType": "nvarchar",
+      "characterLength": 4000
+    }
+  ],
+  "classifications": [
+    {
+      "id": "20a6572a-bfa4-4091-8fcd-eeedb37d5ee5",
+      "group": "Model Layer",
+      "classification": "Process Management (BPMN)",
+      "notes": "Classification for business processes (L1-L5) within Process Management (BPMN)."
+    },
+    {
+      "id": "5e67e1ff-0294-498b-b0e8-dba6b6d9176e",
+      "group": "System of Record",
+      "classification": "Enterprise Architecture"
+    },
+    {
+      "id": "a814275d-3149-4bd2-ab6b-e95e34e725b4",
+      "group": "System of Reference",
+      "classification": "Enterprise Architecture"
+    },
+    {
+      "id": "26245d6d-e863-40d5-a64d-99dc8ee78ed1",
+      "group": "System of Record",
+      "classification": "Document Management System"
+    }
+  ]
+}

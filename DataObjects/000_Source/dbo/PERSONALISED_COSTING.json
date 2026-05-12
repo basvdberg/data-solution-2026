@@ -1,0 +1,107 @@
+{
+  "id": "bee610e8-9121-48fc-a450-fac925f15db8",
+  "name": "PERSONALISED_COSTING",
+  "notes": "Based on a demographic segment, a member (customer) is attributed a personal price (monthly fee) for whatever plan they are member of.",
+  "dataConnection": {
+    "id": "b9afa559-3a59-4404-ae0f-0c33ef9c7515",
+    "name": "Source",
+    "classifications": [
+      {
+        "id": "",
+        "group": "Solution Layer",
+        "classification": "Operational System",
+        "notes": "\u0027Source\u0027 layer, representing the operational systems or interfaces that provide data to the solution."
+      }
+    ],
+    "extensions": [
+      {
+        "key": "location",
+        "value": "dbo"
+      },
+      {
+        "key": "connectionString",
+        "value": "Data Source=.;Initial Catalog=000_Source;Integrated Security=True;Trust Server Certificate=True"
+      },
+      {
+        "key": "connectionType",
+        "value": "MSSQLDB"
+      },
+      {
+        "key": "datastore",
+        "value": "000_Source"
+      }
+    ]
+  },
+  "dataItems": [
+    {
+      "id": "b35008a1-d0ef-4af2-b9da-c0503727c340",
+      "name": "Member",
+      "ordinalPosition": 1,
+      "isPrimaryKey": true,
+      "dataType": "int"
+    },
+    {
+      "id": "a105debf-a5a9-4d0c-ace1-1fe5882ef41c",
+      "name": "Segment",
+      "ordinalPosition": 2,
+      "isPrimaryKey": true,
+      "dataType": "varchar",
+      "characterLength": 100
+    },
+    {
+      "id": "7e072f68-4a85-48b7-3333-333333333333",
+      "name": "Plan_Code",
+      "ordinalPosition": 3,
+      "isPrimaryKey": true,
+      "dataType": "varchar",
+      "characterLength": 100
+    },
+    {
+      "id": "12549ee5-25c1-4e28-2222-222222222222",
+      "name": "Date_effective",
+      "ordinalPosition": 4,
+      "isPrimaryKey": true,
+      "dataType": "datetime",
+      "numericScale": 3
+    },
+    {
+      "id": "5cbc6cdf-2d69-45aa-a574-7ba90572117f",
+      "name": "Monthly_Cost",
+      "ordinalPosition": 5,
+      "dataType": "numeric",
+      "numericPrecision": 18,
+      "numericScale": 0
+    }
+  ],
+  "classifications": [
+    {
+      "id": "3cb478a3-f7cb-436d-8cba-171988808add",
+      "group": "Solution Layer",
+      "classification": "Operational System",
+      "notes": "\u0027Source\u0027 layer, representing the operational systems or interfaces that provide data to the solution."
+    },
+    {
+      "id": "43b6ce73-62ba-43a5-a330-3bf9440599e4",
+      "group": "Solution Area",
+      "classification": "Operational System"
+    }
+  ],
+  "extensions": [
+    {
+      "key": "originatingSystem",
+      "value": "SAVEMORE",
+      "notes": "SaveMore source system"
+    }
+  ],
+  "templateMappings": [
+    {
+      "templateFileName": "/DataObjects/SourceSqlServerGenerateTable.handlebars"
+    },
+    {
+      "templateFileName": "/DataObjects/LandingSqlServerGenerateTable.handlebars"
+    },
+    {
+      "templateFileName": "/DataObjects/PersistentStagingSqlServerGenerateTable.handlebars"
+    }
+  ]
+}

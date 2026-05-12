@@ -1,0 +1,175 @@
+<#
+    Deployment script using SQLCMD.
+    This relies on a trusted connection (-E), and a named user with permissions to create databases and objects.
+
+    ===> From the output directory, run .\Databases\Deployment\Deployment.ps1 <===
+#>
+
+#   Databases
+
+sqlcmd -S 127.0.0.1,1433 -U sa -P "Awesome!Passw0rd" -d master -i ".\Databases\Deployment\Databases.sql"
+
+#   Data Objects
+
+{{!-- Operational system (source) --}}
+{{#each dataObjects}}
+{{~#if @first}}# Operational system objects
+{{/if}}
+{{#hasClassification classifications "Operational System"}}
+Write-Host "Processing .\Databases\\{{lookupExtension dataConnection.extensions "datastore"}}\\{{lookupExtension dataConnection.extensions "location"}}\Tables\\{{name}}.sql"
+sqlcmd -S 127.0.0.1,1433 -U sa -P "Awesome!Passw0rd" -d {{lookupExtension dataConnection.extensions "datastore"}} -i ".\Databases\\{{lookupExtension dataConnection.extensions "datastore"}}\\{{lookupExtension dataConnection.extensions "location"}}\Tables\\{{name}}.sql"
+{{/hasClassification~}}
+{{/each}}
+{{!-- Spacer --}}
+{{#if false}}
+
+{{else}}
+
+{{/if}}
+{{!-- Samples --}}
+{{#each dataObjects}}
+{{~#if @first}}# Sample data
+sqlcmd -S 127.0.0.1,1433 -U sa -P "Awesome!Passw0rd" -d {{lookupExtension dataConnection.extensions "datastore"}} -i ".\Databases\Deployment\SampleData.sql"
+{{/if}}
+{{/each}}
+{{!-- Spacer --}}
+{{#if false}}
+
+{{else}}
+
+{{/if}}
+{{!-- Landing. Note that object(s) with the user managed classfication are omitted by design --}}
+{{#each dataObjects}}
+{{~#if @first}}# Landing objects
+{{/if}}{{#hasClassification classifications "Landing Area"}}{{#hasClassification classifications "User Managed"}}{{else}}Write-Host "Processing .\Databases\\{{../../../conventions.landingAreaObjectDatastore}}\\{{../../../conventions.landingAreaObjectLocation}}\Tables\\{{name}}.sql"
+sqlcmd -S 127.0.0.1,1433 -U sa -P "Awesome!Passw0rd" -d {{lookupExtension dataConnection.extensions "datastore"}} -i ".\Databases\\{{../../../conventions.landingAreaObjectDatastore}}\\{{../../../conventions.landingAreaObjectLocation}}\Tables\\{{name}}.sql"
+{{/hasClassification~}}
+{{/hasClassification~}}
+{{/each}}
+{{!-- Spacer --}}
+{{#if false}}
+
+{{else}}
+
+{{/if}}
+{{!-- Persistent Staging --}}
+{{#each dataObjects}}
+{{~#if @first}}# Persistent staging objects
+{{/if}}{{#hasClassification classifications "Persistent Staging Area"}}Write-Host "Processing .\Databases\\{{../../conventions.persistentStagingAreaObjectDatastore}}\\{{../../conventions.persistentStagingAreaObjectLocation}}\Tables\\{{name}}.sql"
+sqlcmd -S 127.0.0.1,1433 -U sa -P "Awesome!Passw0rd" -d {{lookupExtension dataConnection.extensions "datastore"}} -i ".\Databases\\{{../../conventions.persistentStagingAreaObjectDatastore}}\\{{../../conventions.persistentStagingAreaObjectLocation}}\Tables\\{{name}}.sql"
+{{/hasClassification~}}
+{{/each}}
+
+
+#   Drop script for Data Objects
+
+<#
+{{!-- Source --}}
+{{#each dataObjects}}
+{{~#if @first}}# Source objects
+{{/if}}{{#hasClassification classifications "Operational System"}}DROP TABLE IF EXISTS [{{../../conventions.sourceObjectDatastore}}].[{{../../conventions.sourceObjectLocation}}].[{{name}}];
+{{/hasClassification~}}
+{{/each}}
+{{!-- Spacer --}}
+{{#if false}}
+
+{{else}}
+
+{{/if}}
+{{!-- Landing --}}
+{{#each dataObjects}}
+{{~#if @first}}# Landing objects
+{{/if}}{{#hasClassification classifications "Landing Area"}}{{#hasClassification classifications "User Managed"}}{{else}}DROP TABLE IF EXISTS [{{../../../conventions.landingAreaObjectDatastore}}].[{{../../../conventions.landingAreaObjectLocation}}].[{{name}}];
+{{/hasClassification~}}
+{{/hasClassification~}}
+{{/each}}
+{{!-- Spacer --}}
+{{#if false}}
+
+{{else}}
+
+{{/if}}
+{{!-- Persistent Staging --}}
+{{#each dataObjects}}
+{{~#if @first}}# Persistent staging objects
+{{/if}}{{#hasClassification classifications "Persistent Staging Area"}}DROP TABLE IF EXISTS [{{../../conventions.persistentStagingAreaObjectDatastore}}].[{{../../conventions.persistentStagingAreaObjectLocation}}].[{{name}}];
+{{/hasClassification~}}
+{{/each}}
+#>
+
+#   Stored Procedures
+
+{{!-- Landing --}}
+{{#each dataObjects}}
+{{~#if @first}}# Landing procedures
+{{/if}}{{#hasClassification classifications "Landing Area"}}{{#hasClassification classifications "User Managed"}}{{else}}Write-Host "Processing .\Databases\\{{../../../conventions.landingAreaObjectDatastore}}\\{{../../../conventions.landingAreaObjectLocation}}\Stored Procedures\\{{name}}.sql"
+sqlcmd -S 127.0.0.1,1433 -U sa -P "Awesome!Passw0rd" -d {{lookupExtension dataConnection.extensions "datastore"}} -i ".\Databases\\{{../../../conventions.landingAreaObjectDatastore}}\\{{../../../conventions.landingAreaObjectLocation}}\Stored Procedures\\{{name}}.sql"
+{{/hasClassification~}}
+{{/hasClassification~}}
+{{/each}}
+{{!-- Spacer --}}
+{{#if false}}
+
+{{else}}
+
+{{/if}}
+{{!-- Persistent Staging --}}
+{{#each dataObjects}}
+{{~#if @first}}# Persistent staging procedures
+{{/if}}{{#hasClassification classifications "Persistent Staging Area"}}Write-Host "Processing .\Databases\\{{../../conventions.persistentStagingAreaObjectDatastore}}\\{{../../conventions.persistentStagingAreaObjectLocation}}\Stored Procedures\\{{name}}.sql"
+sqlcmd -S 127.0.0.1,1433 -U sa -P "Awesome!Passw0rd" -d {{lookupExtension dataConnection.extensions "datastore"}} -i ".\Databases\\{{../../conventions.persistentStagingAreaObjectDatastore}}\\{{../../conventions.persistentStagingAreaObjectLocation}}\Stored Procedures\\{{name}}.sql"
+{{/hasClassification~}}
+{{/each}}
+
+#   Drop script - Stored Procedures
+
+
+<#
+{{!-- Landing --}}
+{{#each dataObjects}}
+{{~#if @first}}# Landing objects
+{{/if}}{{#hasClassification classifications "Landing Area"}}{{#hasClassification classifications "User Managed"}}{{else}}DROP PROCEDURE IF EXISTS [{{../../../conventions.landingAreaObjectLocation}}].[SP_{{name}}];
+{{/hasClassification~}}
+{{/hasClassification~}}
+{{/each}}
+{{!-- Spacer --}}
+{{#if false}}
+
+{{else}}
+
+{{/if}}
+{{!-- Persistent Staging --}}
+{{#each dataObjects}}
+{{~#if @first}}# Persistent staging objects
+{{/if}}{{#hasClassification classifications "Persistent Staging Area"}}DROP PROCEDURE IF EXISTS [{{../../conventions.persistentStagingAreaObjectLocation}}].[SP_{{name}}];
+{{/hasClassification~}}
+{{/each}}
+#>
+
+#   Run script - Stored Procedures
+
+<#
+{{!-- Landing --}}
+{{#each dataObjects}}
+{{~#if @first}}# Landing objects
+{{/if}}{{#hasClassification classifications "User Managed"}}{{else}}{{#hasClassification classifications "Landing Area"}}EXECUTE [{{../../../conventions.landingAreaObjectLocation}}].[SP_{{name}}];
+{{/hasClassification~}}
+{{/hasClassification~}}
+{{/each}}
+{{!-- Spacer --}}
+{{#if false}}
+
+{{else}}
+
+{{/if}}
+{{!-- Persistent Staging --}}
+{{#each dataObjects}}
+{{~#if @first}}# Persistent staging objects
+{{/if}}{{#hasClassification classifications "Persistent Staging Area"}}EXECUTE [{{../../conventions.persistentStagingAreaObjectLocation}}].[SP_{{name}}];
+{{/hasClassification~}}
+{{/each}}
+#>
+
+# Control Framework Registration
+
+sqlcmd -S 127.0.0.1,1433 -U sa -P "Awesome!Passw0rd" -d {{conventions.controlFrameworkDatastore}} -i ".\Databases\Deployment\ControlFrameworkRegistration.sql"

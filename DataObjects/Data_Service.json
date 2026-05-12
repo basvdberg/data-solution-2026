@@ -1,0 +1,72 @@
+{
+  "id": "063a9bb4-32e8-473b-869f-115f76904f60",
+  "name": "Data Service",
+  "notes": "Data service used to consume a data product.",
+  "dataConnection": {
+    "id": "48b83b6e-4021-4552-98d4-768e873807af",
+    "name": "Sandbox",
+    "extensions": [
+      {
+        "key": "location",
+        "value": "dbo"
+      },
+      {
+        "key": "connectionString",
+        "value": "Data Source=.;Initial Catalog=Sandbox;Integrated Security=True;Trust Server Certificate=True;Encrypt=True;"
+      },
+      {
+        "key": "connectionType",
+        "value": "MSSQLDB"
+      },
+      {
+        "key": "datastore",
+        "value": "Sandbox"
+      }
+    ]
+  },
+  "dataItems": [
+    {
+      "id": "760ade79-f8e1-452a-8ee1-5e8e53b053cb",
+      "name": "Definition",
+      "ordinalPosition": 1,
+      "dataType": "nvarchar",
+      "characterLength": 4000
+    },
+    {
+      "id": "04fde2ba-c40a-4946-a86e-028bb069ec0e",
+      "name": "Version",
+      "ordinalPosition": 2,
+      "dataType": "nvarchar",
+      "characterLength": 4000
+    },
+    {
+      "id": "ed6d8380-45f7-4d37-b767-3f450b290bb9",
+      "name": "Integration Pattern",
+      "ordinalPosition": 3,
+      "dataType": "nvarchar",
+      "characterLength": 4000
+    },
+    {
+      "id": "d3a26006-531c-4d21-bd72-e16f30f25f86",
+      "name": "Integration Technology",
+      "ordinalPosition": 4,
+      "dataType": "nvarchar",
+      "characterLength": 4000
+    },
+    {
+      "id": "736644fa-c866-46c6-aeb9-cb823e3a8d7f",
+      "name": "Integration Interface",
+      "ordinalPosition": 5,
+      "dataType": "nvarchar",
+      "characterLength": 4000
+    }
+  ],
+  "classifications": [
+    {
+      "id": "ee152a7e-51ff-43d9-b060-3275f03f0764",
+      "group": "Model Layer",
+      "classification": "Data Marketplace",
+      "notes": "Classification for data products published via a data marketplace."
+    }
+  ]
+}
