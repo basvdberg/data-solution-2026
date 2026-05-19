@@ -74,7 +74,7 @@ The extractor is driven by a DWA-style JSON mapping stored at
 | `wfs_output_format` | Preferred output format (`application/gml+xml; version=3.2`) |
 | `wfs_page_size` | Features per page for `startIndex` pagination |
 | `gml_parser` | Parser function name (e.g. `timeseries_observations`) |
-| `landing_path_template` | Parquet output path template with `{dataset}`, `{table}`, `{date}` placeholders |
+| `landing_path_template` | Parquet output path template with `{dataset}`, `{table}`, `{timestamp}` placeholders |
 
 ## Pagination
 

@@ -19,7 +19,7 @@
       ],
       "extensions": [
         { "key": "odata_page_size", "value": "100" },
-        { "key": "landing_path_template", "value": "./Data/000_Source/{dataset}/{table}/{date}.parquet" }
+        { "key": "landing_path_template", "value": "./Data/000_Source/{dataset}/{table}/{timestamp}.parquet" }
       ],
       "sourceDataObjects": [
         {

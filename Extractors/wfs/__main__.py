@@ -15,7 +15,7 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
-from datetime import date
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -116,7 +116,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Mapping '{mapping.id}' missing 'landing_path_template'.", file=sys.stderr)
         return 2
 
-    today = date.today().isoformat()
+    now = datetime.now(timezone.utc)
+    timestamp = now.strftime("%Y-%m-%dT%H%M%S") + f"{now.microsecond // 1000:03d}Z"
     target_name = mapping.target_name() or mapping.id
     page_size = args.page_size or int(ext.get("wfs_page_size", ext.get("wfs_count", "10")))
     max_features = args.max_features
@@ -152,7 +153,7 @@ def main(argv: list[str] | None = None) -> int:
         path = parquet_module.write(
             records,
             template,
-            {"dataset": target_name, "table": source.name, "date": today},
+            {"dataset": target_name, "table": source.name, "timestamp": timestamp},
         )
         written.append((path, len(records)))
 

@@ -23,7 +23,7 @@
         { "key": "wfs_output_format", "value": "application/gml+xml; version=3.2" },
         { "key": "wfs_page_size", "value": "5" },
         { "key": "gml_parser", "value": "timeseries_observations" },
-        { "key": "landing_path_template", "value": "./Data/000_Source/{table}/{dataset}/{date}.parquet" }
+        { "key": "landing_path_template", "value": "./Data/000_Source/{table}/{dataset}/{timestamp}.parquet" }
       ],
       "sourceDataObjects": [
         {

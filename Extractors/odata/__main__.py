@@ -15,7 +15,7 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
-from datetime import date
+from datetime import datetime, timezone
 from pathlib import Path
 
 PACKAGE_DIR = Path(__file__).resolve().parent               # Extractors/odata/
@@ -110,7 +110,8 @@ def main(argv: list[str] | None = None) -> int:
 
     page_size = args.page_size or int(ext.get("odata_page_size", "10000"))
     template = ext["landing_path_template"]
-    today = date.today().isoformat()
+    now = datetime.now(timezone.utc)
+    timestamp = now.strftime("%Y-%m-%dT%H%M%S") + f"{now.microsecond // 1000:03d}Z"
     target_name = mapping.target_name() or mapping.id
 
     written: list[tuple[str, int]] = []
@@ -132,7 +133,7 @@ def main(argv: list[str] | None = None) -> int:
         path = parquet_module.write(
             rows,
             template,
-            {"dataset": target_name, "table": source.name, "date": today},
+            {"dataset": target_name, "table": source.name, "timestamp": timestamp},
         )
         written.append((path, len(rows)))
 

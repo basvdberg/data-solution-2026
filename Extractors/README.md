@@ -59,6 +59,35 @@ python -m Extractors.wfs --mapping knmi-daggegevens-temperature --page-size 2 --
 Output lands under `Data/000_Source/...` as defined by the `landing_path_template`
 extension in each mapping JSON.
 
+## Output file naming
+
+Each extraction run produces a Parquet file whose name is a UTC timestamp
+captured at the moment the extractor starts. The format is ISO 8601 hybrid
+with millisecond precision:
+
+```text
+2026-05-12T164832123Z.parquet
+│          │││││││││└─ UTC indicator
+│          │││││││└┘┘── milliseconds (000-999)
+│          │││││└┘───── seconds (00-59)
+│          │││└┘─────── minutes (00-59)
+│          │└┘───────── hours (00-23)
+│          └─────────── T separator (ISO 8601)
+└───────────────────── date (YYYY-MM-DD, ISO 8601 extended)
+```
+
+Design choices:
+
+- **Extended date with dashes** — keeps the date portion human-readable.
+- **`T` separator** — the ISO 8601-defined boundary between date and time.
+- **Compact time without colons** — colons are illegal in Windows filenames.
+- **3-digit milliseconds** — ensures uniqueness across multiple runs on the
+  same day without requiring directory scanning or UUIDs.
+- **`Z` suffix** — makes it unambiguous that all timestamps are UTC,
+  regardless of the machine's local timezone.
+- **Captured once at extractor start** — all tables within a single
+  extraction run share the same timestamp, so they can be correlated.
+
 ## Adding a new extractor
 
 1. Create a new sub-folder (e.g. `rest/`, `sftp/`).
