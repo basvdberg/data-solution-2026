@@ -15,13 +15,13 @@ This proof of concept validated the [Purpose](#purpose) innovations in practice.
 
 | Theme | Traditional approach | With GenAI (this PoC) |
 | --- | --- | --- |
-| [API extraction](#api-extraction) | One to two weeks: read incomplete docs, iterate on client code and tests | A handful of prompts; including tests, often under one hour for a well-defined API |
+| [Data extraction via API](#api-extraction) | One to two weeks: read incomplete docs, iterate on client code and tests | A handful of prompts; including tests, often under one hour for a well-defined API |
 | [Documentation](#documentation) | Strong initial architecture doc; detail drifts and is finished late (or never) | Document each change first; review before code; docs and release notes on every PR |
-| [New tools](#learning-new-tools) | Weeks of training and experimentation before productive use | Learn by example: AI explains integration and generates use-case-specific code |
+| [New tools](#learning-new-tools) | Days of training and experimentation before productive use | Learn by example: AI explains integration and generates use-case-specific code |
 | [Design patterns](#design-patterns) | Patterns implicit in tooling choices; hard to swap stacks | Patterns specify *what*; AI helps pick *how*; longer-lived, technology-agnostic design |
 | [Best practices](#consolidating-best-practices) | Scattered across wikis, blogs, and individual experience | Shared, versioned pattern library the team and AI both reference |
 
-### API extraction
+### Data extraction via API
 
 **Before:** Extracting from a source with a well-defined API typically took one to two weeks—collecting and reading sometimes incomplete documentation, then iteratively building and testing the client.
 
