@@ -27,6 +27,15 @@ def _extensions_to_dict(extensions: Sequence[MappingT[str, Any]] | None) -> dict
     return {e["key"]: str(e.get("value", "")) for e in (extensions or []) if "key" in e}
 
 
+def _classification_token(entry: MappingT[str, Any]) -> str:
+    """Normalize ADL-style group+classification or legacy ``prefix:value`` tokens."""
+    group = entry.get("group")
+    classification = entry.get("classification", "")
+    if group and classification:
+        return f"{group}:{classification}"
+    return str(classification)
+
+
 @dataclass(frozen=True)
 class SourceDataObject:
     name: str
@@ -69,9 +78,9 @@ class Mapping:
 
     def classifications(self) -> list[str]:
         return [
-            c.get("classification", "")
+            token
             for c in self.raw.get("classifications", [])
-            if c.get("classification")
+            if (token := _classification_token(c))
         ]
 
     def has_classification(self, full: str) -> bool:

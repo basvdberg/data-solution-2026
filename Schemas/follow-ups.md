@@ -1,5 +1,15 @@
 # Schema follow-ups
 
+## Table of contents
+
+<!-- markdown-toc:start -->
+- [1. Data types](#1-data-types)
+- [2. Classifications](#2-classifications)
+- [3. Extensions](#3-extensions)
+- [4. Cross-cutting](#4-cross-cutting)
+- [Suggested order of attack](#suggested-order-of-attack)
+<!-- markdown-toc:end -->
+
 Open items for `data-objects.schema.json`. The schema is intentionally permissive today (free-form strings, custom fields allowed) so we can iterate on the controlled vocabularies separately from the structural skeleton. One Data Object is stored per file; the schema root is a single Data Object.
 
 ## 1. Data types
@@ -129,3 +139,59 @@ Open questions:
 3. Add the **extension key registry** and conditional value validation.
 4. Promote any "must-have" extensions to first-class properties.
 5. Add CI validation and `examples/`.
+
+## Project structure
+
+<!-- markdown-project-structure:start -->
+- [Data Solution 2026](../readme.md)
+  - Classifications
+  - Configurations
+  - Connections
+    - Sources
+  - Conventions
+  - Dataobjectmappings
+    - 000_Source
+      - Knmi
+        - Roelant
+    - Persistentstaging
+    - Staging
+  - Dataobjects
+    - 000_Source
+      - Dbo
+    - 100_Landing_Area
+      - Dbo
+    - 150_Persistent_Staging_Area
+      - Dbo
+  - Docs
+    - [Markdown automation](../docs/markdown-automation.md)
+  - Extractors
+    - Common
+    - Odata
+    - Wfs
+  - Perspectives
+  - Schemas
+    - [Schema follow-ups](follow-ups.md)
+  - Settings
+  - Templates
+    - Dataobjectmappinglists
+      - [Landing Area Stored Procedure Delta](../Templates/DataObjectMappingLists/LandingSqlServerStoredProcedureDelta.handlebars.md)
+      - [Landing Area Stored Procedure Landing](../Templates/DataObjectMappingLists/LandingSqlServerStoredProcedureLanding.handlebars.md)
+      - [Persistent Staging Area Stored Procedure Delta](../Templates/DataObjectMappingLists/PersistentStagingSqlServerStoredProcedureDelta.handlebars.md)
+      - [Persistent Staging Area Stored Procedure Full Outer Join](../Templates/DataObjectMappingLists/PersistentStagingSqlServerStoredProcedureFullOuterJoin.handlebars.md)
+    - Dataobjects
+      - [Source Area Generate Table](../Templates/DataObjects/CreatePhysicalDataObject.handlebars.md)
+      - [Landing Area Generate Table](../Templates/DataObjects/LandingSqlServerGenerateTable.handlebars.md)
+      - [Persistent Staging Area Generate Table](../Templates/DataObjects/PersistentStagingSqlServerGenerateTable.handlebars.md)
+      - [Source Area Generate Table](../Templates/DataObjects/SourceSqlServerGenerateTable.handlebars.md)
+    - Other
+      - [Deployment](../Templates/Other/Container.handlebars.md)
+      - [Control Framework Registration](../Templates/Other/ControlFrameworkRegistration.handlebars.md)
+      - [Databases](../Templates/Other/Databases.handlebars.md)
+      - [Deployment](../Templates/Other/Deployment.handlebars.md)
+      - [Documentation](../Templates/Other/Documentation.handlebars.md)
+      - [Readme](../Templates/Other/Readme.handlebars.md)
+      - [Sample Data - SaveMore Source System](../Templates/Other/SampleDataSqlServer.handlebars.md)
+  - [Phase one: CBS OData extraction with event-based orchestration](../plan1.md)
+  - [Phase two: minimal Dutch government OData ingestion with event-based orchestration](../plan2.md)
+  - [Phase three: JSON-configured Dutch government OData ingestion](../plan3.md)
+<!-- markdown-project-structure:end -->

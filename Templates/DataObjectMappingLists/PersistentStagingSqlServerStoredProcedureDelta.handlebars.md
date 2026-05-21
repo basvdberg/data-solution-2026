@@ -1,3 +1,20 @@
+## Table of contents
+
+<!-- markdown-toc:start -->
+- [Purpose](#purpose)
+- [Motivation](#motivation)
+- [Applicability](#applicability)
+  - [Design Pattern](#design-pattern)
+  - [Schema Type](#schema-type)
+  - [Output Type](#output-type)
+- [Implementation guidelines](#implementation-guidelines)
+  - [Considerations and consequences](#considerations-and-consequences)
+  - [Extensions](#extensions)
+<!-- markdown-toc:end -->
+
+## Table of contents
+
+
 ---
 uid: PersistentStagingSqlServerStoredProcedureDelta
 ---
@@ -51,3 +68,58 @@ This PSA template detects this, so that it is possible to load, and re-load, all
 
 * [Has Control Framework](xref:has-control-framework)
 
+## Project structure
+
+<!-- markdown-project-structure:start -->
+- [Data Solution 2026](../../readme.md)
+  - Classifications
+  - Configurations
+  - Connections
+    - Sources
+  - Conventions
+  - Dataobjectmappings
+    - 000_Source
+      - Knmi
+        - Roelant
+    - Persistentstaging
+    - Staging
+  - Dataobjects
+    - 000_Source
+      - Dbo
+    - 100_Landing_Area
+      - Dbo
+    - 150_Persistent_Staging_Area
+      - Dbo
+  - Docs
+    - [Markdown automation](../../docs/markdown-automation.md)
+  - Extractors
+    - Common
+    - Odata
+    - Wfs
+  - Perspectives
+  - Schemas
+    - [Schema follow-ups](../../Schemas/follow-ups.md)
+  - Settings
+  - Templates
+    - Dataobjectmappinglists
+      - [Landing Area Stored Procedure Delta](LandingSqlServerStoredProcedureDelta.handlebars.md)
+      - [Landing Area Stored Procedure Landing](LandingSqlServerStoredProcedureLanding.handlebars.md)
+      - [Persistent Staging Area Stored Procedure Delta](PersistentStagingSqlServerStoredProcedureDelta.handlebars.md)
+      - [Persistent Staging Area Stored Procedure Full Outer Join](PersistentStagingSqlServerStoredProcedureFullOuterJoin.handlebars.md)
+    - Dataobjects
+      - [Source Area Generate Table](../DataObjects/CreatePhysicalDataObject.handlebars.md)
+      - [Landing Area Generate Table](../DataObjects/LandingSqlServerGenerateTable.handlebars.md)
+      - [Persistent Staging Area Generate Table](../DataObjects/PersistentStagingSqlServerGenerateTable.handlebars.md)
+      - [Source Area Generate Table](../DataObjects/SourceSqlServerGenerateTable.handlebars.md)
+    - Other
+      - [Deployment](../Other/Container.handlebars.md)
+      - [Control Framework Registration](../Other/ControlFrameworkRegistration.handlebars.md)
+      - [Databases](../Other/Databases.handlebars.md)
+      - [Deployment](../Other/Deployment.handlebars.md)
+      - [Documentation](../Other/Documentation.handlebars.md)
+      - [Readme](../Other/Readme.handlebars.md)
+      - [Sample Data - SaveMore Source System](../Other/SampleDataSqlServer.handlebars.md)
+  - [Phase one: CBS OData extraction with event-based orchestration](../../plan1.md)
+  - [Phase two: minimal Dutch government OData ingestion with event-based orchestration](../../plan2.md)
+  - [Phase three: JSON-configured Dutch government OData ingestion](../../plan3.md)
+<!-- markdown-project-structure:end -->

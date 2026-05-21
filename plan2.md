@@ -2,7 +2,7 @@
 
 ## Table of contents
 
-<!-- toc:start -->
+<!-- markdown-toc:start -->
 - [Goal](#goal)
 - [Why a second plan](#why-a-second-plan)
 - [Scope](#scope)
@@ -10,13 +10,26 @@
 - [Architecture in one picture](#architecture-in-one-picture)
 - [Strict separation: code vs configuration](#strict-separation-code-vs-configuration)
 - [Configuration: the Object-Property tree in PostgreSQL](#configuration-the-object-property-tree-in-postgresql)
+  - [Example: data_object](#example-data_object)
+  - [Example: property](#example-property)
+  - [Example: data_object_property](#example-data_object_property)
+  - [Example: controller_rule](#example-controller_rule)
 - [Code: three generic Airflow DAGs](#code-three-generic-airflow-dags)
+  - [DAG 1 — daily_change_detector](#dag-1-daily_change_detector)
+  - [DAG 2 — event_controller](#dag-2-event_controller)
+  - [DAG 3 — odata_extractor](#dag-3-odata_extractor)
 - [Kafka topic design](#kafka-topic-design)
 - [How "fetch daily, only when changed" works](#how-fetch-daily-only-when-changed-works)
-- [Project structure](#project-structure)
 - [Rollout plan](#rollout-plan)
+  - [Step 1 — Local stack](#step-1-local-stack)
+  - [Step 2 — Database schema and CBS seed](#step-2-database-schema-and-cbs-seed)
+  - [Step 3 — Generic library](#step-3-generic-library)
+  - [Step 4 — Daily change detector DAG](#step-4-daily-change-detector-dag)
+  - [Step 5 — Event controller DAG](#step-5-event-controller-dag)
+  - [Step 6 — OData extractor DAG and end-to-end demo](#step-6-odata-extractor-dag-and-end-to-end-demo)
+  - [Step summary](#step-summary)
 - [Adding a new dataset (configuration-only)](#adding-a-new-dataset-configuration-only)
-<!-- toc:end -->
+<!-- markdown-toc:end -->
 
 ## Goal
 
@@ -310,8 +323,6 @@ writes Parquet, emits a `write` / `end_successful` event.
 
 When CBS has not updated, the `Properties` call returns the same `Modified` value, no event is produced, and nothing else happens. The cost of a no-op day is one HTTP call per dataset.
 
-## Project structure
-
 ```text
 implementation/dutch-odata-extraction/
 ├── README.md
@@ -456,3 +467,59 @@ SELECT
 The next time `daily_change_detector` runs it picks up the new dataset, observes a change (because the seeded date is in the past), and the rest of the pipeline executes automatically.
 
 To onboard a non-CBS Dutch government OData feed (for example a future PDOK OData service), insert a new `source` row at the top of the tree and one property override for `base_url`. The Python code remains untouched.
+
+## Project structure
+
+<!-- markdown-project-structure:start -->
+- [Data Solution 2026](readme.md)
+  - Classifications
+  - Configurations
+  - Connections
+    - Sources
+  - Conventions
+  - Dataobjectmappings
+    - 000_Source
+      - Knmi
+        - Roelant
+    - Persistentstaging
+    - Staging
+  - Dataobjects
+    - 000_Source
+      - Dbo
+    - 100_Landing_Area
+      - Dbo
+    - 150_Persistent_Staging_Area
+      - Dbo
+  - Docs
+    - [Markdown automation](docs/markdown-automation.md)
+  - Extractors
+    - Common
+    - Odata
+    - Wfs
+  - Perspectives
+  - Schemas
+    - [Schema follow-ups](Schemas/follow-ups.md)
+  - Settings
+  - Templates
+    - Dataobjectmappinglists
+      - [Landing Area Stored Procedure Delta](Templates/DataObjectMappingLists/LandingSqlServerStoredProcedureDelta.handlebars.md)
+      - [Landing Area Stored Procedure Landing](Templates/DataObjectMappingLists/LandingSqlServerStoredProcedureLanding.handlebars.md)
+      - [Persistent Staging Area Stored Procedure Delta](Templates/DataObjectMappingLists/PersistentStagingSqlServerStoredProcedureDelta.handlebars.md)
+      - [Persistent Staging Area Stored Procedure Full Outer Join](Templates/DataObjectMappingLists/PersistentStagingSqlServerStoredProcedureFullOuterJoin.handlebars.md)
+    - Dataobjects
+      - [Source Area Generate Table](Templates/DataObjects/CreatePhysicalDataObject.handlebars.md)
+      - [Landing Area Generate Table](Templates/DataObjects/LandingSqlServerGenerateTable.handlebars.md)
+      - [Persistent Staging Area Generate Table](Templates/DataObjects/PersistentStagingSqlServerGenerateTable.handlebars.md)
+      - [Source Area Generate Table](Templates/DataObjects/SourceSqlServerGenerateTable.handlebars.md)
+    - Other
+      - [Deployment](Templates/Other/Container.handlebars.md)
+      - [Control Framework Registration](Templates/Other/ControlFrameworkRegistration.handlebars.md)
+      - [Databases](Templates/Other/Databases.handlebars.md)
+      - [Deployment](Templates/Other/Deployment.handlebars.md)
+      - [Documentation](Templates/Other/Documentation.handlebars.md)
+      - [Readme](Templates/Other/Readme.handlebars.md)
+      - [Sample Data - SaveMore Source System](Templates/Other/SampleDataSqlServer.handlebars.md)
+  - [Phase one: CBS OData extraction with event-based orchestration](plan1.md)
+  - [Phase two: minimal Dutch government OData ingestion with event-based orchestration](plan2.md)
+  - [Phase three: JSON-configured Dutch government OData ingestion](plan3.md)
+<!-- markdown-project-structure:end -->

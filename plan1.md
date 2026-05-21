@@ -2,16 +2,21 @@
 
 ## Table of contents
 
-<!-- toc:start -->
+<!-- markdown-toc:start -->
 - [Goal](#goal)
 - [Scope](#scope)
 - [Infrastructure: reuse existing services on basnas](#infrastructure-reuse-existing-services-on-basnas)
+  - [Kafka setup on basnas](#kafka-setup-on-basnas)
+  - [Airflow configuration](#airflow-configuration)
+  - [PostgreSQL configuration](#postgresql-configuration)
 - [Design principle: configuration vs generic code](#design-principle-configuration-vs-generic-code)
 - [Metadata-driven architecture](#metadata-driven-architecture)
   - [What is configured in metadata](#what-is-configured-in-metadata)
   - [What is generic code](#what-is-generic-code)
 - [Metadata configuration: data objects](#metadata-configuration-data-objects)
 - [Metadata configuration: properties](#metadata-configuration-properties)
+  - [Property definitions](#property-definitions)
+  - [Property assignments (data_object_property)](#property-assignments-data_object_property)
 - [Metadata configuration: task templates](#metadata-configuration-task-templates)
 - [Metadata configuration: controller rules](#metadata-configuration-controller-rules)
 - [Metadata configuration: scheduling](#metadata-configuration-scheduling)
@@ -24,10 +29,22 @@
 - [Event flow](#event-flow)
 - [Kafka topic design](#kafka-topic-design)
 - [Airflow DAG design](#airflow-dag-design)
-- [Project structure](#project-structure)
+  - [DAG 1: scheduler_heartbeat](#dag-1-scheduler_heartbeat)
+  - [DAG 2: event_controller](#dag-2-event_controller)
+  - [DAG 3: task_executor_odata_v4](#dag-3-task_executor_odata_v4)
 - [Rollout steps](#rollout-steps)
+  - [Step 1: Database schema and seed data](#step-1-database-schema-and-seed-data)
+  - [Step 2: Library — metadata client with property inheritance](#step-2-library-metadata-client-with-property-inheritance)
+  - [Step 3: Library — OData client](#step-3-library-odata-client)
+  - [Step 4: Library — Parquet writer](#step-4-library-parquet-writer)
+  - [Step 5: Standalone extraction test (no Kafka, no Airflow)](#step-5-standalone-extraction-test-no-kafka-no-airflow)
+  - [Step 6: Kafka setup and event emitter](#step-6-kafka-setup-and-event-emitter)
+  - [Step 7: Change detector + scheduler heartbeat DAG](#step-7-change-detector-scheduler-heartbeat-dag)
+  - [Step 8: Controller DAG](#step-8-controller-dag)
+  - [Step 9: Executor DAG — end-to-end pipeline](#step-9-executor-dag-end-to-end-pipeline)
+  - [Step summary](#step-summary)
 - [Example: adding a new CBS dataset](#example-adding-a-new-cbs-dataset)
-<!-- toc:end -->
+<!-- markdown-toc:end -->
 
 ## Goal
 
@@ -477,8 +494,6 @@ Tasks:
 
 Key design: when a new `interface_type` is needed (e.g. `jdbc`, `rest_api`), a new executor DAG is added. The controller and scheduler remain unchanged.
 
-## Project structure
-
 ```
 implementation/
 └── cbs-odata-extraction/
@@ -682,3 +697,59 @@ The next scheduler heartbeat will:
 4. If CBS has data, emit event → controller matches rule → extractor runs
 
 No restart, no redeployment, no code change.
+
+## Project structure
+
+<!-- markdown-project-structure:start -->
+- [Data Solution 2026](readme.md)
+  - Classifications
+  - Configurations
+  - Connections
+    - Sources
+  - Conventions
+  - Dataobjectmappings
+    - 000_Source
+      - Knmi
+        - Roelant
+    - Persistentstaging
+    - Staging
+  - Dataobjects
+    - 000_Source
+      - Dbo
+    - 100_Landing_Area
+      - Dbo
+    - 150_Persistent_Staging_Area
+      - Dbo
+  - Docs
+    - [Markdown automation](docs/markdown-automation.md)
+  - Extractors
+    - Common
+    - Odata
+    - Wfs
+  - Perspectives
+  - Schemas
+    - [Schema follow-ups](Schemas/follow-ups.md)
+  - Settings
+  - Templates
+    - Dataobjectmappinglists
+      - [Landing Area Stored Procedure Delta](Templates/DataObjectMappingLists/LandingSqlServerStoredProcedureDelta.handlebars.md)
+      - [Landing Area Stored Procedure Landing](Templates/DataObjectMappingLists/LandingSqlServerStoredProcedureLanding.handlebars.md)
+      - [Persistent Staging Area Stored Procedure Delta](Templates/DataObjectMappingLists/PersistentStagingSqlServerStoredProcedureDelta.handlebars.md)
+      - [Persistent Staging Area Stored Procedure Full Outer Join](Templates/DataObjectMappingLists/PersistentStagingSqlServerStoredProcedureFullOuterJoin.handlebars.md)
+    - Dataobjects
+      - [Source Area Generate Table](Templates/DataObjects/CreatePhysicalDataObject.handlebars.md)
+      - [Landing Area Generate Table](Templates/DataObjects/LandingSqlServerGenerateTable.handlebars.md)
+      - [Persistent Staging Area Generate Table](Templates/DataObjects/PersistentStagingSqlServerGenerateTable.handlebars.md)
+      - [Source Area Generate Table](Templates/DataObjects/SourceSqlServerGenerateTable.handlebars.md)
+    - Other
+      - [Deployment](Templates/Other/Container.handlebars.md)
+      - [Control Framework Registration](Templates/Other/ControlFrameworkRegistration.handlebars.md)
+      - [Databases](Templates/Other/Databases.handlebars.md)
+      - [Deployment](Templates/Other/Deployment.handlebars.md)
+      - [Documentation](Templates/Other/Documentation.handlebars.md)
+      - [Readme](Templates/Other/Readme.handlebars.md)
+      - [Sample Data - SaveMore Source System](Templates/Other/SampleDataSqlServer.handlebars.md)
+  - [Phase one: CBS OData extraction with event-based orchestration](plan1.md)
+  - [Phase two: minimal Dutch government OData ingestion with event-based orchestration](plan2.md)
+  - [Phase three: JSON-configured Dutch government OData ingestion](plan3.md)
+<!-- markdown-project-structure:end -->

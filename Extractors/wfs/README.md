@@ -1,5 +1,18 @@
 # WFS Extractor — OGC Web Feature Service 2.0
 
+## Table of contents
+
+<!-- markdown-toc:start -->
+- [Modules](#modules)
+  - [client.py](#clientpy)
+  - [gml_parser.py](#gml_parserpy)
+  - [__main__.py](#__main__py)
+- [Configuration](#configuration)
+- [Pagination](#pagination)
+- [Adding a new feature type parser](#adding-a-new-feature-type-parser)
+- [Current data source](#current-data-source)
+<!-- markdown-toc:end -->
+
 This extractor fetches geospatial features from OGC WFS 2.0 endpoints and
 flattens the responses into tabular records for Parquet storage under
 `Data/`.
@@ -107,3 +120,59 @@ haleconnect.com.
 - **Feature type:** `omso:PointTimeSeriesObservation`
 - **Coverage:** 33 automatic weather stations across the Netherlands, daily
   temperature observations since 1881
+
+## Project structure
+
+<!-- markdown-project-structure:start -->
+- [Data Solution 2026](../../readme.md)
+  - Classifications
+  - Configurations
+  - Connections
+    - Sources
+  - Conventions
+  - Dataobjectmappings
+    - 000_Source
+      - Knmi
+        - Roelant
+    - Persistentstaging
+    - Staging
+  - Dataobjects
+    - 000_Source
+      - Dbo
+    - 100_Landing_Area
+      - Dbo
+    - 150_Persistent_Staging_Area
+      - Dbo
+  - Docs
+    - [Markdown automation](../../docs/markdown-automation.md)
+  - Extractors
+    - Common
+    - Odata
+    - Wfs
+  - Perspectives
+  - Schemas
+    - [Schema follow-ups](../../Schemas/follow-ups.md)
+  - Settings
+  - Templates
+    - Dataobjectmappinglists
+      - [Landing Area Stored Procedure Delta](../../Templates/DataObjectMappingLists/LandingSqlServerStoredProcedureDelta.handlebars.md)
+      - [Landing Area Stored Procedure Landing](../../Templates/DataObjectMappingLists/LandingSqlServerStoredProcedureLanding.handlebars.md)
+      - [Persistent Staging Area Stored Procedure Delta](../../Templates/DataObjectMappingLists/PersistentStagingSqlServerStoredProcedureDelta.handlebars.md)
+      - [Persistent Staging Area Stored Procedure Full Outer Join](../../Templates/DataObjectMappingLists/PersistentStagingSqlServerStoredProcedureFullOuterJoin.handlebars.md)
+    - Dataobjects
+      - [Source Area Generate Table](../../Templates/DataObjects/CreatePhysicalDataObject.handlebars.md)
+      - [Landing Area Generate Table](../../Templates/DataObjects/LandingSqlServerGenerateTable.handlebars.md)
+      - [Persistent Staging Area Generate Table](../../Templates/DataObjects/PersistentStagingSqlServerGenerateTable.handlebars.md)
+      - [Source Area Generate Table](../../Templates/DataObjects/SourceSqlServerGenerateTable.handlebars.md)
+    - Other
+      - [Deployment](../../Templates/Other/Container.handlebars.md)
+      - [Control Framework Registration](../../Templates/Other/ControlFrameworkRegistration.handlebars.md)
+      - [Databases](../../Templates/Other/Databases.handlebars.md)
+      - [Deployment](../../Templates/Other/Deployment.handlebars.md)
+      - [Documentation](../../Templates/Other/Documentation.handlebars.md)
+      - [Readme](../../Templates/Other/Readme.handlebars.md)
+      - [Sample Data - SaveMore Source System](../../Templates/Other/SampleDataSqlServer.handlebars.md)
+  - [Phase one: CBS OData extraction with event-based orchestration](../../plan1.md)
+  - [Phase two: minimal Dutch government OData ingestion with event-based orchestration](../../plan2.md)
+  - [Phase three: JSON-configured Dutch government OData ingestion](../../plan3.md)
+<!-- markdown-project-structure:end -->
