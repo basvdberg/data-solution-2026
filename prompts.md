@@ -28,6 +28,18 @@ This document contains the prompts used to generate and refine the content in **
 
 3. The link to the sibling project Data Solution 2026 is not working in GitHub. It goes to this URL.https://github.com/basvdberg/data-engineering-2026/blob/data-solution-2026
 
+4. Add a construction icon and also the text "This project is under construction. Estimation of how complete it is: please come back later or subscribe to receive notifications . Merge with completeness indicator
+
+5. I meant the built-in GitHub notification functionality.
+
+6. Try to improve the under construction notice by looking at how other GitHub projects do this. I prefer to have a bigger icon at a standard location, more in the header of the document.
+
+7. Create a new project called **cursor-config**.Move all scripts to this repo and all.git pre-commit hooks and all skills that exist in my user directory so that I have full versioning of this reference this repo where needed.
+
+8. Check for other files that can be deleted. Also delete the.git hooks empty folders.
+
+9. Update the prompts markdown in each project.
+
 ## Session 3
 
 1. @data-solution-2026/Data/000_Source/KNMI/daggegevens_temperature/2026-05-12.parquet The period Begin data items seems to be incorrect since it refers to 1951. Could you troubleshoot the extractor to see if there might be a bug in the implementation? Could you show me the raw data as it comes from the source?
@@ -79,20 +91,16 @@ does this json follow the schema? Does it validate?
 
 3. According to my knowledge WFS does support pagination via startIndex
 
-4. According to my knowledge WFS does support pagination via startIndex
+4. Move the WFS extractor logic to the following folder data-engineering-design-patterns\implementation\full-data-solution\adl\Extractors  and move the @data-engineering-design-patterns/implementation/full-data-solution/dutch-odata-json/config/knmi-daggegevens.jsonfile into the data object mapping subfolder.
 
-5. Move the WFS extractor logic to the following folder data-engineering-design-patterns\implementation\full-data-solution\adl\Extractors  and move the @data-engineering-design-patterns/implementation/full-data-solution/dutch-odata-json/config/knmi-daggegevens.jsonfile into the data object mapping subfolder.
+5. Create a README that explains the extractors folder and another readme specifically for the WFS extractor.
 
-6. Create a README that explains the extractors folder and another readme specifically for the WFS extractor.
+6. Data should go to the Data folder with a capital D under ADL. Please try to get rid of the Scripts folder and move the code to the corresponding Extractors.
 
-7. Data should go to the Data folder with a capital D under ADL. Please try to get rid of the Scripts folder and move the code to the corresponding Extractors.
+7. Option two. And create a new project from the implementation subfolder. Rename this into data solution 2026.
 
-8. Option two. And create a new project from the implementation subfolder. Rename this into data solution 2026.
+8. check and finish @data-solution-2026/README.md
 
-9. check and finish @data-solution-2026/README.md
+9. Synchronize the folder structure under data to be identical to data objects.So bronze should become 000_source.
 
-10. Synchronize the folder structure under data to be identical to data objects.So bronze should become 000_source.
-
-11. Synchronize the folder structure under data to be identical to data objects.So bronze should become 000_source.
-
-12. Omit the extractor name in the folder naming under data. Specifically, remove odata demo.
+10. Omit the extractor name in the folder naming under data. Specifically, remove odata demo.
