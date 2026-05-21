@@ -1,4 +1,10 @@
-# Data Solution 2026
+# 🚧 Data Solution 2026
+
+[![Under construction](https://img.shields.io/badge/🚧-under%20construction-orange?style=for-the-badge)](https://github.com/basvdberg/data-solution-2026)
+[![PoC completeness](https://img.shields.io/badge/PoC%20completeness-25%25-yellow?style=for-the-badge)]()
+
+> [!WARNING]
+> **This project is under construction** — estimated **25 / 100** complete. Please check back later, or turn on [GitHub notifications](https://docs.github.com/en/account-and-profile/managing-subscriptions-and-notifications-on-github/setting-up-notifications/configuring-notifications#configuring-your-watch-settings-for-an-individual-repository) for this repository (**Watch** → **All Activity** or **Custom** → **Releases**).
 
 ## Table of contents
 
@@ -15,7 +21,7 @@
 
 ## Purpose
 
-Proof of concept for the way of working described in the sibling project [data-engineering-2026](https://github.com/basvdberg/data-engineering-2026): build a data solution with GenAI, DSA metadata, and technology-agnostic design patterns, from public API extraction through staging.
+Proof of concept for the way of working as described in [data-engineering-2026](https://github.com/basvdberg/data-engineering-2026).
 
 ## Proof of concept
 
