@@ -480,7 +480,6 @@ To onboard a non-CBS Dutch government OData feed (for example a future PDOK ODat
   - Dataobjectmappings
     - 000_Source
       - Knmi
-        - Roelant
     - Persistentstaging
     - Staging
   - Dataobjects

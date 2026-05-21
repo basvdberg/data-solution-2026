@@ -3,6 +3,7 @@
 ## Table of contents
 
 <!-- markdown-toc:start -->
+- [Overview](#overview)
 - [Structure](#structure)
 - [Design principles](#design-principles)
 - [Quickstart](#quickstart)
@@ -10,6 +11,8 @@
 - [Adding a new extractor](#adding-a-new-extractor)
 - [Available extractors](#available-extractors)
 <!-- markdown-toc:end -->
+
+## Overview
 
 This folder contains the runtime extraction logic for pulling data from
 external source systems into the `Data/000_Source/` landing zone. Each
@@ -127,7 +130,6 @@ Design choices:
   - Dataobjectmappings
     - 000_Source
       - Knmi
-        - Roelant
     - Persistentstaging
     - Staging
   - Dataobjects

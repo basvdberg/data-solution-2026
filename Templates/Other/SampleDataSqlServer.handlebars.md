@@ -69,7 +69,6 @@ N/A.
   - Dataobjectmappings
     - 000_Source
       - Knmi
-        - Roelant
     - Persistentstaging
     - Staging
   - Dataobjects

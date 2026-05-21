@@ -3,12 +3,15 @@
 ## Table of contents
 
 <!-- markdown-toc:start -->
+- [Overview](#overview)
 - [1. Data types](#1-data-types)
 - [2. Classifications](#2-classifications)
 - [3. Extensions](#3-extensions)
 - [4. Cross-cutting](#4-cross-cutting)
 - [Suggested order of attack](#suggested-order-of-attack)
 <!-- markdown-toc:end -->
+
+## Overview
 
 Open items for `data-objects.schema.json`. The schema is intentionally permissive today (free-form strings, custom fields allowed) so we can iterate on the controlled vocabularies separately from the structural skeleton. One Data Object is stored per file; the schema root is a single Data Object.
 
@@ -152,7 +155,6 @@ Open questions:
   - Dataobjectmappings
     - 000_Source
       - Knmi
-        - Roelant
     - Persistentstaging
     - Staging
   - Dataobjects

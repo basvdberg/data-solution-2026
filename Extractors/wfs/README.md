@@ -3,6 +3,7 @@
 ## Table of contents
 
 <!-- markdown-toc:start -->
+- [Overview](#overview)
 - [Modules](#modules)
   - [client.py](#clientpy)
   - [gml_parser.py](#gml_parserpy)
@@ -12,6 +13,8 @@
 - [Adding a new feature type parser](#adding-a-new-feature-type-parser)
 - [Current data source](#current-data-source)
 <!-- markdown-toc:end -->
+
+## Overview
 
 This extractor fetches geospatial features from OGC WFS 2.0 endpoints and
 flattens the responses into tabular records for Parquet storage under
@@ -133,7 +136,6 @@ haleconnect.com.
   - Dataobjectmappings
     - 000_Source
       - Knmi
-        - Roelant
     - Persistentstaging
     - Staging
   - Dataobjects

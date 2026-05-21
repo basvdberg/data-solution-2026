@@ -676,7 +676,6 @@ To onboard a non-CBS source (e.g. a future PDOK OData service), create a new fil
   - Dataobjectmappings
     - 000_Source
       - Knmi
-        - Roelant
     - Persistentstaging
     - Staging
   - Dataobjects

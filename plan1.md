@@ -710,7 +710,6 @@ No restart, no redeployment, no code change.
   - Dataobjectmappings
     - 000_Source
       - Knmi
-        - Roelant
     - Persistentstaging
     - Staging
   - Dataobjects

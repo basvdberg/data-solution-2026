@@ -3,6 +3,7 @@
 ## Table of contents
 
 <!-- markdown-toc:start -->
+- [Purpose](#purpose)
 - [Proof of concept](#proof-of-concept)
   - [Architecture](#architecture)
   - [Lessons learned](#lessons-learned)
@@ -12,11 +13,13 @@
     - [Consolidating best practices](#consolidating-best-practices)
 <!-- markdown-toc:end -->
 
-Proof of concept for the way of working described in the sibling project [data-engineering-2026](../data-engineering-2026/): build a data solution with GenAI, DSA metadata, and technology-agnostic design patterns, from public API extraction through staging.
+## Purpose
+
+Proof of concept for the way of working described in the sibling project [data-engineering-2026](https://github.com/basvdberg/data-engineering-2026): build a data solution with GenAI, DSA metadata, and technology-agnostic design patterns, from public API extraction through staging.
 
 ## Proof of concept
 
-To explore this new way of working, I extract data from a public source—KNMI Dutch weather data—into a staging layer. The Python extraction code is fully generated via GenAI. For the orchestration, I started by describing the design patterns I want to use in the companion repository [data-engineering-design-patterns](../data-engineering-design-patterns/). I also used AI to pick suitable tools for my use case, which led to the open-source combination of Apache Airflow and Apache Kafka.
+To explore this new way of working, I extract data from a public source—KNMI Dutch weather data—into a staging layer. The Python extraction code is fully generated via GenAI. For the orchestration, I started by describing the design patterns I want to use in the companion repository [data-engineering-design-patterns](https://github.com/basvdberg/data-engineering-design-patterns). I also used AI to pick suitable tools for my use case, which led to the open-source combination of Apache Airflow and Apache Kafka.
 
 ### Architecture
 
@@ -28,7 +31,7 @@ The flow, left to right:
 2. **Airflow + Kafka run the ingestion.** The change-detector DAG polls the WFS service on schedule and emits a `source_change` event when the dataset has new data. The event controller turns matching events into `extract` commands. The WFS extractor consumes commands, calls the source, and writes Parquet to `Data/000_Source/`. PostgreSQL stores checkpoints and the event log only—no configuration.
 3. **ADL generates staging artefacts.** Reading the same DSA metadata, ADL renders the Handlebars templates in `Templates/` into DDL and load SQL under `Output/`, which load the Parquet landing files into the **100 Landing Area**.
 
-This solution follows the [separate what and how](../data-engineering-design-patterns/design-patterns/separate-what-and-how.md) design pattern: the DSA metadata files specify *what* must happen for each source and target, while the Airflow DAGs, the WFS extractor, and the ADL-generated load procedures are the implementation that specifies *how* it is executed.
+This solution follows the [separate what and how](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/separate-what-and-how.md) design pattern: the DSA metadata files specify *what* must happen for each source and target, while the Airflow DAGs, the WFS extractor, and the ADL-generated load procedures are the implementation that specifies *how* it is executed.
 
 ### Lessons learned
 
@@ -50,7 +53,7 @@ This solution follows the [separate what and how](../data-engineering-design-pat
 
 **Before:** "How we build data pipelines" is often encoded in whichever stack the team already runs; changing tools means re-discovering the same ideas under new names.
 
-**After:** Generative AI pairs naturally with explicit design patterns (such as [event-based orchestration](../data-engineering-design-patterns/design-patterns/event-based-orchestration.md)): patterns state *what* must happen and abstract away vendor details. Benefits of this approach:
+**After:** Generative AI pairs naturally with explicit design patterns (such as [event-based orchestration](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/event-based-orchestration.md)): patterns state *what* must happen and abstract away vendor details. Benefits of this approach:
 
 - **Longer solution lifetime** — patterns outlive implementations.
 - **Better tool selection** — requirements and patterns can guide AI (and humans) toward fitting technology.
@@ -60,7 +63,7 @@ This solution follows the [separate what and how](../data-engineering-design-pat
 
 **Before:** Best practices live in personal notes, scattered wiki pages, and oral tradition; new joiners and AI assistants lack one authoritative, diffable source.
 
-**After:** This repo plus the companion [data-engineering-design-patterns](../data-engineering-design-patterns/) collection give a shared, version-controlled baseline. Metadata (DSA), generated artefacts (ADL), and pattern docs align so humans and AI apply the same rules on every change.
+**After:** This repo plus the companion [data-engineering-design-patterns](https://github.com/basvdberg/data-engineering-design-patterns) collection give a shared, version-controlled baseline. Metadata (DSA), generated artefacts (ADL), and pattern docs align so humans and AI apply the same rules on every change.
 
 ## Project structure
 
@@ -74,7 +77,6 @@ This solution follows the [separate what and how](../data-engineering-design-pat
   - Dataobjectmappings
     - 000_Source
       - Knmi
-        - Roelant
     - Persistentstaging
     - Staging
   - Dataobjects

@@ -75,7 +75,6 @@ It will then load the identified data delta into the staging object by comparing
   - Dataobjectmappings
     - 000_Source
       - Knmi
-        - Roelant
     - Persistentstaging
     - Staging
   - Dataobjects

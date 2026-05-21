@@ -73,7 +73,6 @@ This template can be used to skip a dedicated, transient, staging (landing) area
   - Dataobjectmappings
     - 000_Source
       - Knmi
-        - Roelant
     - Persistentstaging
     - Staging
   - Dataobjects

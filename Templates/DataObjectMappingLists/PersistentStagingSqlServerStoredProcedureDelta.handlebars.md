@@ -80,7 +80,6 @@ This PSA template detects this, so that it is possible to load, and re-load, all
   - Dataobjectmappings
     - 000_Source
       - Knmi
-        - Roelant
     - Persistentstaging
     - Staging
   - Dataobjects

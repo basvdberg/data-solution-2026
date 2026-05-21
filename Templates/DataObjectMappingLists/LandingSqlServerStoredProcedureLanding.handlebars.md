@@ -73,7 +73,6 @@ This template requires a dedicated, transient, staging (landing) area. As part o
   - Dataobjectmappings
     - 000_Source
       - Knmi
-        - Roelant
     - Persistentstaging
     - Staging
   - Dataobjects
