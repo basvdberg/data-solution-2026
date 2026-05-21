@@ -26,6 +26,8 @@ This document contains the prompts used to generate and refine the content in **
 
 @knmi-daggegevens-gen.json does not. Could you look at the differences and propose changes that will fix this?
 
+3. The link to the sibling project Data Solution 2026 is not working in GitHub. It goes to this URL.https://github.com/basvdberg/data-engineering-2026/blob/data-solution-2026
+
 ## Session 3
 
 1. @data-solution-2026/Data/000_Source/KNMI/daggegevens_temperature/2026-05-12.parquet The period Begin data items seems to be incorrect since it refers to 1951. Could you troubleshoot the extractor to see if there might be a bug in the implementation? Could you show me the raw data as it comes from the source?

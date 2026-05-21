@@ -1,0 +1,4 @@
+{
+  "cursorConfig": "../cursor-config",
+  "preCommit": "standard"
+}

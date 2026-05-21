@@ -24,7 +24,6 @@
   "Extractors/wfs": "OGC WFS 2.0 extractor and GML parser",
   "Perspectives": "ADL perspectives",
   "Schemas": "JSON schemas for metadata validation",
-  "scripts": "Markdown automation and git hook setup",
   "Settings": "ADL settings and personas",
   "Templates": "Handlebars templates for ADL code generation",
   "Templates/DataObjectMappingLists": "Templates for mapping-list artefacts",

@@ -1,10 +1,4 @@
-# 🚧 Data Solution 2026
-
-[![Under construction](https://img.shields.io/badge/🚧-under%20construction-orange?style=for-the-badge)](https://github.com/basvdberg/data-solution-2026)
-[![PoC completeness](https://img.shields.io/badge/PoC%20completeness-25%25-yellow?style=for-the-badge)]()
-
-> [!WARNING]
-> **This project is under construction** — estimated **25 / 100** complete. Please check back later, or turn on [GitHub notifications](https://docs.github.com/en/account-and-profile/managing-subscriptions-and-notifications-on-github/setting-up-notifications/configuring-notifications#configuring-your-watch-settings-for-an-individual-repository) for this repository (**Watch** → **All Activity** or **Custom** → **Releases**).
+# Data Solution 2026
 
 ## Table of contents
 
@@ -19,13 +13,18 @@
     - [Consolidating best practices](#consolidating-best-practices)
 <!-- markdown-toc:end -->
 
+> [!WARNING]
+> **This project is under construction** Please check back later, or turn on [GitHub notifications].
+
 ## Purpose
 
 Proof of concept for the way of working as described in [data-engineering-2026](https://github.com/basvdberg/data-engineering-2026).
 
 ## Proof of concept
 
-To explore this new way of working, I extract data from a public source—KNMI Dutch weather data—into a staging layer. The Python extraction code is fully generated via GenAI. For the orchestration, I started by describing the design patterns I want to use in the companion repository [data-engineering-design-patterns](https://github.com/basvdberg/data-engineering-design-patterns). I also used AI to pick suitable tools for my use case, which led to the open-source combination of Apache Airflow and Apache Kafka.
+To explore this new way of working, this POC implements a Staging layer for a public data source: Dutch weather data (KNMI)using a free public accessible Api. I use ADL to visualize the transformations and lineage (this is the reason that we have a certain fixed folder structure for this repo. This is used by ADL to categorize the metadata). 
+
+The Python extraction code is fully generated via GenAI. For the orchestration, I started by describing the design patterns that I want to use in the repository [data-engineering-design-patterns](https://github.com/basvdberg/data-engineering-design-patterns). I also used AI to pick suitable tools for my use case, which led to the open-source combination of Apache Airflow and Apache Kafka.
 
 ### Architecture
 
@@ -83,6 +82,7 @@ This solution follows the [separate what and how](https://github.com/basvdberg/d
   - Dataobjectmappings
     - 000_Source
       - Knmi
+        - Roelant
     - Persistentstaging
     - Staging
   - Dataobjects
@@ -124,4 +124,8 @@ This solution follows the [separate what and how](https://github.com/basvdberg/d
   - [Phase one: CBS OData extraction with event-based orchestration](plan1.md)
   - [Phase two: minimal Dutch government OData ingestion with event-based orchestration](plan2.md)
   - [Phase three: JSON-configured Dutch government OData ingestion](plan3.md)
+- Related repositories
+  - [cursor-config](https://github.com/basvdberg/cursor-config)
+  - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026)
+  - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns)
 <!-- markdown-project-structure:end -->

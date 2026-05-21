@@ -16,20 +16,21 @@ Every `.md` file in this repository is updated automatically with:
 ## One-time setup (per clone)
 
 ```powershell
-.\scripts\setup-githooks.ps1
+..\cursor-config\scripts\setup-githooks.ps1 .
+..\cursor-config\scripts\install-skills.ps1
 ```
 
-That sets `core.hooksPath` to `.githooks`, so the pre-commit hook runs `scripts/update_markdown_docs.py` before each commit and re-stages changed Markdown files.
+That points `core.hooksPath` at [cursor-config](../cursor-config/githooks/) so pre-commit runs the shared Markdown and `prompts.md` updaters from [cursor-config](../cursor-config/).
 
 ## Manual refresh
 
 ```powershell
-python scripts/update_markdown_docs.py
-python scripts/update_markdown_docs.py --toc-only
-python scripts/update_markdown_docs.py --structure-only
+python ..\cursor-config\scripts\update_markdown_docs.py
+python ..\cursor-config\scripts\update_markdown_docs.py --toc-only
+python ..\cursor-config\scripts\update_markdown_docs.py --structure-only
 ```
 
-Cursor skills (personal): `markdown-toc` and `markdown-project-structure` under `~/.cursor/skills/`.
+Cursor skills are versioned in [cursor-config/skills/](../cursor-config/skills/) and linked into `~/.cursor/skills/` by `install-skills.ps1`.
 
 ## Editing rules
 
@@ -94,4 +95,8 @@ Edit the main body of the document outside those blocks.
   - [Phase one: CBS OData extraction with event-based orchestration](../plan1.md)
   - [Phase two: minimal Dutch government OData ingestion with event-based orchestration](../plan2.md)
   - [Phase three: JSON-configured Dutch government OData ingestion](../plan3.md)
+- Related repositories
+  - [cursor-config](https://github.com/basvdberg/cursor-config)
+  - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026)
+  - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns)
 <!-- markdown-project-structure:end -->

@@ -676,6 +676,7 @@ To onboard a non-CBS source (e.g. a future PDOK OData service), create a new fil
   - Dataobjectmappings
     - 000_Source
       - Knmi
+        - Roelant
     - Persistentstaging
     - Staging
   - Dataobjects
@@ -717,4 +718,8 @@ To onboard a non-CBS source (e.g. a future PDOK OData service), create a new fil
   - [Phase one: CBS OData extraction with event-based orchestration](plan1.md)
   - [Phase two: minimal Dutch government OData ingestion with event-based orchestration](plan2.md)
   - [Phase three: JSON-configured Dutch government OData ingestion](plan3.md)
+- Related repositories
+  - [cursor-config](https://github.com/basvdberg/cursor-config)
+  - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026)
+  - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns)
 <!-- markdown-project-structure:end -->
