@@ -14,17 +14,17 @@
 <!-- markdown-toc:end -->
 
 > [!WARNING]
-> **This project is under construction** Please check back later, or turn on [GitHub notifications].
+> **This project is under construction.** Please check back later, or [watch the repository](https://github.com/basvdberg/data-solution-2026/watchers) on GitHub for updates.
 
 ## Purpose
 
-Proof of concept for the way of working as described in [data-engineering-2026](https://github.com/basvdberg/data-engineering-2026).
+Proof of concept for the GenAI way of working described in [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026). Design intent for orchestration and metadata shape is captured in [data-engineering-design-patterns](https://github.com/basvdberg/data-engineering-design-patterns).
 
 ## Proof of concept
 
-To explore this new way of working, this POC implements a Staging layer for a public data source: Dutch weather data (KNMI)using a free public accessible Api. I use ADL to visualize the transformations and lineage (this is the reason that we have a certain fixed folder structure for this repo. This is used by ADL to categorize the metadata). 
+This PoC implements a staging layer for Dutch weather data (KNMI) from a publicly accessible API. [Agnostic Data Labs (ADL)](https://docs.agnosticdatalabs.com/docs/) visualizes transformations and lineage; the repository keeps a fixed folder layout so ADL can categorize DSA metadata consistently.
 
-The Python extraction code is fully generated via GenAI. For the orchestration, I started by describing the design patterns that I want to use in the repository [data-engineering-design-patterns](https://github.com/basvdberg/data-engineering-design-patterns). I also used AI to pick suitable tools for my use case, which led to the open-source combination of Apache Airflow and Apache Kafka.
+Python extraction code was generated with GenAI. Orchestration follows patterns from [data-engineering-design-patterns](https://github.com/basvdberg/data-engineering-design-patterns); AI-assisted tool selection led to Apache Airflow and Apache Kafka for this use case.
 
 ### Architecture
 
