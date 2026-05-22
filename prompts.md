@@ -40,6 +40,17 @@ This document contains the prompts used to generate and refine the content in **
 
 9. Update the prompts markdown in each project.
 
+10. Review this linkedin post:
+How is GenAI changing data engineering—not just coding faster, but how we design, document, and deliver?
+I’ve started capturing that in an open repo: https://github.com/basvdberg/data-engineering-2026
+The core idea: treat documentation and intent as fuel for GenAI, not paperwork you finish after go-live.
+
+Documentation first — update design and decisions before implementation; AI drafts quickly, you review intent, then code follows.
+CI/CD shifts — generated code replaces hand-written; docs become the specification that drives generation.
+Specify what, not how — declarative standards (e.g. DSA metadata) and technology-agnostic design patterns reduce ambiguity so agents don’t wander.
+The repo walks through this way of working (including diagrams on the old vs new data-engineering cycle), links to the Data Engineering Design Patterns collection, and points to a Data Solution 2026 proof of concept that puts the ideas into practice. This POC is in progress. I will report the lessons learned in the near future. 
+#DataEngineering #GenAI #DataArchitecture #DataSolution #DesignPatterns #CodeSpecification
+
 ## Session 3
 
 1. @data-solution-2026/Data/000_Source/KNMI/daggegevens_temperature/2026-05-12.parquet The period Begin data items seems to be incorrect since it refers to 1951. Could you troubleshoot the extractor to see if there might be a bug in the implementation? Could you show me the raw data as it comes from the source?
@@ -64,9 +75,17 @@ This document contains the prompts used to generate and refine the content in **
 
 ## Session 5
 
-1. Create a sample implementation of the event-based orchestration design pattern based on Free OData Data from  the dutch government using Apache Airflow and Kafka. Make sure that the data is automtically fetched daily only when changed. Use PostgressSQL to implement the Object-Property tree design pattern to store all configuration. Keep strict separation of code versus configuration. Try to make the implementation as simple as possible. Start by creating a document called plan2.md. Create rollout plan in steps.
+1. Add classification target data object. It should be staging layer Please Come up with a good protocol I'm not sure what it should be since it's a parquet file.
 
 ## Session 6
+
+1. Create a sample implementation of the event-based orchestration design pattern based on Free OData Data from  the dutch government using Apache Airflow and Kafka. Make sure that the data is automtically fetched daily only when changed. Use PostgressSQL to implement the Object-Property tree design pattern to store all configuration. Keep strict separation of code versus configuration. Try to make the implementation as simple as possible. Start by creating a document called plan2.md. Create rollout plan in steps.
+
+## Session 7
+
+1. Create new project called ADL feedback. Create a markdown. That Numerous Feedback First item. Yes. Issue with Loading. Generated JSON. Data object mappings
+
+## Session 8
 
 1. Explain this schema:
 https://github.com/data-solution-automation-engine/data-warehouse-automation-metadata-schema/blob/main/GenericInterface/interfaceDataWarehouseAutomationMetadataV2_0.json  
@@ -79,11 +98,11 @@ while the documentation speaks about dataObject ?
 does this json follow the schema? Does it validate?
 @DataEngineeringIn2026/sample.json
 
-## Session 7
+## Session 9
 
 1. Run the WFS extractor.
 
-## Session 8
+## Session 10
 
 1. kafka is running on basnas on port 9092, airflow is running on same server on port 8081. Implement plan3 the first step, which consists of extracting a dataset from OData site.
 
@@ -104,3 +123,15 @@ does this json follow the schema? Does it validate?
 9. Synchronize the folder structure under data to be identical to data objects.So bronze should become 000_source.
 
 10. Omit the extractor name in the folder naming under data. Specifically, remove odata demo.
+
+## Session 11
+
+1. Run WFS Poller
+
+2. help sketch a KNMI Data Platform mapping and poller rule, and add a short “stale feed” note to readme.md. replace WFS api with better and more current api
+
+3. Run the data extractor for KNMI.
+
+## Session 12
+
+1. Apply the Pascal case naming convention for all folders in the Data Solution 2026 project

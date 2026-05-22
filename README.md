@@ -6,11 +6,11 @@
 - [Purpose](#purpose)
 - [Proof of concept](#proof-of-concept)
   - [Architecture](#architecture)
+  - [Stale KNMI WFS feed (superseded)](#stale-knmi-wfs-feed-superseded)
   - [Lessons learned](#lessons-learned)
     - [Data extraction via API](#data-extraction-via-api)
     - [Learning new tools](#learning-new-tools)
-    - [Design patterns](#design-patterns)
-    - [Consolidating best practices](#consolidating-best-practices)
+    - [Agnostic Data Labs](#agnostic-data-labs)
 <!-- markdown-toc:end -->
 
 > [!WARNING]
@@ -22,7 +22,7 @@ Proof of concept for the GenAI way of working described in [Data Engineering 202
 
 ## Proof of concept
 
-This PoC implements a staging layer for Dutch weather data (KNMI) from a publicly accessible API. [Agnostic Data Labs (ADL)](https://docs.agnosticdatalabs.com/docs/) visualizes transformations and lineage; the repository keeps a fixed folder layout so ADL can categorize DSA metadata consistently.
+This PoC implements a staging layer for Dutch weather data (KNMI) from the [KNMI Data Platform Open Data API](https://developer.dataplatform.knmi.nl/open-data-api). [Agnostic Data Labs (ADL)](https://docs.agnosticdatalabs.com/docs/) visualizes transformations and lineage; the repository keeps a fixed folder layout so ADL can categorize DSA metadata consistently.
 
 Python extraction code was generated with GenAI. Orchestration follows patterns from [data-engineering-design-patterns](https://github.com/basvdberg/data-engineering-design-patterns); AI-assisted tool selection led to Apache Airflow and Apache Kafka for this use case.
 
@@ -32,11 +32,29 @@ Python extraction code was generated with GenAI. Orchestration follows patterns 
 
 The flow, left to right:
 
-1. **Git holds the configuration.** `DataObjectMappings/000_Source/KNMI/` describes the WFS source; `DataObjects/100_Landing_Area/` and `DataObjectMappings/Staging/` describe the staging tables and the load. Design patterns set the shape of the orchestration.
-2. **Airflow + Kafka run the ingestion.** The change-detector DAG polls the WFS service on schedule and emits a `source_change` event when the dataset has new data. The event controller turns matching events into `extract` commands. The WFS extractor consumes commands, calls the source, and writes Parquet to `Data/000_Source/`. PostgreSQL stores checkpoints and the event log only—no configuration.
+1. **Git holds the configuration.** `data-object-mapping/staging/knmi/` describes the KNMI source (Open Data API); staging targets and loads are defined in the same DSA metadata. Design patterns set the shape of the orchestration.
+2. **Airflow + Kafka run the ingestion.** The change-detector DAG polls the KDP file catalog on schedule and emits a `source_change` event when a new daily NetCDF appears. The event controller turns matching events into `extract` commands. The KNMI extractor (`python -m extractor.knmi`) downloads and flattens NetCDF to Parquet under `data/staging/knmi/`. PostgreSQL stores checkpoints and the event log only—no configuration.
 3. **ADL generates staging artefacts.** Reading the same DSA metadata, ADL renders the Handlebars templates in `Templates/` into DDL and load SQL under `Output/`, which load the Parquet landing files into the **100 Landing Area**.
 
-This solution follows the [separate what and how](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/separate-what-and-how.md) design pattern: the DSA metadata files specify *what* must happen for each source and target, while the Airflow DAGs, the WFS extractor, and the ADL-generated load procedures are the implementation that specifies *how* it is executed.
+This solution follows the [separate what and how](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/separate-what-and-how.md) design pattern: the DSA metadata files specify *what* must happen for each source and target, while the Airflow DAGs, extractors, poller, and ADL-generated load procedures are the implementation that specifies *how* it is executed.
+
+### Stale KNMI WFS feed (superseded)
+
+The original PoC used the INSPIRE **WFS 2.0** endpoint on `haleconnect.com` (*Gecontroleerde klimatologische daggegevens*). That service still responds, but embedded observation data **stopped updating around 2023-09-01** across all stations—the poller correctly reported that date, not a bug.
+
+| Source | Freshness | Status in this repo |
+|--------|-----------|---------------------|
+| haleconnect INSPIRE WFS | Frozen ~2023-09 | **Replaced** — `extractor/wfs/` kept for reference only |
+| [KDP Open Data API](https://dataplatform.knmi.nl/dataset/daily-in-situ-meteorological-observations-1-0) | Nightly `daily-observations-*.nc` | **Active** — mapping `knmi-daggegevens.json`, poller `interface_type:knmi_open_data` |
+
+Set `KNMI_API_KEY` (register at [developer.dataplatform.knmi.nl](https://developer.dataplatform.knmi.nl/open-data-api)) and run:
+
+```powershell
+python -m poller --probe-only --mapping knmi-daggegevens-temperature
+python -m extractor.knmi --mapping knmi-daggegevens-temperature
+```
+
+Details: [extractor/knmi/README.md](extractor/knmi/README.md), [data object poller plan](plan/data-object-poller/airflow-kafka.md).
 
 ### Lessons learned
 
@@ -44,7 +62,7 @@ This solution follows the [separate what and how](https://github.com/basvdberg/d
 
 **Before:** Extracting from a source with a well-defined API typically took one to two weeks—collecting and reading sometimes incomplete documentation, then iteratively building and testing the client.
 
-**After:** With generative AI (Cursor in this project), extraction code for OData and WFS was produced in a handful of prompts. End-to-end validation, including a smoke test against the live service, fit within about an hour.
+**After:** With generative AI (Cursor in this project), extraction code for OData, WFS, and KNMI Open Data was produced in a handful of prompts. End-to-end validation, including a smoke test against the live service, fit within about an hour.
 
 **Takeaway:** A large efficiency gain, and in this PoC the generated client code was stronger and faster to test than a typical hand-written first version.
 
@@ -54,76 +72,38 @@ This solution follows the [separate what and how](https://github.com/basvdberg/d
 
 **After:** AI explains how a tool fits a concrete use case in *your* architecture and generates starter code (DAGs, parsers, mapping JSON). You learn from working examples without mastering every aspect of the tool first. That shortens time-to-market for new tooling, makes it easier to compare or replace components, and supports a more technology-agnostic architecture.
 
-#### Design patterns
-
-**Before:** "How we build data pipelines" is often encoded in whichever stack the team already runs; changing tools means re-discovering the same ideas under new names.
-
-**After:** Generative AI pairs naturally with explicit design patterns (such as [event-based orchestration](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/event-based-orchestration.md)): patterns state *what* must happen and abstract away vendor details. Benefits of this approach:
-
-- **Longer solution lifetime** — patterns outlive implementations.
-- **Better tool selection** — requirements and patterns can guide AI (and humans) toward fitting technology.
-- **Portable best practices** — industry norms can be expressed once and reused regardless of Kafka, Airflow, or the next orchestrator.
-
-#### Consolidating best practices
-
-**Before:** Best practices live in personal notes, scattered wiki pages, and oral tradition; new joiners and AI assistants lack one authoritative, diffable source.
-
-**After:** This repo plus the companion [data-engineering-design-patterns](https://github.com/basvdberg/data-engineering-design-patterns) collection give a shared, version-controlled baseline. Metadata (DSA), generated artefacts (ADL), and pattern docs align so humans and AI apply the same rules on every change.
+#### Agnostic Data Labs
+Although I'm Impressed. By the look and feel Plus the offered functionalities of this tool. I hit some Showstoppers. Like 
+1. I generated a JSON file According to the Published Automation schema But this wasn't read correctly by the tool. And there was no easy way to find out what was going on. 
+2. the tool converts the json into elemental components. This alters the underlying json representation. Maybe it makes sense to represent elemental components in the first place instead of DataObjectMappings.
 
 ## Project structure
 
 <!-- markdown-project-structure:start -->
 - [Data Solution 2026](readme.md)
-  - Classifications
-  - Configurations
-  - Connections
-    - Sources
-  - Conventions
-  - Dataobjectmappings
-    - 000_Source
-      - Knmi
-        - Roelant
-    - Persistentstaging
+  - Data
     - Staging
-  - Dataobjects
-    - 000_Source
-      - Dbo
-    - 100_Landing_Area
-      - Dbo
-    - 150_Persistent_Staging_Area
-      - Dbo
+      - Knmi
+        - Daggegevens_Temperature
+  - Data Object Mapping
+    - Staging
+      - Knmi
   - Docs
-    - [Markdown automation](docs/markdown-automation.md)
-  - Extractors
+  - Extractor
     - Common
+    - Knmi
     - Odata
+    - Poller
     - Wfs
-  - Perspectives
-  - Schemas
-    - [Schema follow-ups](Schemas/follow-ups.md)
-  - Settings
-  - Templates
-    - Dataobjectmappinglists
-      - [Landing Area Stored Procedure Delta](Templates/DataObjectMappingLists/LandingSqlServerStoredProcedureDelta.handlebars.md)
-      - [Landing Area Stored Procedure Landing](Templates/DataObjectMappingLists/LandingSqlServerStoredProcedureLanding.handlebars.md)
-      - [Persistent Staging Area Stored Procedure Delta](Templates/DataObjectMappingLists/PersistentStagingSqlServerStoredProcedureDelta.handlebars.md)
-      - [Persistent Staging Area Stored Procedure Full Outer Join](Templates/DataObjectMappingLists/PersistentStagingSqlServerStoredProcedureFullOuterJoin.handlebars.md)
-    - Dataobjects
-      - [Source Area Generate Table](Templates/DataObjects/CreatePhysicalDataObject.handlebars.md)
-      - [Landing Area Generate Table](Templates/DataObjects/LandingSqlServerGenerateTable.handlebars.md)
-      - [Persistent Staging Area Generate Table](Templates/DataObjects/PersistentStagingSqlServerGenerateTable.handlebars.md)
-      - [Source Area Generate Table](Templates/DataObjects/SourceSqlServerGenerateTable.handlebars.md)
-    - Other
-      - [Deployment](Templates/Other/Container.handlebars.md)
-      - [Control Framework Registration](Templates/Other/ControlFrameworkRegistration.handlebars.md)
-      - [Databases](Templates/Other/Databases.handlebars.md)
-      - [Deployment](Templates/Other/Deployment.handlebars.md)
-      - [Documentation](Templates/Other/Documentation.handlebars.md)
-      - [Readme](Templates/Other/Readme.handlebars.md)
-      - [Sample Data - SaveMore Source System](Templates/Other/SampleDataSqlServer.handlebars.md)
-  - [Phase one: CBS OData extraction with event-based orchestration](plan1.md)
-  - [Phase two: minimal Dutch government OData ingestion with event-based orchestration](plan2.md)
-  - [Phase three: JSON-configured Dutch government OData ingestion](plan3.md)
+  - Plan
+    - Data Object Poller
+      - [Data object poller — Airflow + Kafka implementation](plan/data-object-poller/airflow-kafka.md)
+    - [Phase one: CBS OData extraction with event-based orchestration](plan/plan1.md)
+    - [Phase two: minimal Dutch government OData ingestion with event-based orchestration](plan/plan2.md)
+    - [Phase three: JSON-configured Dutch government OData ingestion](plan/plan3.md)
+  - Poller
+  - Schema
+    - [Schema follow-ups](schema/data-objects-schema.md)
 - Related repositories
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026)
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns)

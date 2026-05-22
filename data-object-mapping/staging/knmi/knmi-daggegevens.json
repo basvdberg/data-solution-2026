@@ -1,0 +1,196 @@
+{
+  "$schema": "https://github.com/data-solution-automation-engine/data-solution-automation-metadata-schema/GenericInterface/interfaceDataSolutionAutomationMetadataV2_1.json",
+  "id": "7a01b001-0001-4000-8000-000000000001",
+  "name": "KNMI Data Platform daily climate observations",
+  "notes": "Daily in-situ meteorological observations from the KNMI Data Platform Open Data API (replaces the stale haleconnect INSPIRE WFS). Unvalidated daily NetCDF files are published nightly. Register for an API key: https://developer.dataplatform.knmi.nl/open-data-api",
+  "dataObjectMappings": [
+    {
+      "id": "knmi-daggegevens-temperature",
+      "name": "KNMI daily temperature observations to staging landing",
+      "notes": "Polls and (when implemented) extracts daily mean air temperature from dataset daily-in-situ-meteorological-observations/1.0. Lands Parquet under data/staging/knmi/daggegevens-temperature.",
+      "enabled": true,
+      "sourceDataObjects": [
+        {
+          "id": "7a01b002-0001-4000-8000-000000000001",
+          "name": "KNMI",
+          "notes": "KNMI Data Platform Open Data API — file catalog per dataset version. See https://dataplatform.knmi.nl/dataset/daily-in-situ-meteorological-observations-1-0",
+          "dataConnection": {
+            "id": "7a01b003-0001-4000-8000-000000000001",
+            "name": "knmi-kdp-open-data",
+            "extensions": [
+              {
+                "key": "base_url",
+                "value": "https://api.dataplatform.knmi.nl/open-data/v1"
+              },
+              {
+                "key": "protocol",
+                "value": "KNMI_OPEN_DATA"
+              },
+              {
+                "key": "api_key_env",
+                "value": "KNMI_API_KEY"
+              }
+            ]
+          },
+          "classifications": [
+            {
+              "id": "7a01b004-0001-4000-8000-000000000001",
+              "group": "source",
+              "classification": "knmi"
+            },
+            {
+              "id": "7a01b004-0001-4000-8000-000000000002",
+              "group": "protocol",
+              "classification": "knmi_open_data"
+            }
+          ]
+        }
+      ],
+      "targetDataObject": {
+        "id": "7a01b002-0001-4000-8000-000000000002",
+        "name": "daggegevens_temperature",
+        "notes": "Flattened daily mean air temperature from KNMI daily NetCDF, one row per (station, date, value). Schema aligned with the former WFS landing; extractor NetCDF parser is planned.",
+        "dataConnection": {
+          "id": "7a01b003-0001-4000-8000-000000000002",
+          "name": "staging-landing",
+          "extensions": [
+            {
+              "key": "path",
+              "value": "./data/staging/knmi/daggegevens-temperature"
+            },
+            {
+              "key": "connectionType",
+              "value": "FlatFile"
+            },
+            {
+              "key": "protocol",
+              "value": "parquet"
+            }
+          ]
+        },
+        "classifications": [
+          {
+            "id": "7a01b004-0001-4000-8000-000000000005",
+            "group": "Solution Area",
+            "classification": "Landing Area",
+            "notes": "Staging landing zone for raw extracts."
+          },
+          {
+            "id": "7a01b004-0001-4000-8000-000000000006",
+            "group": "Solution Layer",
+            "classification": "Staging Layer"
+          },
+          {
+            "id": "7a01b004-0001-4000-8000-000000000007",
+            "group": "protocol",
+            "classification": "parquet"
+          }
+        ],
+        "dataItems": [
+          {
+            "id": "7a01b005-0001-4000-8000-000000000001",
+            "name": "station_id",
+            "ordinalPosition": 1,
+            "dataType": "string",
+            "notes": "WIGOS or KNMI station identifier from NetCDF (planned parser)."
+          },
+          {
+            "id": "7a01b005-0001-4000-8000-000000000002",
+            "name": "observed_property",
+            "ordinalPosition": 2,
+            "dataType": "string",
+            "notes": "Measured variable URI or standard name (air temperature at 1.5 m)."
+          },
+          {
+            "id": "7a01b005-0001-4000-8000-000000000003",
+            "name": "latitude",
+            "ordinalPosition": 3,
+            "dataType": "double",
+            "notes": "Station latitude (EPSG:4326)."
+          },
+          {
+            "id": "7a01b005-0001-4000-8000-000000000004",
+            "name": "longitude",
+            "ordinalPosition": 4,
+            "dataType": "double",
+            "notes": "Station longitude (EPSG:4326)."
+          },
+          {
+            "id": "7a01b005-0001-4000-8000-000000000005",
+            "name": "period_begin",
+            "ordinalPosition": 5,
+            "dataType": "string",
+            "notes": "Observation day period start (ISO 8601 UTC)."
+          },
+          {
+            "id": "7a01b005-0001-4000-8000-000000000006",
+            "name": "period_end",
+            "ordinalPosition": 6,
+            "dataType": "string",
+            "notes": "Observation day period end (ISO 8601 UTC)."
+          },
+          {
+            "id": "7a01b005-0001-4000-8000-000000000007",
+            "name": "timestamp",
+            "ordinalPosition": 7,
+            "dataType": "string",
+            "notes": "Daily observation timestamp (end of aggregation interval, UTC)."
+          },
+          {
+            "id": "7a01b005-0001-4000-8000-000000000008",
+            "name": "value",
+            "ordinalPosition": 8,
+            "dataType": "double",
+            "notes": "Daily mean air temperature in degrees Celsius (KDP NetCDF; units per file metadata)."
+          }
+        ]
+      },
+      "classifications": [
+        {
+          "id": "7a01b004-0001-4000-8000-000000000003",
+          "group": "interface_type",
+          "classification": "knmi_open_data"
+        },
+        {
+          "id": "7a01b004-0001-4000-8000-000000000004",
+          "group": "trigger",
+          "classification": "source_change"
+        }
+      ],
+      "extensions": [
+        {
+          "key": "change_detection_rule",
+          "value": "knmi_latest_file"
+        },
+        {
+          "key": "change_detection_field",
+          "value": "filename"
+        },
+        {
+          "key": "kdp_dataset_name",
+          "value": "daily-in-situ-meteorological-observations"
+        },
+        {
+          "key": "kdp_dataset_version",
+          "value": "1.0"
+        },
+        {
+          "key": "kdp_list_order_by",
+          "value": "created"
+        },
+        {
+          "key": "kdp_list_sorting",
+          "value": "desc"
+        },
+        {
+          "key": "netcdf_variable",
+          "value": "TG"
+        },
+        {
+          "key": "landing_path_template",
+          "value": "./data/staging/knmi/{dataset}/{timestamp}.parquet"
+        }
+      ]
+    }
+  ]
+}

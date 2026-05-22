@@ -1,9 +1,0 @@
-{
-  "name": "Create Physical Data Object",
-  "templateTarget": "DataObject",
-  "templateType": "Handlebars",
-  "outputType": "DataDefinition",
-  "outputFileConvention": "physical_test_{{name}}.json",
-  "outputStorageCategory": "DataObject",
-  "notes": "Template for creating a physical data object definition."
-}

@@ -1,0 +1,7 @@
+requests>=2.32,<3
+pandas>=2.2,<3
+pyarrow>=16
+jsonschema>=4
+xarray>=2024.1
+netCDF4>=1.6
+numpy>=1.26
