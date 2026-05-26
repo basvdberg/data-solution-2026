@@ -474,16 +474,18 @@ To onboard a non-CBS Dutch government OData feed (for example a future PDOK ODat
 - [Data Solution 2026](../readme.md)
   - Data
     - Staging
-      - Knmi
-        - Daggegevens_Temperature
+      - Openmeteo
+        - Daily_Temperature
   - Data Object Mapping
     - Staging
       - Knmi
+      - Openmeteo
   - Docs
   - Extractor
     - Common
     - Knmi
     - Odata
+    - Openmeteo
     - Poller
     - Wfs
   - Plan

@@ -14,6 +14,7 @@ from typing import Callable, Protocol
 from extractor.common.config import Config, Mapping
 from extractor.knmi import client as knmi_client
 from extractor.odata import client as odata_client
+from extractor.openmeteo import client as openmeteo_client
 from extractor.wfs import client as wfs_client
 
 log = logging.getLogger(__name__)
@@ -66,6 +67,20 @@ def _probe_odata(mapping: Mapping, config: Config) -> str:
     return str(body[field])
 
 
+def _probe_open_meteo(mapping: Mapping, config: Config) -> str:
+    ext = _merged_ext(mapping, config)
+    source = _source(mapping)
+    base_url = source.connection_ext("base_url", openmeteo_client.DEFAULT_BASE_URL)
+    return openmeteo_client.probe_change_marker(
+        latitude=float(ext.get("openmeteo_probe_latitude", "52.10")),
+        longitude=float(ext.get("openmeteo_probe_longitude", "5.18")),
+        daily_variable=ext.get("openmeteo_daily_variable", "temperature_2m_mean"),
+        past_days=int(ext.get("openmeteo_past_days", "7")),
+        base_url=base_url,
+        timezone=ext.get("openmeteo_timezone", "UTC"),
+    )
+
+
 def _probe_knmi_open_data(mapping: Mapping, config: Config) -> str:
     ext = _merged_ext(mapping, config)
     dataset = ext.get("kdp_dataset_name")
@@ -112,6 +127,7 @@ def _probe_wfs(mapping: Mapping, config: Config) -> str:
 _PROBE_BY_INTERFACE: dict[str, ProbeFn] = {
     "odata_v4": _probe_odata,
     "wfs_v2": _probe_wfs,
+    "open_meteo": _probe_open_meteo,
     "knmi_open_data": _probe_knmi_open_data,
 }
 
@@ -156,17 +172,24 @@ def poll_mapping(
     )
 
 
+def is_poll_trigger(mapping: Mapping) -> bool:
+    """Mappings opted into scheduled polling / event-bus signaling."""
+    return mapping.has_classification(
+        "trigger:data_object_change"
+    ) or mapping.has_classification("trigger:source_change")
+
+
 def poll_registry(
     config: Config,
     state: StateStore,
     *,
     trigger_only: bool = True,
 ) -> list[ChangeDetectionResult]:
-    """Poll all enabled mappings; optionally filter to trigger:source_change."""
+    """Poll all enabled mappings; optionally filter to poll triggers."""
     results: list[ChangeDetectionResult] = []
     for mapping in config.enabled_mappings():
-        if trigger_only and not mapping.has_classification("trigger:source_change"):
-            log.debug("Skipping %s (no trigger:source_change)", mapping.id)
+        if trigger_only and not is_poll_trigger(mapping):
+            log.debug("Skipping %s (no poll trigger classification)", mapping.id)
             continue
         results.append(poll_mapping(mapping, config, state))
     return results

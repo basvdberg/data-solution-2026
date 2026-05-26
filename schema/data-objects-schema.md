@@ -149,16 +149,18 @@ Open questions:
 - [Data Solution 2026](../readme.md)
   - Data
     - Staging
-      - Knmi
-        - Daggegevens_Temperature
+      - Openmeteo
+        - Daily_Temperature
   - Data Object Mapping
     - Staging
       - Knmi
+      - Openmeteo
   - Docs
   - Extractor
     - Common
     - Knmi
     - Odata
+    - Openmeteo
     - Poller
     - Wfs
   - Plan

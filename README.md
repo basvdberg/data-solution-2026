@@ -22,7 +22,7 @@ Proof of concept for the GenAI way of working described in [Data Engineering 202
 
 ## Proof of concept
 
-This PoC implements a staging layer for Dutch weather data (KNMI) from the [KNMI Data Platform Open Data API](https://developer.dataplatform.knmi.nl/open-data-api). [Agnostic Data Labs (ADL)](https://docs.agnosticdatalabs.com/docs/) visualizes transformations and lineage; the repository keeps a fixed folder layout so ADL can categorize DSA metadata consistently.
+This PoC implements a staging layer for **daily mean temperature** across the Netherlands. The default source is [Open-Meteo](https://open-meteo.com/) (no API key, models refreshed continuously). When you have a [KNMI Data Platform](https://developer.dataplatform.knmi.nl/open-data-api) API key, you can switch to in-situ KNMI NetCDF via `knmi-daggegevens.json`. [Agnostic Data Labs (ADL)](https://docs.agnosticdatalabs.com/docs/) visualizes transformations and lineage; the repository keeps a fixed folder layout so ADL can categorize DSA metadata consistently.
 
 Python extraction code was generated with GenAI. Orchestration follows patterns from [data-engineering-design-patterns](https://github.com/basvdberg/data-engineering-design-patterns); AI-assisted tool selection led to Apache Airflow and Apache Kafka for this use case.
 
@@ -32,8 +32,8 @@ Python extraction code was generated with GenAI. Orchestration follows patterns 
 
 The flow, left to right:
 
-1. **Git holds the configuration.** `data-object-mapping/staging/knmi/` describes the KNMI source (Open Data API); staging targets and loads are defined in the same DSA metadata. Design patterns set the shape of the orchestration.
-2. **Airflow + Kafka run the ingestion.** The change-detector DAG polls the KDP file catalog on schedule and emits a `source_change` event when a new daily NetCDF appears. The event controller turns matching events into `extract` commands. The KNMI extractor (`python -m extractor.knmi`) downloads and flattens NetCDF to Parquet under `data/staging/knmi/`. PostgreSQL stores checkpoints and the event log only—no configuration.
+1. **Git holds the configuration.** `data-object-mapping/staging/openmeteo/` (default) and `staging/knmi/` describe sources; staging targets and loads are defined in the same DSA metadata. Design patterns set the shape of the orchestration.
+2. **Airflow + Kafka run ingestion.** A scheduled **poller** DAG probes sources and publishes only to the event bus: `data_object_change` when the marker moved, `data_object_progress` when it did not (so activity is visible). The event controller reacts to **change** events and enqueues **extract** tasks; extractors write Parquet under `data/staging/`. The poller never runs extractors. PostgreSQL stores baselines and the event log—configuration stays in Git.
 3. **ADL generates staging artefacts.** Reading the same DSA metadata, ADL renders the Handlebars templates in `Templates/` into DDL and load SQL under `Output/`, which load the Parquet landing files into the **100 Landing Area**.
 
 This solution follows the [separate what and how](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/separate-what-and-how.md) design pattern: the DSA metadata files specify *what* must happen for each source and target, while the Airflow DAGs, extractors, poller, and ADL-generated load procedures are the implementation that specifies *how* it is executed.
@@ -42,19 +42,34 @@ This solution follows the [separate what and how](https://github.com/basvdberg/d
 
 The original PoC used the INSPIRE **WFS 2.0** endpoint on `haleconnect.com` (*Gecontroleerde klimatologische daggegevens*). That service still responds, but embedded observation data **stopped updating around 2023-09-01** across all stations—the poller correctly reported that date, not a bug.
 
-| Source | Freshness | Status in this repo |
-|--------|-----------|---------------------|
-| haleconnect INSPIRE WFS | Frozen ~2023-09 | **Replaced** — `extractor/wfs/` kept for reference only |
-| [KDP Open Data API](https://dataplatform.knmi.nl/dataset/daily-in-situ-meteorological-observations-1-0) | Nightly `daily-observations-*.nc` | **Active** — mapping `knmi-daggegevens.json`, poller `interface_type:knmi_open_data` |
+| Source | Freshness | Registration | Status in this repo |
+|--------|-----------|--------------|---------------------|
+| haleconnect INSPIRE WFS | Frozen ~2023-09 | None | **Superseded** — `extractor/wfs/` reference only |
+| KNMI daggegevens.knmi.nl (POST) | Unreliable / not used | None | **Not used** — not treated as a daily-refreshed source for this PoC |
+| [Open-Meteo Forecast API](https://open-meteo.com/) | Hourly model runs; new completed UTC days via `past_days` | None | **Active (default)** — `openmeteo-daily-temperature.json`, `interface_type:open_meteo` |
+| [KDP Open Data API](https://dataplatform.knmi.nl/dataset/daily-in-situ-meteorological-observations-1-0) | Nightly NetCDF | API key required | **Optional** — enable `knmi-daggegevens-temperature` when `KNMI_API_KEY` is set |
 
-Set `KNMI_API_KEY` (register at [developer.dataplatform.knmi.nl](https://developer.dataplatform.knmi.nl/open-data-api)) and run:
+**Run without registration** (Open-Meteo):
 
 ```powershell
-python -m poller --probe-only --mapping knmi-daggegevens-temperature
+# Poller: detect + signal event bus (change or progress)
+python -m poller --mapping openmeteo-daily-temperature
+
+# Extractor: run separately when orchestration handles a change event
+python -m extractor.openmeteo --mapping openmeteo-daily-temperature
+```
+
+Open-Meteo blends national models (including KNMI) into a **gridded** daily mean at reference coordinates—not the same as KNMI in-situ station files, but suitable for proving daily change detection and landing loads. Data is [CC BY 4.0](https://open-meteo.com/); attribute Open-Meteo in production use.
+
+**Optional KNMI in-situ** (when you can register at [developer.dataplatform.knmi.nl](https://developer.dataplatform.knmi.nl/open-data-api)):
+
+```powershell
+$env:KNMI_API_KEY = "<your-key>"
+python -m poller --config data-object-mapping/staging/knmi/knmi-daggegevens.json --probe-only --mapping knmi-daggegevens-temperature
 python -m extractor.knmi --mapping knmi-daggegevens-temperature
 ```
 
-Details: [extractor/knmi/README.md](extractor/knmi/README.md), [data object poller plan](plan/data-object-poller/airflow-kafka.md).
+Details: [extractor/openmeteo/](extractor/openmeteo/), [extractor/knmi/README.md](extractor/knmi/README.md), [data object poller plan](plan/data-object-poller/airflow-kafka.md).
 
 ### Lessons learned
 
@@ -83,16 +98,18 @@ Although I'm Impressed. By the look and feel Plus the offered functionalities of
 - [Data Solution 2026](readme.md)
   - Data
     - Staging
-      - Knmi
-        - Daggegevens_Temperature
+      - Openmeteo
+        - Daily_Temperature
   - Data Object Mapping
     - Staging
       - Knmi
+      - Openmeteo
   - Docs
   - Extractor
     - Common
     - Knmi
     - Odata
+    - Openmeteo
     - Poller
     - Wfs
   - Plan

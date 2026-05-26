@@ -1,10 +1,12 @@
-"""Extractor sub-packages, one per source protocol.
+"""Extractors: download and flatten source data to Parquet.
 
-Each sub-package exposes a client and optional parsers that take a URL and
-return records suitable for downstream Parquet writing.
+One sub-package per protocol. Change detection is **not** here — use the
+project-root ``poller`` package (``python -m poller``).
 
 Sub-packages:
-    common  Shared utilities (config loader, Parquet writer).
-    odata   OData v4 HTTP client.
-    wfs     OGC WFS 2.0 client + GML parser.
+    common      Config loader and Parquet writer.
+    openmeteo   Open-Meteo Forecast API (default PoC).
+    knmi        KNMI Data Platform Open Data (NetCDF).
+    odata       OData v4 HTTP client.
+    wfs         OGC WFS 2.0 client + GML parser (legacy).
 """

@@ -4,6 +4,7 @@
 
 <!-- markdown-toc:start -->
 - [Overview](#overview)
+- [Where is the poller?](#where-is-the-poller)
 - [Structure](#structure)
 - [Design principles](#design-principles)
 - [Quickstart](#quickstart)
@@ -14,10 +15,20 @@
 
 ## Overview
 
-This folder contains the runtime extraction logic for pulling data from
-external source systems into the `data/000_Source/` landing zone. Each
-sub-folder targets a specific protocol or API type, plus a `common/` folder
-for shared utilities.
+Python packages that **download and flatten** source data into Parquet under `data/staging/`, driven by DWA-style JSON in `data-object-mapping/`.
+
+Each subfolder is one **protocol or API** (OData, WFS, Open-Meteo, KNMI KDP). Shared helpers live in `common/`.
+
+## Where is the poller?
+
+There is **no** `extractor/poller/` folder.
+
+| Location | Purpose |
+|----------|---------|
+| [`poller/`](../poller/) (project root) | Detect marker changes and publish `data_object_change` / `data_object_progress` to the event bus — **never** runs extractors |
+| `extractor/<protocol>/client.py` | HTTP clients; some expose `probe_*` helpers reused by the poller |
+
+Orchestration connects the two: **change** events enqueue extract tasks; **progress** events record that polling ran. See [poller/README.md](../poller/README.md).
 
 ## Structure
 
@@ -27,110 +38,77 @@ extractor/
 ├── README.md
 ├── requirements.txt
 ├── .gitignore
-├── common/                Shared utilities
-│   ├── __init__.py
-│   ├── config.py          Load and query DWA-style metadata JSON files
-│   └── parquet.py         Templated Parquet file writer
-├── odata/                 OData v4 extractor
-│   ├── __init__.py
-│   ├── __main__.py        CLI driver (python -m extractor.odata)
-│   └── client.py          HTTP client — pagination via @odata.nextLink
-├── knmi/                  KNMI Data Platform Open Data API (active KNMI source)
-│   ├── client.py          List files, probe latest filename for poller
+├── common/
+│   ├── config.py          # Load DWA-style mapping JSON
+│   └── parquet.py         # Templated Parquet writer
+├── openmeteo/             # Open-Meteo Forecast API (default PoC source)
+│   ├── __main__.py        # python -m extractor.openmeteo
+│   ├── client.py
+│   └── stations.py        # NL reference coordinates
+├── knmi/                  # KNMI Data Platform Open Data (NetCDF; needs API key)
+│   ├── __main__.py        # python -m extractor.knmi
+│   ├── client.py          # Catalog list + download (also used by poller)
+│   ├── netcdf_parser.py
 │   └── README.md
-└── wfs/                   OGC WFS 2.0 extractor (legacy; stale KNMI haleconnect feed)
-    ├── __init__.py
-    ├── __main__.py        CLI driver (python -m extractor.wfs)
-    ├── client.py          HTTP client — GetCapabilities, GetFeature
-    ├── gml_parser.py      GML parser
+├── odata/                 # OData v4
+│   ├── __main__.py        # python -m extractor.odata
+│   └── client.py
+└── wfs/                   # OGC WFS 2.0 (legacy; stale KNMI haleconnect feed)
+    ├── __main__.py        # python -m extractor.wfs
+    ├── client.py
+    ├── gml_parser.py
     └── README.md
 ```
 
-Poller (change detection only) lives at project root as `poller/` — see [poller plan](../plan/data-object-poller/airflow-kafka.md).
-
-The legacy **WFS** extractor remains for reference; KNMI ingestion uses **KDP Open Data** — see [knmi/README.md](knmi/README.md) and the [stale WFS note](../readme.md#stale-knmi-wfs-feed-superseded).
-
 ## Design principles
 
-- **One sub-folder per protocol.** Each extractor is self-contained: a client
-  module that handles the HTTP and protocol specifics, plus optional parser
-  modules for response formats that need flattening.
-- **Config-driven.** Extractors don't hardcode endpoints or table names. They
-  read DWA-style JSON mappings from `data-object-mapping/` which specify the
-  connection URL, feature type, output format, page size, and landing path.
-- **Parquet output to `Data/`.** Every extractor produces `list[dict]`
-  records written to Parquet under the `Data/` directory (gitignored).
-- **Runnable as Python modules.** Each extractor has a `__main__.py` so it can
-  be invoked with `python -m extractor.<protocol>` from the project root.
+- **One subfolder per protocol** — client + optional parsers + `__main__.py` CLI.
+- **Config-driven** — endpoints and landing paths come from `data-object-mapping/`, not hardcoded in extractors.
+- **Parquet to `data/staging/`** — paths from `landing_path_template` in each mapping.
+- **`python -m extractor.<protocol>`** — run from the `data-solution-2026/` project root.
 
 ## Quickstart
-
-From the project root (`data-solution-2026/`):
 
 ```powershell
 pip install -r extractor/requirements.txt
 
-# OData: smoke test against public Northwind v4 reference
-python -m extractor.odata --config data-object-mapping/odata-demo.json --mapping odata-demo-regions
+# Default PoC: Open-Meteo (no API key)
+python -m poller --probe-only --mapping openmeteo-daily-temperature
+python -m extractor.openmeteo --mapping openmeteo-daily-temperature
 
-# WFS: extract KNMI daily temperature (2 stations, capped at 100 records)
-python -m extractor.wfs --mapping knmi-daggegevens-temperature --page-size 2 --max-features 2 --limit 100
+# KNMI KDP in-situ (requires KNMI_API_KEY; mapping disabled by default)
+$env:KNMI_API_KEY = "<your-key>"
+python -m extractor.knmi --config data-object-mapping/staging/knmi/knmi-daggegevens.json --mapping knmi-daggegevens-temperature
 
-# KNMI KDP: extract latest daily NetCDF to Parquet (requires KNMI_API_KEY)
-python -m extractor.knmi --mapping knmi-daggegevens-temperature
-
-# Poller: probe for new daily file
-python -m poller --probe-only --mapping knmi-daggegevens-temperature
+# OData / WFS: pass --config to a mapping JSON that defines the source
+python -m extractor.odata --config <path-to-mapping.json> --mapping <mapping-id>
+python -m extractor.wfs --config data-object-mapping/staging/knmi/knmi-daggegevens.json --mapping knmi-daggegevens-temperature --limit 100
 ```
-
-Output lands under `Data/000_Source/...` as defined by the `landing_path_template`
-extension in each mapping JSON.
 
 ## Output file naming
 
-Each extraction run produces a Parquet file whose name is a UTC timestamp
-captured at the moment the extractor starts. The format is ISO 8601 hybrid
-with millisecond precision:
+Each run writes one Parquet file named with a UTC timestamp at extractor start:
 
 ```text
-2026-05-12T164832123Z.parquet
-│          │││││││││└─ UTC indicator
-│          │││││││└┘┘── milliseconds (000-999)
-│          │││││└┘───── seconds (00-59)
-│          │││└┘─────── minutes (00-59)
-│          │└┘───────── hours (00-23)
-│          └─────────── T separator (ISO 8601)
-└───────────────────── date (YYYY-MM-DD, ISO 8601 extended)
+2026-05-22T142402322Z.parquet
 ```
 
-Design choices:
-
-- **Extended date with dashes** — keeps the date portion human-readable.
-- **`T` separator** — the ISO 8601-defined boundary between date and time.
-- **Compact time without colons** — colons are illegal in Windows filenames.
-- **3-digit milliseconds** — ensures uniqueness across multiple runs on the
-  same day without requiring directory scanning or UUIDs.
-- **`Z` suffix** — makes it unambiguous that all timestamps are UTC,
-  regardless of the machine's local timezone.
-- **Captured once at extractor start** — all tables within a single
-  extraction run share the same timestamp, so they can be correlated.
+- Extended date (`YYYY-MM-DD`), `T` separator, compact time (no `:` for Windows), milliseconds, `Z` = UTC.
 
 ## Adding a new extractor
 
-1. Create a new sub-folder (e.g. `rest/`, `sftp/`).
-2. Add a `client.py` with the protocol-specific fetch logic.
-3. Add parser modules if the raw response needs flattening.
-4. Expose the public API from the sub-folder's `__init__.py`.
-5. Add a `__main__.py` CLI driver.
-6. Create a DWA-style mapping JSON in `data-object-mapping/`.
+1. Add `extractor/<protocol>/` with `client.py` and `__main__.py`.
+2. If the poller should detect changes, add a probe in `client.py` and register `interface_type` in `poller/change_probe.py`.
+3. Add mapping JSON under `data-object-mapping/staging/<source>/`.
 
 ## Available extractors
 
 | Sub-folder | Protocol | Status |
 | --- | --- | --- |
-| `odata/` | OData v4 | Implemented — CBS + Northwind demo |
-| `knmi/` | KDP Open Data API | Poller + NetCDF → Parquet extractor |
-| `wfs/` | OGC WFS 2.0 | Legacy — stale haleconnect KNMI feed (see [readme](../readme.md)) |
+| `openmeteo/` | Open-Meteo Forecast API | **Default** — daily temperature, no API key |
+| `knmi/` | KDP Open Data API | Optional — nightly NetCDF, `KNMI_API_KEY` |
+| `odata/` | OData v4 | Implemented — bring your own mapping JSON |
+| `wfs/` | OGC WFS 2.0 | Legacy reference — stale haleconnect KNMI feed |
 
 ## Project structure
 
@@ -138,16 +116,18 @@ Design choices:
 - [Data Solution 2026](../readme.md)
   - Data
     - Staging
-      - Knmi
-        - Daggegevens_Temperature
+      - Openmeteo
+        - Daily_Temperature
   - Data Object Mapping
     - Staging
       - Knmi
+      - Openmeteo
   - Docs
   - Extractor
     - Common
     - Knmi
     - Odata
+    - Openmeteo
     - Poller
     - Wfs
   - Plan

@@ -41,7 +41,9 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--config",
-        default=str(PROJECT_ROOT / "data-object-mapping" / "000_Source" / "KNMI" / "knmi-daggegevens.json"),
+        default=str(
+            PROJECT_ROOT / "data-object-mapping" / "staging" / "knmi" / "knmi-daggegevens.json"
+        ),
         help="path to the DWA-style configuration file",
     )
     parser.add_argument("--mapping", help="dataObjectMapping.id to extract")

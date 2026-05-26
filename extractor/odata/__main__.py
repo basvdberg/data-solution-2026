@@ -43,8 +43,8 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--config",
-        default=str(PROJECT_ROOT / "data-object-mapping" / "000_Source" / "Northwind" / "regions.json"),
-        help="path to the DWA-style configuration file (default: data-object-mapping/000_Source/Northwind/regions.json)",
+        required=True,
+        help="path to a DWA-style OData mapping JSON (no default in this repo)",
     )
     parser.add_argument(
         "--mapping",

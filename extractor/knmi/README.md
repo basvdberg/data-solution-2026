@@ -64,7 +64,7 @@ Connection extensions: `base_url`, `api_key_env` (default `KNMI_API_KEY`).
 
 `interface_type:knmi_open_data` → `extractor.knmi.client.probe_change_marker`.
 
-Baseline is the latest catalog file’s `filename` (or `created`). When KNMI lands a new `daily-observations-*.nc`, the marker changes and `poller` emits `CHANGED`.
+Baseline is the latest catalog file’s `filename` (or `created`). When KNMI lands a new `daily-observations-*.nc`, the marker changes and the poller emits `data_object_change` on the event bus (or `data_object_progress` when unchanged).
 
 ```powershell
 $env:KNMI_API_KEY = "<your-key>"
@@ -101,16 +101,18 @@ python -m extractor.knmi --mapping knmi-daggegevens-temperature --local-file pat
 - [Data Solution 2026](../../readme.md)
   - Data
     - Staging
-      - Knmi
-        - Daggegevens_Temperature
+      - Openmeteo
+        - Daily_Temperature
   - Data Object Mapping
     - Staging
       - Knmi
+      - Openmeteo
   - Docs
   - Extractor
     - Common
     - Knmi
     - Odata
+    - Openmeteo
     - Poller
     - Wfs
   - Plan

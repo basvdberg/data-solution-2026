@@ -3,7 +3,7 @@
 Takes a list of dict records, a path template, and template variables. The
 template is a regular Python format string, e.g.::
 
-    "./Data/000_Source/{dataset}/{table}/{date}.parquet"
+    "./data/staging/{dataset}/{timestamp}.parquet"
 """
 
 from __future__ import annotations

@@ -2,13 +2,13 @@
   "$schema": "https://github.com/data-solution-automation-engine/data-solution-automation-metadata-schema/GenericInterface/interfaceDataSolutionAutomationMetadataV2_1.json",
   "id": "7a01b001-0001-4000-8000-000000000001",
   "name": "KNMI Data Platform daily climate observations",
-  "notes": "Daily in-situ meteorological observations from the KNMI Data Platform Open Data API (replaces the stale haleconnect INSPIRE WFS). Unvalidated daily NetCDF files are published nightly. Register for an API key: https://developer.dataplatform.knmi.nl/open-data-api",
+  "notes": "Daily in-situ meteorological observations from the KNMI Data Platform Open Data API (requires KNMI_API_KEY). For PoC without registration use Open-Meteo mapping instead — see readme.",
   "dataObjectMappings": [
     {
       "id": "knmi-daggegevens-temperature",
       "name": "KNMI daily temperature observations to staging landing",
-      "notes": "Polls and (when implemented) extracts daily mean air temperature from dataset daily-in-situ-meteorological-observations/1.0. Lands Parquet under data/staging/knmi/daggegevens-temperature.",
-      "enabled": true,
+      "notes": "Polls and extracts daily mean air temperature from KDP NetCDF when KNMI_API_KEY is set. Lands Parquet under data/staging/knmi/daggegevens-temperature.",
+      "enabled": false,
       "sourceDataObjects": [
         {
           "id": "7a01b002-0001-4000-8000-000000000001",
@@ -154,7 +154,7 @@
         {
           "id": "7a01b004-0001-4000-8000-000000000004",
           "group": "trigger",
-          "classification": "source_change"
+          "classification": "data_object_change"
         }
       ],
       "extensions": [

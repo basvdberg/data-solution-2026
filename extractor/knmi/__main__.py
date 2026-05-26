@@ -84,6 +84,13 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Mapping '{mapping.id}' missing landing_path_template.", file=sys.stderr)
         return 2
 
+    source = mapping.source_data_objects()[0]
+    base_url = source.connection_ext("base_url")
+
+    now = datetime.now(timezone.utc)
+    timestamp = now.strftime("%Y-%m-%dT%H%M%S") + f"{now.microsecond // 1000:03d}Z"
+    target_name = mapping.target_name() or mapping.id
+
     dataset_name = ext.get("kdp_dataset_name", "")
     dataset_version = ext.get("kdp_dataset_version", "1.0")
     variable = ext.get("netcdf_variable", "TG")
@@ -91,15 +98,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Mapping '{mapping.id}' missing kdp_dataset_name.", file=sys.stderr)
         return 2
 
-    source = mapping.source_data_objects()[0]
-    base_url = source.connection_ext("base_url")
     api_key_env = source.connection_ext("api_key_env", "KNMI_API_KEY")
     order_by = ext.get("kdp_list_order_by", "created")
     sorting = ext.get("kdp_list_sorting", "desc")
-
-    now = datetime.now(timezone.utc)
-    timestamp = now.strftime("%Y-%m-%dT%H%M%S") + f"{now.microsecond // 1000:03d}Z"
-    target_name = mapping.target_name() or mapping.id
 
     nc_path: Path
     catalog_filename: str

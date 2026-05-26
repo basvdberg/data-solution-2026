@@ -20,7 +20,7 @@
 
 This extractor fetches geospatial features from OGC WFS 2.0 endpoints and
 flattens the responses into tabular records for Parquet storage under
-`Data/`.
+`data/staging/`.
 
 ## Modules
 
@@ -138,16 +138,18 @@ haleconnect.com.
 - [Data Solution 2026](../../readme.md)
   - Data
     - Staging
-      - Knmi
-        - Daggegevens_Temperature
+      - Openmeteo
+        - Daily_Temperature
   - Data Object Mapping
     - Staging
       - Knmi
+      - Openmeteo
   - Docs
   - Extractor
     - Common
     - Knmi
     - Odata
+    - Openmeteo
     - Poller
     - Wfs
   - Plan

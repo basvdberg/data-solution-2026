@@ -9,6 +9,7 @@
   - [OData v4](#odata-v4)
   - [WFS 2.0 (via the WFS extractor client)](#wfs-20-via-the-wfs-extractor-client)
   - [KNMI Open Data (KDP file catalog)](#knmi-open-data-kdp-file-catalog)
+  - [Open-Meteo (Forecast API)](#open-meteo-forecast-api)
 - [Pattern-to-implementation mapping](#pattern-to-implementation-mapping)
 - [Architecture](#architecture)
 - [Components](#components)
@@ -16,7 +17,7 @@
   - [Change probe library (poller)](#change-probe-library-poller)
   - [Last known state (PostgreSQL)](#last-known-state-postgresql)
   - [Daily change detector DAG (Airflow)](#daily-change-detector-dag-airflow)
-  - [Change signal (Kafka)](#change-signal-kafka)
+  - [Event bus messages (Kafka)](#event-bus-messages-kafka)
   - [Audit (PostgreSQL event)](#audit-postgresql-event)
 - [Rollout plan](#rollout-plan)
   - [Step 1 — Local stack and runtime state](#step-1-local-stack-and-runtime-state)
@@ -30,9 +31,9 @@
 
 ## Purpose
 
-Implementation plan for the [data object poller](../../design-patterns/data-object-poller.md) design pattern using Apache Airflow as the scheduler, Apache Kafka as the signal bus, and PostgreSQL for baseline state. It generalises [data-solution-2026 plan 3](https://github.com/basvdberg/data-solution-2026/blob/main/plan/plan3.md) so **any** enabled `dataObjectMapping` with `trigger:source_change` can be polled — OData (CBS), WFS (KNMI), or future interface types — without source-specific DAG code.
+Implementation plan for the [data object poller](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-object-poller.md) design pattern using Apache Airflow as the scheduler, Apache Kafka as the event bus, and PostgreSQL for baseline state. It generalises [plan 3](../plan3.md) so **any** enabled `dataObjectMapping` with `trigger:data_object_change` can be polled — Open-Meteo, OData (CBS), WFS, KNMI KDP, or future interface types — without source-specific DAG code.
 
-The poller is **only** the detect-and-signal half of the loop. It reuses the same HTTP clients as the [data extractor](../../design-patterns/data-extractor.md) (`extractor/odata`, `extractor/wfs`). Routing and full extraction are separate concerns ([event-based orchestration](../../design-patterns/event-based-orchestration.md)).
+The poller **only** detects marker changes and publishes to the event bus (`data_object_change` or `data_object_progress`). It reuses probe helpers from [data extractor](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-extractor.md) clients but **never** runs extractors. Extraction is triggered separately by orchestration on **change** events ([event-based orchestration](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/event-based-orchestration.md)).
 
 ## How it works
 
@@ -40,30 +41,33 @@ The poller is **only** the detect-and-signal half of the loop. It reuses the sam
 Airflow @daily ─► daily_change_detector
                         │
                         ▼
-   load PollRegistry: all enabled mappings with trigger:source_change
+   load PollRegistry: enabled mappings with trigger:data_object_change
                         │
                         ▼
    for each mapping:
       interface_type ─► poller.probe_current_value()
-      (OData: Properties/Modified; WFS: GetFeature + max period_end)
                         │
                         ▼
       compare to LastKnownState (PostgreSQL change_state)
                         │
             ┌───────────┴────────────┐
-         no change                 changed
+         unchanged                 changed
             │                        │
-            │           emit ChangeSignal on Kafka
-            │           (orchestration.events, type=source_change)
+            ▼                        ▼
+   Kafka: data_object_progress   Kafka: data_object_change
             │                        │
-            │           update LastKnownState
-            │                        │
+            │                        └── update LastKnownState
             └───────────┬────────────┘
                         ▼
                   append PollRun to event table
+                        │
+                        ▼
+   (separate consumer) event controller on data_object_change only
+                        ▼
+                  enqueue extract command ─► extractor DAG / worker
 ```
 
-When the source marker is unchanged, no Kafka message is produced and downstream stays idle. When it changes, a structured `ChangeSignal` is emitted and orchestration can start the matching extractor.
+Every successful poll emits **one** bus event. **Progress** informs monitoring; **change** updates the baseline and lets orchestration enqueue the matching extractor — the poller DAG does not call extractors.
 
 ## Change detection by interface type
 
@@ -137,18 +141,29 @@ files[0].filename  →  "daily-observations-20260519.nc"
 compare to change_state.last_known_modified
 ```
 
-When KNMI publishes the next nightly `daily-observations-*.nc`, the filename (or `created`) changes and the poller signals `source_change`. Prefer a [registered API key](https://developer.dataplatform.knmi.nl/open-data-api); see [extractor/knmi/README.md](../../extractor/knmi/README.md).
+When KNMI publishes the next nightly `daily-observations-*.nc`, the filename (or `created`) changes and the poller emits `data_object_change`. Prefer a [registered API key](https://developer.dataplatform.knmi.nl/open-data-api); see [extractor/knmi/README.md](../../extractor/knmi/README.md).
+
+### Open-Meteo (Forecast API)
+
+| Extension | Role |
+|-----------|------|
+| `openmeteo_daily_variable` | e.g. `temperature_2m_mean` |
+| `openmeteo_probe_latitude` / `openmeteo_probe_longitude` | Reference point for probe |
+| `openmeteo_past_days` | Window for latest completed UTC day |
+| `change_detection_rule` | `openmeteo_latest_day` |
+
+**API usage:** one `GET` to the Forecast API with `past_days` for the probe; per-station `GET` with `start_date`/`end_date` only in the **extractor**, not the poller.
 
 ## Pattern-to-implementation mapping
 
 | Design pattern entity | Implementation |
 |-----------------------|----------------|
-| `PollRegistry` | `data-object-mapping` JSON; `enabled = true` and `trigger:source_change` |
+| `PollRegistry` | `data-object-mapping` JSON; `enabled = true` and `trigger:data_object_change` |
 | `Schedule` | Airflow DAG `schedule="@daily"` |
-| `ChangeDetectionRule` | Per `interface_type`: OData, `knmi_latest_file`, or `wfs_max_period_end` extensions |
+| `ChangeDetectionRule` | Per `interface_type` extensions (OData, Open-Meteo, `knmi_latest_file`, `wfs_max_period_end`, …) |
 | `LastKnownState` | PostgreSQL `change_state` (`mapping_id`, `last_known_modified`, `checked_at`) |
 | `PollRun` | Airflow task run + row in PostgreSQL `event` |
-| `ChangeSignal` | Kafka `orchestration.events`, `event_type = source_change` |
+| Event bus signal | Kafka `orchestration.events`: `data_object_change` or `data_object_progress` |
 | Operational log & audit | Airflow logs + append-only `event` table |
 
 ## Architecture
@@ -184,7 +199,7 @@ flowchart LR
     OD --> SRC
     WF --> SRC
     CS  --> D1
-    D1  -->|source_change| TE
+    D1  -->|data_object_change / progress| TE
     D1  --> CS
     D1  --> EV
 ```
@@ -193,7 +208,7 @@ flowchart LR
 
 ### Poll registry (JSON config)
 
-Each `dataObjectMapping` is one polled object when it has `trigger:source_change` and a supported `interface_type`.
+Each `dataObjectMapping` is one polled object when it has `trigger:data_object_change` and a supported `interface_type`.
 
 **OData example:**
 
@@ -203,7 +218,7 @@ Each `dataObjectMapping` is one polled object when it has `trigger:source_change
   "enabled": true,
   "classifications": [
     { "group": "interface_type", "classification": "odata_v4" },
-    { "group": "trigger", "classification": "source_change" }
+    { "group": "trigger", "classification": "data_object_change" }
   ],
   "extensions": [
     { "key": "change_detection_endpoint", "value": "Properties" },
@@ -228,7 +243,7 @@ Each `dataObjectMapping` is one polled object when it has `trigger:source_change
   "enabled": true,
   "classifications": [
     { "group": "interface_type", "classification": "knmi_open_data" },
-    { "group": "trigger", "classification": "source_change" }
+    { "group": "trigger", "classification": "data_object_change" }
   ],
   "extensions": [
     { "key": "change_detection_rule", "value": "knmi_latest_file" },
@@ -264,17 +279,12 @@ from poller import change_probe, state as poller_state  # state → Postgres ada
 from lib import events  # Kafka + event table
 
 def detect_changes():
-    cfg = config.load("data-object-mapping/staging/knmi/knmi-daggegevens.json")
+    cfg = config.load("data-object-mapping/staging/openmeteo/openmeteo-daily-temperature.json")
     store = poller_state.PostgresStateStore(conn_id="postgres_orchestration")  # planned
     for result in change_probe.poll_registry(cfg, store):
-        if result.changed:
-            events.emit(
-                event_type="source_change",
-                event_status="end_successful",
-                mapping_id=result.mapping_id,
-                object_name=result.object_name,
-                payload={"previous": result.previous, "current": result.current},
-            )
+        from poller.events import from_poll_result, to_bus_payload
+        event = from_poll_result(result)
+        events.emit(to_bus_payload(event))  # data_object_change or data_object_progress
 ```
 
 New protocols: add one `_probe_*` function and register it in `_PROBE_BY_INTERFACE` — no DAG fork per source.
@@ -297,16 +307,17 @@ Updated **only** when a poll detects a change and the signal path succeeds (patt
 - Single `PythonOperator` calling `detect_changes()` as above
 - No `odata.fetch_singleton` or WFS calls inside the DAG file — only `poller`
 
-### Change signal (Kafka)
+### Event bus messages (Kafka)
 
 | Property | Value |
 |----------|-------|
 | Topic | `orchestration.events` |
 | Key | `mapping_id` |
-| `event_type` | `source_change` |
-| `event_status` | `end_successful` / `failed` |
-| `payload` | `{ "previous": ..., "current": ... }` |
+| `event_type` | `data_object_change` when marker changed; `data_object_progress` when unchanged |
+| Fields | `mapping_id`, `data_object_name`, `current_marker`, `previous_marker`, `polled_at_utc` |
 | Retention | 7 days (replay window) |
+
+The event controller subscribes to **`data_object_change`** only and enqueues extract commands. **`data_object_progress`** is for monitoring and audit.
 
 ### Audit (PostgreSQL `event`)
 
@@ -339,7 +350,7 @@ Three steps. Focused subset of [plan 3 steps 1–4](https://github.com/basvdberg
 
 ### Step 3 — Daily change detector DAG
 
-**Goal:** Scheduled poller emits one `source_change` per changed mapping.
+**Goal:** Scheduled poller emits `data_object_change` or `data_object_progress` per mapping every run.
 
 - `dags/daily_change_detector.py` calling `change_probe.poll_registry`.
 - Manual trigger; second run produces zero events if sources are unchanged.
@@ -347,7 +358,7 @@ Three steps. Focused subset of [plan 3 steps 1–4](https://github.com/basvdberg
 
 ## Adding a new polled object
 
-Configuration-only: add one `dataObjectMapping` with `enabled`, `trigger:source_change`, the right `interface_type`, and probe extensions. No new DAG or duplicate HTTP client.
+Configuration-only: add one `dataObjectMapping` with `enabled`, `trigger:data_object_change`, the right `interface_type`, and probe extensions. No new DAG or duplicate HTTP client.
 
 | Interface | Required extensions |
 |-----------|---------------------|
@@ -395,16 +406,18 @@ Exit code `1` means at least one mapping **changed** (useful for shell checks); 
 - [Data Solution 2026](../../readme.md)
   - Data
     - Staging
-      - Knmi
-        - Daggegevens_Temperature
+      - Openmeteo
+        - Daily_Temperature
   - Data Object Mapping
     - Staging
       - Knmi
+      - Openmeteo
   - Docs
   - Extractor
     - Common
     - Knmi
     - Odata
+    - Openmeteo
     - Poller
     - Wfs
   - Plan

@@ -20,6 +20,10 @@ This document contains the prompts used to generate and refine the content in **
 
 ## Session 2
 
+1. Do not use the legacy KNMI endpoint Because it doesn't contain actual data. I said I wanted a data source that is refreshed daily.
+
+## Session 3
+
 1. @knmi-daggegevens.json Validate this JSON using the following schema and also include the schema reference in the JSON.https://github.com/data-solution-automation-engine/data-solution-automation-metadata-schema/blob/main/GenericInterface/interfaceDataSolutionAutomationMetadataV2_1.json
 
 2. @knmi-daggegevens.json works well in a visualiser, but 
@@ -51,7 +55,7 @@ Specify what, not how — declarative standards (e.g. DSA metadata) and technolo
 The repo walks through this way of working (including diagrams on the old vs new data-engineering cycle), links to the Data Engineering Design Patterns collection, and points to a Data Solution 2026 proof of concept that puts the ideas into practice. This POC is in progress. I will report the lessons learned in the near future. 
 #DataEngineering #GenAI #DataArchitecture #DataSolution #DesignPatterns #CodeSpecification
 
-## Session 3
+## Session 4
 
 1. @data-solution-2026/Data/000_Source/KNMI/daggegevens_temperature/2026-05-12.parquet The period Begin data items seems to be incorrect since it refers to 1951. Could you troubleshoot the extractor to see if there might be a bug in the implementation? Could you show me the raw data as it comes from the source?
 
@@ -65,7 +69,7 @@ The repo walks through this way of working (including diagrams on the old vs new
 - Replace Mermaid diagrams by a better, simplified high-level architectural diagram.
 - The purpose and summary should say the same, but implementation should Focus on implementing a proof concept for the staging layer using Airflow and Kafka, and, of course, the agnostic data labs and DSA metadata schema and data engineering design patterns.Merge the Architecture paragraph with the Orchestrated Ingestion paragraph.
 
-## Session 4
+## Session 5
 
 1. Create a plan for implementing a sample implementation using data engineering design patterns, based on free data ( e.g. OData). How can we trigger a refresh of this data for example?
 
@@ -73,19 +77,19 @@ The repo walks through this way of working (including diagrams on the old vs new
 
 3. move phase-one-cbs-odata-extraction to DataEngineeringIn2026 folder. rename to plan1
 
-## Session 5
+## Session 6
 
 1. Add classification target data object. It should be staging layer Please Come up with a good protocol I'm not sure what it should be since it's a parquet file.
 
-## Session 6
+## Session 7
 
 1. Create a sample implementation of the event-based orchestration design pattern based on Free OData Data from  the dutch government using Apache Airflow and Kafka. Make sure that the data is automtically fetched daily only when changed. Use PostgressSQL to implement the Object-Property tree design pattern to store all configuration. Keep strict separation of code versus configuration. Try to make the implementation as simple as possible. Start by creating a document called plan2.md. Create rollout plan in steps.
 
-## Session 7
+## Session 8
 
 1. Create new project called ADL feedback. Create a markdown. That Numerous Feedback First item. Yes. Issue with Loading. Generated JSON. Data object mappings
 
-## Session 8
+## Session 9
 
 1. Explain this schema:
 https://github.com/data-solution-automation-engine/data-warehouse-automation-metadata-schema/blob/main/GenericInterface/interfaceDataWarehouseAutomationMetadataV2_0.json  
@@ -98,11 +102,11 @@ while the documentation speaks about dataObject ?
 does this json follow the schema? Does it validate?
 @DataEngineeringIn2026/sample.json
 
-## Session 9
+## Session 10
 
 1. Run the WFS extractor.
 
-## Session 10
+## Session 11
 
 1. kafka is running on basnas on port 9092, airflow is running on same server on port 8081. Implement plan3 the first step, which consists of extracting a dataset from OData site.
 
@@ -124,7 +128,7 @@ does this json follow the schema? Does it validate?
 
 10. Omit the extractor name in the folder naming under data. Specifically, remove odata demo.
 
-## Session 11
+## Session 12
 
 1. Run WFS Poller
 
@@ -132,6 +136,10 @@ does this json follow the schema? Does it validate?
 
 3. Run the data extractor for KNMI.
 
-## Session 12
+## Session 13
+
+1. Run the KNMI Data Object Poller.
+
+## Session 14
 
 1. Apply the Pascal case naming convention for all folders in the Data Solution 2026 project
