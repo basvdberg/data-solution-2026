@@ -156,20 +156,28 @@ Open questions:
       - Knmi
       - Openmeteo
   - Docs
-  - Extractor
+  - Extractor_And_Poller
     - Common
     - Knmi
+      - Extractor
+      - Poller
     - Odata
+      - Extractor
+      - Poller
     - Openmeteo
+      - Extractor
+      - Poller
     - Poller
+    - Tests
     - Wfs
+      - Extractor
+      - Poller
   - Plan
     - Data Object Poller
       - [Data object poller — Airflow + Kafka implementation](../plan/data-object-poller/airflow-kafka.md)
     - [Phase one: CBS OData extraction with event-based orchestration](../plan/plan1.md)
     - [Phase two: minimal Dutch government OData ingestion with event-based orchestration](../plan/plan2.md)
     - [Phase three: JSON-configured Dutch government OData ingestion](../plan/plan3.md)
-  - Poller
   - Schema
     - [Schema follow-ups](data-objects-schema.md)
 - Related repositories

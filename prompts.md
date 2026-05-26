@@ -143,3 +143,7 @@ does this json follow the schema? Does it validate?
 ## Session 14
 
 1. Apply the Pascal case naming convention for all folders in the Data Solution 2026 project
+
+## Session 15
+
+1. Restructure the extractor and poller folders. Merge them in a folder called extractor_and_poller. Each protocol should have its own subfolder, like openmeteo or wfs. In each protocol, there should be an extractor subfolder and a poller subfolder.Try to clean up unused codes.And folders.

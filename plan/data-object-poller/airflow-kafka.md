@@ -413,20 +413,28 @@ Exit code `1` means at least one mapping **changed** (useful for shell checks); 
       - Knmi
       - Openmeteo
   - Docs
-  - Extractor
+  - Extractor_And_Poller
     - Common
     - Knmi
+      - Extractor
+      - Poller
     - Odata
+      - Extractor
+      - Poller
     - Openmeteo
+      - Extractor
+      - Poller
     - Poller
+    - Tests
     - Wfs
+      - Extractor
+      - Poller
   - Plan
     - Data Object Poller
       - [Data object poller — Airflow + Kafka implementation](airflow-kafka.md)
     - [Phase one: CBS OData extraction with event-based orchestration](../plan1.md)
     - [Phase two: minimal Dutch government OData ingestion with event-based orchestration](../plan2.md)
     - [Phase three: JSON-configured Dutch government OData ingestion](../plan3.md)
-  - Poller
   - Schema
     - [Schema follow-ups](../../schema/data-objects-schema.md)
 - Related repositories
