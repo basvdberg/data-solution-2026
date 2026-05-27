@@ -1,0 +1,60 @@
+{
+  "id": "staging/openmeteo/daily-temperature",
+  "notes": "One row per (reference station, day) with daily mean 2 m temperature in degrees Celsius.",
+  "dataConnectionId": "connection/staging",
+  "dataItems": [
+    {
+      "id": "staging/openmeteo/daily-temperature/station_id",
+      "name": "station_id",
+      "notes": "Reference station code for a Netherlands location.",
+      "ordinalPosition": 1,
+      "dataType": "string"
+    },
+    {
+      "id": "staging/openmeteo/daily-temperature/observed_property",
+      "name": "observed_property",
+      "notes": "Open-Meteo daily variable name (e.g. temperature_2m_mean).",
+      "ordinalPosition": 2,
+      "dataType": "string"
+    },
+    {
+      "id": "staging/openmeteo/daily-temperature/latitude",
+      "name": "latitude",
+      "ordinalPosition": 3,
+      "dataType": "double"
+    },
+    {
+      "id": "staging/openmeteo/daily-temperature/longitude",
+      "name": "longitude",
+      "ordinalPosition": 4,
+      "dataType": "double"
+    },
+    {
+      "id": "staging/openmeteo/daily-temperature/period_begin",
+      "name": "period_begin",
+      "ordinalPosition": 5,
+      "dataType": "string"
+    },
+    {
+      "id": "staging/openmeteo/daily-temperature/period_end",
+      "name": "period_end",
+      "ordinalPosition": 6,
+      "dataType": "string"
+    },
+    {
+      "id": "staging/openmeteo/daily-temperature/timestamp",
+      "name": "timestamp",
+      "ordinalPosition": 7,
+      "dataType": "string"
+    },
+    {
+      "id": "staging/openmeteo/daily-temperature/value",
+      "name": "value",
+      "notes": "Daily mean 2 m air temperature in degrees Celsius.",
+      "ordinalPosition": 8,
+      "dataType": "double"
+    }
+  ],
+  "classifications": [
+  ]
+}

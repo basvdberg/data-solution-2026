@@ -11,7 +11,7 @@ ensure_project_root_on_path()
 from extractor_and_poller.poller.__main__ import DEFAULT_CONFIG, main
 
 OPENMETEO_CONFIG = DEFAULT_CONFIG
-OPENMETEO_MAPPING = "openmeteo-daily-temperature"
+OPENMETEO_MAPPING = "daily-temperature"
 
 
 def _openmeteo_argv(argv: list[str] | None) -> list[str]:

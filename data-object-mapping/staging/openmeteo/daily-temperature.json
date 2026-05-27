@@ -1,0 +1,51 @@
+{
+  "id": "data-object-mapping/staging/openmeteo/daily-temperature",
+  "enabled": true,
+  "sourceDataObjectIds": ["source/openmeteo/daily-temperature"],
+  "targetDataObjectId": "staging/openmeteo/daily-temperature",
+  "dataItemMappings": [
+    {
+      "id": "1",
+      "sourceDataItems": [{ "id": "source/openmeteo/daily-temperature/station_id" }],
+      "targetDataItem": { "id": "staging/openmeteo/daily-temperature/station_id" }
+    },
+    {
+      "id": "2",
+      "sourceDataItems": [{ "id": "source/openmeteo/daily-temperature/observed_property" }],
+      "targetDataItem": { "id": "staging/openmeteo/daily-temperature/observed_property" }
+    },
+    {
+      "id": "3",
+      "sourceDataItems": [{ "id": "source/openmeteo/daily-temperature/latitude" }],
+      "targetDataItem": { "id": "staging/openmeteo/daily-temperature/latitude" }
+    },
+    {
+      "id": "4",
+      "sourceDataItems": [{ "id": "source/openmeteo/daily-temperature/longitude" }],
+      "targetDataItem": { "id": "staging/openmeteo/daily-temperature/longitude" }
+    },
+    {
+      "id": "5",
+      "sourceDataItems": [{ "id": "source/openmeteo/daily-temperature/period_begin" }],
+      "targetDataItem": { "id": "staging/openmeteo/daily-temperature/period_begin" }
+    },
+    {
+      "id": "6",
+      "sourceDataItems": [{ "id": "source/openmeteo/daily-temperature/period_end" }],
+      "targetDataItem": { "id": "staging/openmeteo/daily-temperature/period_end" }
+    },
+    {
+      "id": "7",
+      "sourceDataItems": [{ "id": "source/openmeteo/daily-temperature/timestamp" }],
+      "targetDataItem": { "id": "staging/openmeteo/daily-temperature/timestamp" }
+    },
+    {
+      "id": "8",
+      "sourceDataItems": [{ "id": "source/openmeteo/daily-temperature/value" }],
+      "targetDataItem": { "id": "staging/openmeteo/daily-temperature/value" }
+    }
+  ],
+  "classifications": [
+    { "group": "trigger", "classification": "data_object_change" }
+  ],
+}

@@ -3,8 +3,8 @@
 Run from ``data-solution-2026/``::
 
     python -m extractor_and_poller.openmeteo.extractor --list
-    python -m extractor_and_poller.openmeteo.extractor --mapping openmeteo-daily-temperature
-    python -m extractor_and_poller.openmeteo.extractor --mapping openmeteo-daily-temperature --date 2026-05-20
+    python -m extractor_and_poller.openmeteo.extractor --mapping daily-temperature
+    python -m extractor_and_poller.openmeteo.extractor --mapping daily-temperature --date 2026-05-20
 """
 
 from __future__ import annotations
@@ -31,7 +31,7 @@ def main(argv: list[str] | None = None) -> int:
             / "data-object-mapping"
             / "staging"
             / "openmeteo"
-            / "openmeteo-daily-temperature.json"
+            / "daily-temperature.json"
         ),
     )
     parser.add_argument("--mapping", help="dataObjectMapping.id to extract")

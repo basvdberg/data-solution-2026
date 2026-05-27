@@ -10,9 +10,9 @@
   "properties": {
     "id": {
       "title": "Id",
-      "description": "Optional unique identifier (UUID) for the Data Object.",
+      "description": "Logical path ID for the Data Object (no .json suffix, no data-object/ prefix), e.g. staging/openmeteo/daily-temperature. File lives under data-object/.",
       "type": "string",
-      "format": "uuid"
+      "minLength": 1
     },
     "name": {
       "title": "Name",
@@ -24,6 +24,12 @@
       "title": "Notes",
       "description": "Free-form description or notes about the Data Object.",
       "type": "string"
+    },
+    "dataConnectionId": {
+      "title": "Data Connection Id",
+      "description": "Path ID of a connection artifact under connection/, e.g. connection/staging.",
+      "type": "string",
+      "minLength": 1
     },
     "dataConnection": {
       "$ref": "#/definitions/dataConnection"

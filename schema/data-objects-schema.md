@@ -133,7 +133,7 @@ Open questions:
 - [ ] Tighten `id` formats: require UUID at all `id` fields (today only the root Data Object's `id` is `format: uuid`; `dataConnection.id`, `dataItem.id`, `classification.id`, and `extension.id` are plain strings, with `dataConnection.id` and `classification.id` explicitly allowed to be empty).
 - [ ] Decide on a final `$id` URL once the schema is published (currently a placeholder under `example.com`).
 - [ ] Add example fixtures under `examples/` (one per `connectionType`, one Data Object per file) for documentation and regression tests.
-- [ ] Set up automated validation in CI: walk `DataObjects/**/*.json` (excluding `*.schema.json`) and validate each against `data-objects.schema.json`. The script we used during authoring can be moved to `scripts/validate.py`.
+- [ ] Set up automated validation in CI: walk `data-object/**/*.json` (excluding `*.schema.json`) and validate each against `data-objects.schema.json`. The script we used during authoring can be moved to `scripts/validate.py`.
 
 ## Suggested order of attack
 
@@ -147,39 +147,39 @@ Open questions:
 
 <!-- markdown-project-structure:start -->
 - [Data Solution 2026](../readme.md)
+  - Classification
+  - Configuration
+  - Connection
+  - Convention
   - Data
     - Staging
       - Openmeteo
         - Daily_Temperature
+  - Data Object
+    - Source
+      - Openmeteo
+    - Staging
+      - Openmeteo
   - Data Object Mapping
     - Staging
-      - Knmi
       - Openmeteo
-  - Docs
+  - Doc
+    - Data Object Mapping
+    - [Remote SSH development workflow](../doc/remote-ssh.md)
   - Extractor_And_Poller
     - Common
-    - Knmi
-      - Extractor
-      - Poller
-    - Odata
-      - Extractor
-      - Poller
     - Openmeteo
       - Extractor
       - Poller
     - Poller
     - Tests
-    - Wfs
-      - Extractor
-      - Poller
-  - Plan
-    - Data Object Poller
-      - [Data object poller — Airflow + Kafka implementation](../plan/data-object-poller/airflow-kafka.md)
-    - [Phase one: CBS OData extraction with event-based orchestration](../plan/plan1.md)
-    - [Phase two: minimal Dutch government OData ingestion with event-based orchestration](../plan/plan2.md)
-    - [Phase three: JSON-configured Dutch government OData ingestion](../plan/plan3.md)
+  - Output
+  - Perspective
   - Schema
     - [Schema follow-ups](data-objects-schema.md)
+  - Setting
+  - Template
+  - [DSA interface](../dsa-interface.md)
 - Related repositories
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026)
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns)

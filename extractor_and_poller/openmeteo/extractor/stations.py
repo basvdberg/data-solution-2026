@@ -1,4 +1,4 @@
-"""Reference locations across the Netherlands (KNMI-style station ids, public coordinates)."""
+"""Reference locations across the Netherlands (public station ids and coordinates)."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ class ReferenceStation:
     longitude: float
 
 
-# Major KNMI automatic weather station coordinates (public, from KNMI station lists).
+# Major automatic weather station coordinates across the Netherlands.
 NL_REFERENCE_STATIONS: tuple[ReferenceStation, ...] = (
     ReferenceStation("260", "De Bilt", 52.100, 5.180),
     ReferenceStation("235", "De Kooy", 52.928, 4.781),

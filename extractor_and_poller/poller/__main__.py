@@ -2,8 +2,8 @@
 
 Run from ``data-solution-2026/``::
 
-    python -m extractor_and_poller.poller --probe-only --mapping openmeteo-daily-temperature
-    python -m extractor_and_poller.poller --mapping openmeteo-daily-temperature
+    python -m extractor_and_poller.poller --probe-only --mapping daily-temperature
+    python -m extractor_and_poller.poller --mapping daily-temperature
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ DEFAULT_CONFIG = (
     / "data-object-mapping"
     / "staging"
     / "openmeteo"
-    / "openmeteo-daily-temperature.json"
+    / "daily-temperature.json"
 )
 DEFAULT_STATE = PROJECT_ROOT / "data" / ".poller-state.json"
 

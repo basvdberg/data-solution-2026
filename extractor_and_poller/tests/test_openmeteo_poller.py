@@ -9,6 +9,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from extractor_and_poller.common import config as cfg_module
+from extractor_and_poller.common.paths import PROJECT_ROOT
 from extractor_and_poller.poller import change_probe
 from extractor_and_poller.poller.state import FileStateStore
 from extractor_and_poller.openmeteo.poller import probe as openmeteo_probe
@@ -26,14 +27,14 @@ class TestOpenMeteoPoller(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.config_path = (
-            Path(__file__).resolve().parents[2]
+            PROJECT_ROOT
             / "data-object-mapping"
             / "staging"
             / "openmeteo"
-            / "openmeteo-daily-temperature.json"
+            / "daily-temperature.json"
         )
         cls.config = cfg_module.load(str(cls.config_path))
-        cls.mapping = cls.config.get_mapping("openmeteo-daily-temperature")
+        cls.mapping = cls.config.get_mapping("data-object-mapping/staging/openmeteo/daily-temperature")
         assert cls.mapping is not None
 
     @patch("extractor_and_poller.openmeteo.extractor.client.requests.get")

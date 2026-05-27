@@ -1,0 +1,8 @@
+{
+  "id": "connection/open-meteo-forecast",
+  "name": "open-meteo-forecast",
+  "extensions": [
+    { "key": "base_url", "value": "https://api.open-meteo.com/v1/forecast" },
+    { "key": "protocol", "value": "OPEN_METEO" }
+  ]
+}

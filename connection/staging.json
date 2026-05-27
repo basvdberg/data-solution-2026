@@ -1,0 +1,9 @@
+{
+  "id": "connection/staging",
+  "name": "staging",
+  "extensions": [
+    { "key": "path", "value": "./data/staging/{source}/{data-object-name}" },
+    { "key": "protocol", "value": "parquet" },
+    { "key": "connectionType", "value": "FlatFile" }
+  ]
+}

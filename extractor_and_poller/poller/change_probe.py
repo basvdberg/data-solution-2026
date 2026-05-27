@@ -16,9 +16,6 @@ ProbeFn = Callable[[Mapping, Config], str]
 
 _PROBE_MODULES: tuple[str, ...] = (
     "extractor_and_poller.openmeteo.poller.probe",
-    "extractor_and_poller.knmi.poller.probe",
-    "extractor_and_poller.odata.poller.probe",
-    "extractor_and_poller.wfs.poller.probe",
 )
 
 
