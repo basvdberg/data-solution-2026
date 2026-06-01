@@ -3,8 +3,9 @@
 ## Table of contents
 
 <!-- markdown-toc:start -->
-- [Overview](#overview)
-- [IDs](#ids)
+- [Design patterns](#design-patterns)
+- [Purpose](#purpose)
+- [Artifact IDs](#artifact-ids)
 - [Artifact types](#artifact-types)
   - [Data connection](#data-connection)
   - [Data object](#data-object)
@@ -14,19 +15,20 @@
 - [Deploy bundle (optional)](#deploy-bundle-optional)
 <!-- markdown-toc:end -->
 
-Data Solution Automation (DSA) describes data transformations as JSON metadata in Git. Each artifact type lives in its own file. Files reference each other by path, not by UUID.
+## Design patterns
 
-## Overview
+This documentation is founded on design patterns that are documented here [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/readme.md#purpose). The following patterns are used:
 
-A **data transformation** connects sources to a target:
+- [Data solution](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/data-solution.md) — `connection/`, `data-object/`, and `data-object-mapping/` layout under the solution root.
+- [Separate what and how](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/generic/separate-what-and-how.md) — path-based JSON in Git specifies *what*; extractors, pollers, and ADL specify *how*.
+- [Data object](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/data-object.md) — connections, data objects, and data items as separate artifacts.
+- [Object property tree](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/object-property-tree.md) — data item IDs as `{data-object-id}/{item-name}`.
 
-- **Data connections** — where data lives (API, file path, database).
-- **Data objects** — logical datasets (tables, files, APIs) with optional **data items** (columns or fields).
-- **Data object mappings** — how sources become a target (poll rules, field logic, extensions).
+## Purpose
 
-Use **multiple JSON files** linked by path. Do not maintain one large JSON for the whole solution.
+Data solution meta data describes what the data solution should do. It can be seen as the configuration of the data solution. The meta data consists of different artifacts that are stored using JSON storage format. 
 
-## IDs
+## Artifact IDs
 
 The **ID of an artifact is its path** relative to the solution root (the folder that contains `connection/`, `data-object/`, and `data-object-mapping/`).
 
@@ -52,6 +54,8 @@ Example: `staging/openmeteo/daily-temperature/station_id`
 
 Renaming or moving a file changes its ID. Update every reference, or add a short-lived redirect file at the old path during migration.
 
+Because the name of an artifact is encoded in its ID we do not store the name as an additional property. 
+
 ## Artifact types
 
 ### Data connection
@@ -61,7 +65,6 @@ One file per connection. Holds connectivity only (URL, path, protocol, credentia
 ```json
 {
   "id": "connection/open-meteo-forecast",
-  "name": "open-meteo-forecast",
   "extensions": [
     { "key": "base_url", "value": "https://api.open-meteo.com/v1/forecast" },
     { "key": "protocol", "value": "OPEN_METEO" }
@@ -76,19 +79,16 @@ One file per dataset. References a connection by path. Lists **data items** when
 ```json
 {
   "id": "staging/openmeteo/daily-temperature",
-  "name": "daily_temperature",
   "notes": "One row per (station, day) with daily mean 2 m temperature in °C.",
   "dataConnectionId": "connection/staging",
   "dataItems": [
     {
       "id": "staging/openmeteo/daily-temperature/station_id",
-      "name": "station_id",
       "ordinalPosition": 1,
       "dataType": "string"
     },
     {
       "id": "staging/openmeteo/daily-temperature/value",
-      "name": "value",
       "ordinalPosition": 2,
       "dataType": "double"
     }
@@ -108,7 +108,6 @@ One file per transformation (source → target). References other artifacts by p
 ```json
 {
   "id": "data-object-mapping/staging/openmeteo/daily-temperature",
-  "name": "Open-Meteo daily temperature to staging landing",
   "enabled": true,
   "sourceDataObjectIds": ["source/openmeteo/daily-temperature"],
   "targetDataObjectId": "staging/openmeteo/daily-temperature",
@@ -130,8 +129,6 @@ data-solution-2026/
   data-object-mapping/     # transformations (staging/openmeteo/…)
   extractor_and_poller/    # Python extractors and pollers
 ```
-
-JSON Schema files under `schema/` describe each artifact type. One artifact per file.
 
 ## References vs embedded copies
 
@@ -186,6 +183,7 @@ The path IDs in the repo remain the stable names humans use in reviews and logs.
   - [Getting started](../../getting-started.md)
   - [Lessons learned](../../lessons-learned.md)
 - Related repositories
+  - [Browser bookmarks sync](https://github.com/basvdberg/browser-bookmarks-sync)
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026)
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns)
 <!-- markdown-project-structure:end -->

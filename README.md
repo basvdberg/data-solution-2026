@@ -14,9 +14,7 @@
 
 Proof of concept for the GenAI way of working as described in [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026). 
 
-Specification of intent is done generically by specifying design patterns here [data-engineering-design-patterns](https://github.com/basvdberg/data-engineering-design-patterns). 
-
-Design patterns are the building blocks for specifying your customized data solution.
+Specification of intent uses the linked design patterns as building blocks for this customized data solution.
 
 ## Proof of concept
 
@@ -71,6 +69,7 @@ Details: [extractor_and_poller/openmeteo/](extractor_and_poller/openmeteo/).
   - [Getting started](getting-started.md)
   - [Lessons learned](lessons-learned.md)
 - Related repositories
+  - [Browser bookmarks sync](https://github.com/basvdberg/browser-bookmarks-sync)
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026)
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns)
 <!-- markdown-project-structure:end -->

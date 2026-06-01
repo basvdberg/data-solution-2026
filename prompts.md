@@ -103,6 +103,10 @@ The repo walks through this way of working (including diagrams on the old vs new
 
 ## Session 11
 
+1. Continue the implementation of Data Solution 2026.
+
+## Session 12
+
 1. Explain this schema:
 https://github.com/data-solution-automation-engine/data-warehouse-automation-metadata-schema/blob/main/GenericInterface/interfaceDataWarehouseAutomationMetadataV2_0.json  
 The related doc is here:https://github.com/data-solution-automation-engine/data-warehouse-automation-metadata-schema/blob/main/docs/overview/Index.md 
@@ -114,11 +118,15 @@ while the documentation speaks about dataObject ?
 does this json follow the schema? Does it validate?
 @DataEngineeringIn2026/sample.json
 
-## Session 12
+## Session 13
+
+1. Complete @data-solution-2026/lessons-learned.md  Try to fix missing hyperlinks. Try to translate Dutch to English.
+
+## Session 14
 
 1. Run the WFS extractor.
 
-## Session 13
+## Session 15
 
 1. kafka is running on basnas on port 9092, airflow is running on same server on port 8081. Implement plan3 the first step, which consists of extracting a dataset from OData site.
 
@@ -140,7 +148,7 @@ does this json follow the schema? Does it validate?
 
 10. Omit the extractor name in the folder naming under data. Specifically, remove odata demo.
 
-## Session 14
+## Session 16
 
 1. Run WFS Poller
 
@@ -148,19 +156,19 @@ does this json follow the schema? Does it validate?
 
 3. Run the data extractor for KNMI.
 
-## Session 15
+## Session 17
 
 1. Run the KNMI Data Object Poller.
 
-## Session 16
+## Session 18
 
 1. Apply the Pascal case naming convention for all folders in the Data Solution 2026 project
 
-## Session 17
+## Session 19
 
 1. Restructure the extractor and poller folders. Merge them in a folder called extractor_and_poller. Each protocol should have its own subfolder, like openmeteo or wfs. In each protocol, there should be an extractor subfolder and a poller subfolder.Try to clean up unused codes.And folders.
 
-## Session 18
+## Session 20
 
 1. merge @data-solution-2026/extractor_and_poller and @data-solution-2026/extractor-and-poller
 

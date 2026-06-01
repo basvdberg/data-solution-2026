@@ -299,6 +299,7 @@ Runtime rule:
   - [Getting started](../../getting-started.md)
   - [Lessons learned](../../lessons-learned.md)
 - Related repositories
+  - [Browser bookmarks sync](https://github.com/basvdberg/browser-bookmarks-sync)
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026)
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns)
 <!-- markdown-project-structure:end -->

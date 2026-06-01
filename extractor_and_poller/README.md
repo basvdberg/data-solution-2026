@@ -3,8 +3,10 @@
 ## Table of contents
 
 <!-- markdown-toc:start -->
-_No sections yet._
+- [Overview](#overview)
 <!-- markdown-toc:end -->
+
+## Overview
 
 Open-Meteo extractor and poller driven by `data-object-mapping/` JSON.
 
@@ -70,6 +72,7 @@ The `openmeteo/` subfolder holds the `extractor/` and `poller/` packages. Shared
   - [Getting started](../getting-started.md)
   - [Lessons learned](../lessons-learned.md)
 - Related repositories
+  - [Browser bookmarks sync](https://github.com/basvdberg/browser-bookmarks-sync)
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026)
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns)
 <!-- markdown-project-structure:end -->

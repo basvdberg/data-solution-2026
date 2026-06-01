@@ -3,6 +3,7 @@
 ## Table of contents
 
 <!-- markdown-toc:start -->
+- [Design patterns](#design-patterns)
 - [Goal](#goal)
 - [CI/CD model](#cicd-model)
 - [Prerequisites](#prerequisites)
@@ -24,9 +25,16 @@
 - [Operational notes](#operational-notes)
 <!-- markdown-toc:end -->
 
+## Design patterns
+
+CI/CD workflow for this repo. Pattern definitions: [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/readme.md#purpose).
+
+- [Separate what and how](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/generic/separate-what-and-how.md) — Git metadata is deployed; runtime code and DAGs implement *how* on NAS.
+- [Simplicity](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/generic/simplicity.md) — manual tag-and-clone deploy before full automation.
+
 ## Goal
 
-Use a simple CI/CD loop where development happens locally in Cursor, validation happens both locally and on NAS, and releases are deployed to NAS from tagged Git commits.
+Use a simple CI/CD loop where development happens locally in Cursor, validation happens both locally and on NAS, releases are deployed to NAS from tagged Git commits.
 
 ## CI/CD model
 
@@ -194,6 +202,7 @@ docker compose up -d
   - [Getting started](../../getting-started.md)
   - [Lessons learned](../../lessons-learned.md)
 - Related repositories
+  - [Browser bookmarks sync](https://github.com/basvdberg/browser-bookmarks-sync)
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026)
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns)
 <!-- markdown-project-structure:end -->

@@ -11,11 +11,11 @@
 - [Source files](#source-files)
 <!-- markdown-toc:end -->
 
+## Mappings in this project
+
 Documentation for DSA **data object mappings** in this repository. Mappings describe how source data objects become staging targets and how each **data item** (column) maps across layers.
 
 See also the [staging architecture diagram](../../design/architecture-staging.png) and [DSA interface](../../../dsa-interface.md).
-
-## Mappings in this project
 
 | Mapping ID | Source | Target | Status |
 |------------|--------|--------|--------|
@@ -154,6 +154,7 @@ Git (mapping + data objects)
   - [Getting started](../../../getting-started.md)
   - [Lessons learned](../../../lessons-learned.md)
 - Related repositories
+  - [Browser bookmarks sync](https://github.com/basvdberg/browser-bookmarks-sync)
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026)
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns)
 <!-- markdown-project-structure:end -->
