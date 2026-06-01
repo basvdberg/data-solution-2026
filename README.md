@@ -5,32 +5,85 @@
 <!-- markdown-toc:start -->
 - [Purpose](#purpose)
 - [Proof of concept](#proof-of-concept)
+- [📈 Progress](#progress)
+- [Documentation](#documentation)
+- [Design patterns changed](#design-patterns-changed)
+  - [Created](#created)
+  - [Modified (pre-existing)](#modified-pre-existing)
 <!-- markdown-toc:end -->
-
-> [!WARNING]
-> **This project is under construction.** Please check back later, or [watch the repository](https://github.com/basvdberg/data-solution-2026/watchers) on GitHub for updates.
 
 ## Purpose
 
-Proof of concept for the GenAI way of working as described in [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026). 
+Proof of concept for the GenAI way of working as described in [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026).
 
-Specification of intent uses the linked design patterns as building blocks for this customized data solution.
+Intent is specified with [data-engineering-design-patterns](https://github.com/basvdberg/data-engineering-design-patterns) as building blocks. Implementation code and orchestration are generated and refined with Cursor. Data transformations are specified with meta data. 
 
 ## Proof of concept
 
-This PoC implements a **staging layer** for daily mean temperature across the Netherlands. The source is [Open-Meteo](https://open-meteo.com/) — no API key, models refreshed continuously. 
+A **staging layer** for daily mean temperature across the Netherlands.
 
-Python extraction code was generated with GenAI. Orchestration follows patterns from [data-engineering-design-patterns](https://github.com/basvdberg/data-engineering-design-patterns); AI-assisted tool selection led to Apache Airflow and Apache Kafka for this use case.
+| Aspect | Choice |
+|--------|--------|
+| Source | [Open-Meteo](https://open-meteo.com/) — public API, no key, continuously updated models |
+| Metadata | [DSA](https://github.com/data-solution-automation-engine/data-warehouse-automation-metadata-schema) connections, data objects, and mappings |
+| Extraction | GenAI-generated Python poller and extractor |
+| Orchestration | Apache Airflow and Apache Kafka (hosted on local NAS for this PoC) |
 
-Architecture and flow are documented in [Architecture](doc/design/architecture.md).
+## 📈 Progress
 
-For quick run instructions, see [Getting started](getting-started.md).
+**June 1, 2026** — follow-up to the May 19 LinkedIn post on data engineering with Gen-AI.
 
-Lessons and observations are captured in [Lessons learned](lessons-learned.md).
+**Done**
 
-Open-Meteo blends national models into a gridded daily mean at reference coordinates. Data is [CC BY 4.0](https://open-meteo.com/); attribute Open-Meteo in production use.
+- Infrastructure on BasNAS: Airflow and Kafka deployed and tuned via GenAI over SSH.
+- Design patterns created and modified to specify intent. See [design patterns changed](#design-patterns-changed).
+- After discovering that the KNMI API was actually quite old and not providing any recent data updates, we switched to a new public data API, which was relatively easy because of the new way of working.
+- Open-Meteo extractor and poller implemented.
 
-Details: [extractor_and_poller/openmeteo/](extractor_and_poller/openmeteo/).
+**Next**
+
+- Event-based orchestration for source-to-staging: poller publishes change events on Kafka; Airflow reacts and triggers extract (see [event-based orchestration plan](doc/design/event-based-orchestration-plan.md)).
+
+**Lessons so far** ([full notes](lessons-learned.md)).
+
+## Documentation
+
+| Topic | Document |
+|-------|----------|
+| Run locally | [Getting started](getting-started.md) |
+| Architecture and flow | [Architecture](doc/design/architecture.md) |
+| DSA layout in Git | [Meta data design](doc/design/meta-data-design.md) |
+| Event orchestration | [Event-based orchestration plan](doc/design/event-based-orchestration-plan.md) |
+| Observations | [Lessons learned](lessons-learned.md) |
+
+## Design patterns changed
+
+Since the [May 19 LinkedIn post](https://github.com/basvdberg/data-engineering-2026), the [data-engineering-design-patterns](https://github.com/basvdberg/data-engineering-design-patterns) catalogue grew to support this PoC. Patterns live under `design-patterns/data-engineering/` and `design-patterns/generic/` (reorganized 1 June 2026).
+
+### Created
+
+| Pattern | Summary |
+|--------|---------|
+| [Separate what and how](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/generic/separate-what-and-how.md) | Declarative specification (*what*) vs imperative implementation (*how*); DSA in Git, tools and code for execution. |
+| [Data extractor](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/data-extractor.md) | Reads a source via protocol and format adapter; writes the target with integrity and observability. |
+| [Data object poller](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/data-object-poller.md) | Detects marker changes on a schedule; publishes events without full payload reads. |
+| [Data object](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/data-object.md) | Atomic unit: identity, location, schema, classification (table, file, API dataset). |
+| [Data object container](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/data-object-container.md) | Hierarchical scope (database, folder, layer) with inherited properties; groups objects, no payload. |
+| [Data solution layer](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/data-solution-layer.md) | Staging → raw → integrated → presentation; unidirectional flow. |
+| [Simplicity](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/generic/simplicity.md) | Prefer the simpler correct design; keep the system boundary small. |
+| [Functional decomposition](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/generic/functional-decomposition.md) | Decompose by responsibility; express variation in configuration. |
+| [Data object tree](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/data-object-tree.md) | Parent–child hierarchy and discovery of objects in a solution. |
+| [Data object tree property inheritance](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/data-object-tree-property-inheritance.md) | Properties on tree nodes; child overrides parent, else inherit from ancestor. |
+
+**Removed:** *Object property tree* — split into **Data object tree** and **Data object tree property inheritance**. [Prefer simple decomposition](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/generic/prefer-simple-decomposition.md) is now a stub pointing to **Simplicity** and **Functional decomposition**.
+
+### Modified (pre-existing)
+
+| Pattern | Summary |
+|--------|---------|
+| [Data solution](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/data-solution.md) | Linked to new data-engineering patterns and PoC vocabulary. |
+| [Event-based orchestration](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/event-based-orchestration.md) | Aligned with poller events, extractor tasks, and Kafka/Airflow flow used here. |
+| [Historic bitemporal table](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/historic-bitemporal-table.md) | Cross-links and structure refresh alongside the catalogue. |
 
 ## Project structure
 
