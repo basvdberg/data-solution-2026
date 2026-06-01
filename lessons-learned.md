@@ -10,15 +10,16 @@
 - [Data extraction via API](#data-extraction-via-api)
 - [Learning new tools](#learning-new-tools)
 - [Versioned Cursor configuration](#versioned-cursor-configuration)
+- [Use Voice2Text](#use-voice2text)
 <!-- markdown-toc:end -->
 
 ## Infrastructure deployment
 
-This proof of concept needed [Apache Airflow](https://airflow.apache.org/) and [Apache Kafka](https://kafka.apache.org/). To avoid cloud spend on throwaway infrastructure, both ran on a local QNAP NAS (“Basnas”). That required [Cursor Remote SSH](doc/design/ci-cd.md#test-on-nas-using-cursor-remote-ssh) so the agent could edit files and run commands on the NAS—installing and tuning services from prompts worked well once SSH was in place. The full workflow is in [CI/CD workflow (local + NAS)](doc/design/ci-cd.md).
+This proof of concept needed [Apache Airflow](https://airflow.apache.org/) and [Apache Kafka](https://kafka.apache.org/). Because I prefer not to spend costs on spinning up cloud resources, I decided to use my local QNAP NAS (“Basnas”). That required remote SSH so the agent could edit files and run commands on the NAS.Installing and tuning services from prompts worked well once SSH was in place. 
 
-HTTPS and local DNS still took noticeable effort so services have friendly URLs (for example `https://kafka.basnas`). To keep browser access manageable, a small sync tool merges Chrome and Brave bookmarks with Basnas service URLs from deployment config.
+I wanted services to have friendly URLs (for example `https://kafka.basnas`). This took noticeable effort installing HTTPS and local DNS. To keep browser access manageable, a small sync tool merges Chrome and Brave bookmarks with Basnas service URLs from deployment config.
 
-**Takeaway:** Local NAS hosting is viable for PoC infrastructure; budget time for TLS, DNS, and a repeatable way to reach services from the browser.
+**Takeaway:** Local NAS hosting is viable for PoC infrastructure when deployed via Gen-AI. Cursor is really good at solving installation issues via a backtracking mechanism. It just keeps firing PowerShell scripts to try out different approaches until the issue is fixed.
 
 ## Keep Gen AI under control
 
@@ -33,9 +34,9 @@ Two controls helped:
 
 ## Data Solution Automation metadata
 
-[Data Solution Automation (DSA)](https://github.com/data-solution-automation-engine/data-warehouse-automation-metadata-schema) metadata is an open JSON exchange format for connections, data objects, and source-to-target mappings—the *what* of a data solution without locking it to one ETL product or cloud stack. [Roelant Vos](https://roelantvos.com/blog/interface-for-data-warehouse-automation-metadata-released/) has written about the intent behind portable automation metadata for years.
+[Data Solution Automation (DSA)](https://github.com/data-solution-automation-engine/data-warehouse-automation-metadata-schema) metadata is an open JSON exchange format for connections, data objects, and source-to-target mappings—the *what* of a data solution without locking it to one ETL product or cloud stack. [Roelant Vos](https://roelantvos.com/blog/interface-for-data-warehouse-automation-metadata-released/) has written about the intent behind meta data driven automation for years.
 
-After more than twenty years in data engineering I have seen frameworks and vendors change constantly, while the underlying transformation logic stays much the same. Describing that logic in a shared, human-readable standard pays off:
+After more than twenty years in data engineering I have seen many frameworks and vendors come and go, while the underlying transformation logic stays more or less the same. Describing that logic in a shared, human and AI agent-readable standard pays off:
 
 1. **Shared vocabulary** — other engineers can read mappings and data objects without learning a project-specific config dialect.
 2. **Longer-lived specifications** — a data solution specification can outlive a single implementation and be reused on a new platform or toolchain.
@@ -59,25 +60,27 @@ In this PoC, working with DSA also surfaced practical gaps:
 
 ## Data extraction via API
 
-**Before:** Extracting from a source with a well-defined API typically took one to two weeks—collecting and reading sometimes incomplete documentation, then iteratively building and testing the client.
+**Old way of working without AI:** Extracting from a source with a well-defined API typically took one to two weeks—collecting and reading sometimes incomplete documentation, then iteratively building and testing the client.
 
-**After:** With generative AI (Cursor in this project), the [Open-Meteo extractor](extractor_and_poller/readme.md) was produced in a handful of prompts. End-to-end validation, including a smoke test against the live service, fit within about an hour.
+**New way of working:** With generative AI (Cursor in this project), the [Open-Meteo extractor](extractor_and_poller/readme.md) was produced in a handful of prompts. End-to-end validation, including a smoke test against the live service, fit within about an hour.
 
 **Takeaway:** A large efficiency gain; in this PoC the generated client was stronger and faster to test than a typical hand-written first version.
 
 ## Learning new tools
 
-**Before:** Learning Airflow, Kafka, [Agnostic Data Labs](https://docs.agnosticdatalabs.com/docs/), or a new protocol client is normal work, but it often costs weeks of courses and trial-and-error before you ship confidently.
+**Old way of working without AI:** Learning Airflow, Kafka, [Agnostic Data Labs](https://docs.agnosticdatalabs.com/docs/), or a new protocol client is normal work, but it often costs weeks of courses and trial-and-error before you ship confidently.
 
-**After:** AI explains how a tool fits a concrete use case in *your* architecture and generates starter code (DAGs, parsers, mapping JSON). You learn from working examples without mastering every aspect of the tool first. That shortens time-to-market for new tooling, makes it easier to compare or replace components, and supports a more technology-agnostic architecture.
-
-**Takeaway:** Use GenAI for guided onboarding and scaffolding; keep [metadata in Git](doc/design/meta-data-design.md) as the stable specification while you experiment with *how* to run it.
+**New way of working:** AI explains how a tool fits a concrete use case in *your* architecture and generates starter code (DAGs, parsers, mapping JSON). You learn from working examples without mastering every aspect of the tool first. That shortens time-to-market for new tooling, makes it easier to compare or replace components, and supports a more technology-agnostic architecture.
 
 ## Versioned Cursor configuration
 
 Skills and rules lived only under a local folder (for example `%USERPROFILE%\.cursor\`) until I moved them into a dedicated **cursor-config** project in this workspace. Versioning that configuration in Git gives history, makes the same setup portable across machines and repos, and reduces the risk of losing skills when you reinstall the IDE or switch computers.
 
 **Takeaway:** Treat Cursor skills and rules like other engineering assets—version them, review changes, and reuse them across projects.
+
+## Use Voice2Text
+
+I bought a very good microphone and used Wispr Flow to translate my voice to text in order to spare my arms from typing that much text in my cursor chat dialogue.
 
 ## Project structure
 

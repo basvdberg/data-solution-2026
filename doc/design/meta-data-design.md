@@ -22,7 +22,7 @@ This documentation is founded on design patterns that are documented here [Data 
 - [Data solution](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/data-solution.md) — `connection/`, `data-object/`, and `data-object-mapping/` layout under the solution root.
 - [Separate what and how](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/generic/separate-what-and-how.md) — path-based JSON in Git specifies *what*; extractors, pollers, and ADL specify *how*.
 - [Data object](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/data-object.md) — connections, data objects, and data items as separate artifacts.
-- [Object property tree](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/object-property-tree.md) — data item IDs as `{data-object-id}/{item-name}`.
+- [Data object tree](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/data-object-tree.md) — data item IDs as `{data-object-id}/{item-name}`.
 
 ## Purpose
 
