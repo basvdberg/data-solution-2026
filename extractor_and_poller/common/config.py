@@ -9,11 +9,23 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping as MappingT, Sequence
 
 log = logging.getLogger(__name__)
+
+_TRAILING_COMMA_RE = re.compile(r",(\s*[}\]])")
+
+
+def _loads_json_relaxed(text: str) -> dict[str, Any]:
+    """Load JSON with a conservative fallback for trailing commas."""
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        normalized = _TRAILING_COMMA_RE.sub(r"\1", text)
+        return json.loads(normalized)
 
 
 def _extensions_to_dict(extensions: Sequence[MappingT[str, Any]] | None) -> dict[str, str]:
@@ -40,7 +52,7 @@ def _load_artifact(solution_root: Path, artifact_id: str) -> dict[str, Any]:
     if not path.is_file():
         raise FileNotFoundError(f"DSA artifact not found: {artifact_id} ({path})")
     with path.open(encoding="utf-8-sig") as f:
-        data: dict[str, Any] = json.load(f)
+        data: dict[str, Any] = _loads_json_relaxed(f.read())
     data.setdefault("id", artifact_id)
     return data
 
@@ -164,10 +176,37 @@ class Mapping:
         return None
 
     def source_data_objects(self) -> list[SourceDataObject]:
-        return [
-            SourceDataObject(name=o["name"], raw=o)
-            for o in self.raw.get("sourceDataObjects", [])
-        ]
+        objects: list[SourceDataObject] = []
+        for obj in self.raw.get("sourceDataObjects", []):
+            obj_id = str(obj.get("id", ""))
+            fallback_name = obj_id.split("/")[-1] if obj_id else "source"
+            name = str(obj.get("name", fallback_name))
+            objects.append(SourceDataObject(name=name, raw=obj))
+        return objects
+
+    def source_data_object_ids(self) -> list[str]:
+        ids = self.raw.get("sourceDataObjectIds", [])
+        return [str(item) for item in ids]
+
+    def primary_source_data_object_id(self) -> str:
+        ids = self.source_data_object_ids()
+        if ids:
+            return ids[0]
+        sources = self.source_data_objects()
+        if sources:
+            source_id = sources[0].raw.get("id")
+            if source_id:
+                return str(source_id)
+        raise ValueError(f"Mapping '{self.id}' has no source data object id")
+
+    def target_data_object_id(self) -> str:
+        target_id = self.raw.get("targetDataObjectId")
+        if target_id:
+            return str(target_id)
+        embedded = self.raw.get("targetDataObject", {})
+        if isinstance(embedded, dict) and embedded.get("id"):
+            return str(embedded["id"])
+        return ""
 
     def target_name(self) -> str:
         return self.raw.get("targetDataObject", {}).get("name", "")
@@ -201,7 +240,7 @@ def load(path: str) -> Config:
     """Load a DSA mapping JSON file from disk and resolve path references."""
     config_path = Path(path)
     with config_path.open(encoding="utf-8-sig") as f:
-        raw = json.load(f)
+        raw = _loads_json_relaxed(f.read())
     normalized = _normalize_raw(raw, config_path)
     log.info(
         "Loaded config '%s' with %d mapping(s)",

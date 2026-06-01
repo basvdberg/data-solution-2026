@@ -1,7 +1,14 @@
 {
   "section": "Related repositories",
   "labels": {
+    "browser-bookmarks-sync": "Browser bookmarks sync",
     "data-engineering-2026": "Data Engineering 2026",
     "data-engineering-design-patterns": "Data Engineering Design Patterns"
-  }
+  },
+  "repositories": [
+    {
+      "label": "Browser bookmarks sync",
+      "url": "https://github.com/basvdberg/browser-bookmarks-sync"
+    }
+  ]
 }

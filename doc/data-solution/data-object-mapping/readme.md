@@ -13,7 +13,7 @@
 
 Documentation for DSA **data object mappings** in this repository. Mappings describe how source data objects become staging targets and how each **data item** (column) maps across layers.
 
-See also the [staging architecture diagram](../architecture-staging.png) and [DSA interface](../../dsa-interface.md).
+See also the [staging architecture diagram](../../design/architecture-staging.png) and [DSA interface](../../../dsa-interface.md).
 
 ## Mappings in this project
 
@@ -120,11 +120,8 @@ Git (mapping + data objects)
 ## Project structure
 
 <!-- markdown-project-structure:start -->
-- [Data Solution 2026](../../readme.md)
-  - Classification
-  - Configuration
+- [Data Solution 2026](../../../readme.md)
   - Connection
-  - Convention
   - Data
     - Staging
       - Openmeteo
@@ -138,8 +135,13 @@ Git (mapping + data objects)
     - Staging
       - Openmeteo
   - Doc
-    - Data Object Mapping
-    - [Remote SSH development workflow](../remote-ssh.md)
+    - Data Solution
+      - Data Object Mapping
+    - Design
+      - [Architecture](../../design/architecture.md)
+      - [CI/CD workflow (local + NAS)](../../design/ci-cd.md)
+      - [Event-based orchestration plan (single data object)](../../design/event-based-orchestration-plan.md)
+      - [Meta data design](../../design/meta-data-design.md)
   - Extractor_And_Poller
     - Common
     - Openmeteo
@@ -147,13 +149,10 @@ Git (mapping + data objects)
       - Poller
     - Poller
     - Tests
-  - Output
-  - Perspective
-  - Schema
-    - [Schema follow-ups](../../schema/data-objects-schema.md)
   - Setting
   - Template
-  - [DSA interface](../../dsa-interface.md)
+  - [Getting started](../../../getting-started.md)
+  - [Lessons learned](../../../lessons-learned.md)
 - Related repositories
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026)
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns)

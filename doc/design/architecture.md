@@ -1,0 +1,60 @@
+# Architecture
+
+## Table of contents
+
+<!-- markdown-toc:start -->
+- [Flow](#flow)
+<!-- markdown-toc:end -->
+
+## Flow
+
+![Architecture](architecture-staging.png)
+
+The flow, left to right:
+
+1. **Git holds the configuration.** `data-object-mapping/staging/openmeteo/` describes the source; staging targets and loads are defined in the same DSA metadata. Design patterns set the shape of the orchestration.
+2. **Airflow + Kafka run ingestion.** A scheduled **poller** DAG probes the source and publishes only to the event bus: `data_object_change` when the marker moved, `data_object_unchanged` when it did not. The event controller reacts to **change** events and enqueues **extract** tasks; the extractor writes Parquet under `data/staging/`. The poller never runs the extractor. PostgreSQL stores baselines and the event log - configuration stays in Git.
+3. **ADL generates staging artefacts.** Reading the same DSA metadata, ADL renders the Handlebars templates in `template/` into DDL and load SQL under `output/`, which load the Parquet landing files into the **100 Landing Area**.
+
+This solution follows the [separate what and how](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/separate-what-and-how.md) design pattern: DSA metadata files specify *what* must happen, while the Airflow DAGs, extractor, poller, and ADL-generated load procedures specify *how* it is executed.
+
+## Project structure
+
+<!-- markdown-project-structure:start -->
+- [Data Solution 2026](../../readme.md)
+  - Connection
+  - Data
+    - Staging
+      - Openmeteo
+        - Daily_Temperature
+  - Data Object
+    - Source
+      - Openmeteo
+    - Staging
+      - Openmeteo
+  - Data Object Mapping
+    - Staging
+      - Openmeteo
+  - Doc
+    - Data Solution
+      - Data Object Mapping
+    - Design
+      - [Architecture](architecture.md)
+      - [CI/CD workflow (local + NAS)](ci-cd.md)
+      - [Event-based orchestration plan (single data object)](event-based-orchestration-plan.md)
+      - [Meta data design](meta-data-design.md)
+  - Extractor_And_Poller
+    - Common
+    - Openmeteo
+      - Extractor
+      - Poller
+    - Poller
+    - Tests
+  - Setting
+  - Template
+  - [Getting started](../../getting-started.md)
+  - [Lessons learned](../../lessons-learned.md)
+- Related repositories
+  - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026)
+  - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns)
+<!-- markdown-project-structure:end -->

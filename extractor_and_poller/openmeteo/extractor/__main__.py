@@ -4,7 +4,6 @@ Run from ``data-solution-2026/``::
 
     python -m extractor_and_poller.openmeteo.extractor --list
     python -m extractor_and_poller.openmeteo.extractor --mapping daily-temperature
-    python -m extractor_and_poller.openmeteo.extractor --mapping daily-temperature --date 2026-05-20
 """
 
 from __future__ import annotations
@@ -18,8 +17,11 @@ from extractor_and_poller.common.paths import PROJECT_ROOT, ensure_project_root_
 ensure_project_root_on_path()
 
 from extractor_and_poller.common import config as cfg_module
+from extractor_and_poller.common.logging_setup import configure_logging
 from extractor_and_poller.common import parquet as parquet_module
 from extractor_and_poller.openmeteo.extractor import client as openmeteo_client
+
+log = logging.getLogger(__name__)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -41,17 +43,10 @@ def main(argv: list[str] | None = None) -> int:
         dest="list_mappings",
         help="list enabled mappings and exit",
     )
-    parser.add_argument(
-        "--date",
-        help="observation day YYYY-MM-DD (default: latest completed day from probe)",
-    )
     parser.add_argument("--verbose", "-v", action="store_true")
     args = parser.parse_args(argv)
 
-    logging.basicConfig(
-        level=logging.DEBUG if args.verbose else logging.INFO,
-        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-    )
+    configure_logging(verbose=args.verbose)
 
     config = cfg_module.load(args.config)
 
@@ -85,17 +80,14 @@ def main(argv: list[str] | None = None) -> int:
     past_days = int(ext.get("openmeteo_past_days", "7"))
     tz = ext.get("openmeteo_timezone", "UTC")
 
-    if args.date:
-        observation_day = args.date
-    else:
-        observation_day = openmeteo_client.probe_change_marker(
-            latitude=probe_lat,
-            longitude=probe_lon,
-            daily_variable=daily_variable,
-            past_days=past_days,
-            base_url=base_url,
-            timezone=tz,
-        )
+    observation_day = openmeteo_client.probe_change_marker(
+        latitude=probe_lat,
+        longitude=probe_lon,
+        daily_variable=daily_variable,
+        past_days=past_days,
+        base_url=base_url,
+        timezone=tz,
+    )
 
     records = openmeteo_client.records_for_day(
         observation_day,
@@ -103,6 +95,7 @@ def main(argv: list[str] | None = None) -> int:
         base_url=base_url,
         timezone=tz,
     )
+    log.info("Fetched %d record(s) for %s", len(records), observation_day)
 
     now = datetime.now(timezone.utc)
     timestamp = now.strftime("%Y-%m-%dT%H%M%S") + f"{now.microsecond // 1000:03d}Z"
@@ -113,8 +106,8 @@ def main(argv: list[str] | None = None) -> int:
         template,
         {"dataset": target_name, "table": source.name, "timestamp": timestamp},
     )
-    print(f"Extracted mapping '{mapping.id}' from open-meteo {observation_day}:")
-    print(f"  - {path} ({len(records):,} rows)")
+    log.info("Extracted mapping '%s' from open-meteo %s", mapping.id, observation_day)
+    log.info("Wrote parquet output: %s (%s rows)", path, f"{len(records):,}")
     return 0
 
 

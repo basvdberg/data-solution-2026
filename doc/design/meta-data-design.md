@@ -1,4 +1,4 @@
-# DSA interface
+# Meta data design
 
 ## Table of contents
 
@@ -152,11 +152,8 @@ The path IDs in the repo remain the stable names humans use in reviews and logs.
 ## Project structure
 
 <!-- markdown-project-structure:start -->
-- [Data Solution 2026](readme.md)
-  - Classification
-  - Configuration
+- [Data Solution 2026](../../readme.md)
   - Connection
-  - Convention
   - Data
     - Staging
       - Openmeteo
@@ -170,8 +167,13 @@ The path IDs in the repo remain the stable names humans use in reviews and logs.
     - Staging
       - Openmeteo
   - Doc
-    - Data Object Mapping
-    - [Remote SSH development workflow](doc/remote-ssh.md)
+    - Data Solution
+      - Data Object Mapping
+    - Design
+      - [Architecture](architecture.md)
+      - [CI/CD workflow (local + NAS)](ci-cd.md)
+      - [Event-based orchestration plan (single data object)](event-based-orchestration-plan.md)
+      - [Meta data design](meta-data-design.md)
   - Extractor_And_Poller
     - Common
     - Openmeteo
@@ -179,13 +181,10 @@ The path IDs in the repo remain the stable names humans use in reviews and logs.
       - Poller
     - Poller
     - Tests
-  - Output
-  - Perspective
-  - Schema
-    - [Schema follow-ups](schema/data-objects-schema.md)
   - Setting
   - Template
-  - [DSA interface](dsa-interface.md)
+  - [Getting started](../../getting-started.md)
+  - [Lessons learned](../../lessons-learned.md)
 - Related repositories
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026)
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns)

@@ -7,6 +7,7 @@ from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from importlib import import_module
+from uuid import uuid4
 
 from extractor_and_poller.common.config import Config, Mapping
 
@@ -21,17 +22,23 @@ _PROBE_MODULES: tuple[str, ...] = (
 
 @dataclass(frozen=True)
 class PollResult:
-    mapping_id: str
-    data_object_name: str
+    event_id: str
+    run_id: str
+    data_object_id: str
+    source_data_object_id: str
+    target_data_object_id: str
     current_marker: str
     previous_marker: str | None
-    changed: bool
-    polled_at_utc: datetime
+    event_time_utc: datetime
     event_type: str
 
     @property
-    def unchanged(self) -> bool:
-        return not self.changed
+    def changed(self) -> bool:
+        return self.event_type == "data_object_change"
+
+    @property
+    def idempotency_key(self) -> str:
+        return f"{self.data_object_id}:{self.current_marker}"
 
 
 def _probe_registry() -> dict[str, ProbeFn]:
@@ -54,11 +61,15 @@ def probe_registry() -> dict[str, ProbeFn]:
 
 def interface_type_for(mapping: Mapping) -> str:
     value = mapping.get_classification_value("interface_type")
-    if not value:
-        raise ValueError(
-            f"Mapping '{mapping.id}' has no interface_type classification"
-        )
-    return value
+    if value:
+        return value
+    # Fallback for current metadata where protocol is defined on source connection.
+    sources = mapping.source_data_objects()
+    if sources:
+        protocol = sources[0].connection_ext("protocol", "")
+        if protocol:
+            return protocol.lower()
+    raise ValueError(f"Mapping '{mapping.id}' has no interface_type classification")
 
 
 def probe_current_value(mapping: Mapping, config: Config) -> str:
@@ -77,26 +88,30 @@ def poll_mapping(
     mapping: Mapping,
     config: Config,
     *,
+    run_id: str,
     previous_marker: str | None = None,
 ) -> PollResult:
     current = probe_current_value(mapping, config)
     changed = previous_marker != current
-    event_type = "data_object_change" if changed else "data_object_progress"
-    target = mapping.target_name() or mapping.id
+    event_type = "data_object_change" if changed else "data_object_unchanged"
+    source_id = mapping.primary_source_data_object_id()
+    target_id = mapping.target_data_object_id() or mapping.id
     log.info(
-        "%s mapping=%s marker=%s previous=%s",
+        "%s data_object=%s marker=%s previous=%s",
         event_type,
-        mapping.id,
+        source_id,
         current,
         previous_marker,
     )
     return PollResult(
-        mapping_id=mapping.id,
-        data_object_name=target,
+        event_id=str(uuid4()),
+        run_id=run_id,
+        data_object_id=source_id,
+        source_data_object_id=source_id,
+        target_data_object_id=target_id,
         current_marker=current,
         previous_marker=previous_marker,
-        changed=changed,
-        polled_at_utc=datetime.now(timezone.utc),
+        event_time_utc=datetime.now(timezone.utc),
         event_type=event_type,
     )
 
@@ -104,21 +119,26 @@ def poll_mapping(
 def iter_poll_results(
     config: Config,
     *,
-    mapping_id: str | None = None,
+    data_object_id: str | None = None,
     previous_markers: dict[str, str | None] | None = None,
 ) -> Iterator[PollResult]:
+    run_id = str(uuid4())
     markers = previous_markers or {}
     mappings = config.enabled_mappings()
-    if mapping_id:
-        mapping = config.get_mapping(mapping_id)
-        if mapping is None:
-            raise KeyError(f"Mapping '{mapping_id}' not found in {config.path}")
-        if not mapping.enabled:
-            raise ValueError(f"Mapping '{mapping_id}' is disabled")
-        mappings = [mapping]
+    if data_object_id:
+        filtered = [
+            mapping
+            for mapping in mappings
+            if mapping.primary_source_data_object_id() == data_object_id
+        ]
+        if not filtered:
+            raise KeyError(f"Data object '{data_object_id}' not found in enabled mappings of {config.path}")
+        mappings = filtered
     for mapping in mappings:
+        data_object_id = mapping.primary_source_data_object_id()
         yield poll_mapping(
             mapping,
             config,
-            previous_marker=markers.get(mapping.id),
+            run_id=run_id,
+            previous_marker=markers.get(data_object_id),
         )
