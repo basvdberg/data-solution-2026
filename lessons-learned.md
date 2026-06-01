@@ -4,29 +4,58 @@
 
 <!-- markdown-toc:start -->
 - [Infrastructure deployment](#infrastructure-deployment)
-- [Keep in control of Gen AI / continuous refactoring](#keep-in-control-of-gen-ai-continuous-refactoring)
+- [Keep Gen AI under control](#keep-gen-ai-under-control)
+- [Data Solution Automation metadata](#data-solution-automation-metadata)
+- [Agnostic Data Labs](#agnostic-data-labs)
 - [Data extraction via API](#data-extraction-via-api)
 - [Learning new tools](#learning-new-tools)
-- [Agnostic Data Labs](#agnostic-data-labs)
-- [Data Solution Automation metadata](#data-solution-automation-metadata)
+- [Versioned Cursor configuration](#versioned-cursor-configuration)
 <!-- markdown-toc:end -->
 
 ## Infrastructure deployment
 
-During this proof of concept I needed [Apache Airflow](https://airflow.apache.org/) and [Apache Kafka](https://kafka.apache.org/). To avoid cloud spend on throwaway infrastructure, I hosted both on a local QNAP NAS (“Basnas”). That required [Cursor Remote SSH](doc/design/ci-cd.md#test-on-nas-using-cursor-remote-ssh) so the agent could edit files and run commands on the NAS—installing and tuning services from prompts worked well once SSH was in place. The full workflow is in [CI/CD workflow (local + NAS)](doc/design/ci-cd.md).
+This proof of concept needed [Apache Airflow](https://airflow.apache.org/) and [Apache Kafka](https://kafka.apache.org/). To avoid cloud spend on throwaway infrastructure, both ran on a local QNAP NAS (“Basnas”). That required [Cursor Remote SSH](doc/design/ci-cd.md#test-on-nas-using-cursor-remote-ssh) so the agent could edit files and run commands on the NAS—installing and tuning services from prompts worked well once SSH was in place. The full workflow is in [CI/CD workflow (local + NAS)](doc/design/ci-cd.md).
 
-I still spent noticeable time on HTTPS and local DNS so services have friendly URLs (for example `https://kafka.basnas`). To keep browser access manageable, I added a small sync tool that merges Chrome and Brave bookmarks with Basnas service URLs from deployment config.
+HTTPS and local DNS still took noticeable effort so services have friendly URLs (for example `https://kafka.basnas`). To keep browser access manageable, a small sync tool merges Chrome and Brave bookmarks with Basnas service URLs from deployment config.
 
-## Keep in control of Gen AI / continuous refactoring
+**Takeaway:** Local NAS hosting is viable for PoC infrastructure; budget time for TLS, DNS, and a repeatable way to reach services from the browser.
+
+## Keep Gen AI under control
 
 A pitfall when using GenAI is generating too much. Because it is easy to change the design, scope can grow quickly. A good design is also a simple one, as described in the [Simplicity](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/generic/simplicity.md) design pattern.
 
-I used two controls:
+Two controls helped:
 
 - **Review every change** — although I sometimes clicked “Keep all” without reading every diff.
 - **Refactor deliberately** — as understanding evolved, I deleted outdated design documents and asked Cursor to rewrite them, dropping historical decisions that no longer fit.
 
 **Takeaway:** Treat generated artefacts as drafts; pair GenAI speed with human review and occasional “reset and rewrite” when the design has drifted.
+
+## Data Solution Automation metadata
+
+[Data Solution Automation (DSA)](https://github.com/data-solution-automation-engine/data-warehouse-automation-metadata-schema) metadata is an open JSON exchange format for connections, data objects, and source-to-target mappings—the *what* of a data solution without locking it to one ETL product or cloud stack. [Roelant Vos](https://roelantvos.com/blog/interface-for-data-warehouse-automation-metadata-released/) has written about the intent behind portable automation metadata for years.
+
+After more than twenty years in data engineering I have seen frameworks and vendors change constantly, while the underlying transformation logic stays much the same. Describing that logic in a shared, human-readable standard pays off:
+
+1. **Shared vocabulary** — other engineers can read mappings and data objects without learning a project-specific config dialect.
+2. **Longer-lived specifications** — a data solution specification can outlive a single implementation and be reused on a new platform or toolchain.
+3. **Ecosystem and conventions** — common standards make collaboration easier.
+
+In this PoC, working with DSA also surfaced practical gaps:
+
+1. **Condensed mappings** — the published schema can express a mapping as one condensed JSON document that embeds data objects and connections. For Git-based workflows, separate elemental artifacts (as in [meta data design](doc/design/meta-data-design.md)) avoid redundancy when the same data object appears in multiple mappings. [Agnostic Data Labs](#agnostic-data-labs) follows the same decomposition when it loads metadata.
+2. **Readable identities** — metadata should stay as simple and legible as possible. Path-based IDs (for example `staging/openmeteo/daily-temperature`) reveal name and location better than opaque hashes and make a separate `name` field redundant, in line with the [Simplicity](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/generic/simplicity.md) pattern.
+
+**Takeaway:** DSA is a strong interchange format; for day-to-day authoring in Git, prefer decomposed artifacts and path IDs over monolithic mapping bundles.
+
+## Agnostic Data Labs
+
+[Agnostic Data Labs](https://docs.agnosticdatalabs.com/docs/) (ADL) is a free companion to visualize [DSA metadata](https://data-solution-automation-engine.github.io/data-warehouse-automation-metadata-schema/). The UI and feature set are impressive, but two issues blocked deeper use in this PoC:
+
+1. **Validation feedback** — JSON that matched the published automation schema did not always load in ADL, with little feedback on *why*. After reporting this, the developer fixed it quickly.
+2. **On-disk shape** — ADL decomposes JSON into elemental components, which changes the on-disk representation. For round-tripping and GenAI workflows, a model centred on those components may be clearer than top-level `dataObjectMappings` alone.
+
+**Takeaway:** ADL is a nice-to-have for this PoC; I kept it out of the critical path until validation and file layout align with the Git-first metadata model.
 
 ## Data extraction via API
 
@@ -38,34 +67,17 @@ I used two controls:
 
 ## Learning new tools
 
-**Before:** Learning Airflow, Kafka, [Agnostic Data Labs (ADL)](https://docs.agnosticdatalabs.com/docs/), or a new protocol client is normal work, but it often costs weeks of courses and trial-and-error before you ship confidently.
+**Before:** Learning Airflow, Kafka, [Agnostic Data Labs](https://docs.agnosticdatalabs.com/docs/), or a new protocol client is normal work, but it often costs weeks of courses and trial-and-error before you ship confidently.
 
 **After:** AI explains how a tool fits a concrete use case in *your* architecture and generates starter code (DAGs, parsers, mapping JSON). You learn from working examples without mastering every aspect of the tool first. That shortens time-to-market for new tooling, makes it easier to compare or replace components, and supports a more technology-agnostic architecture.
 
 **Takeaway:** Use GenAI for guided onboarding and scaffolding; keep [metadata in Git](doc/design/meta-data-design.md) as the stable specification while you experiment with *how* to run it.
 
-## Agnostic Data Labs
+## Versioned Cursor configuration
 
-[Agnostic Data Labs](https://docs.agnosticdatalabs.com/docs/) is a free companion to visualize [DSA metadata](https://data-solution-automation-engine.github.io/data-warehouse-automation-metadata-schema/). The UI and feature set are impressive, but I hit showstoppers for this PoC:
+Skills and rules lived only under a local folder (for example `%USERPROFILE%\.cursor\`) until I moved them into a dedicated **cursor-config** project in this workspace. Versioning that configuration in Git gives history, makes the same setup portable across machines and repos, and reduces the risk of losing skills when you reinstall the IDE or switch computers.
 
-1. JSON produced to match the published automation schema did not load correctly in ADL, with little feedback on *why* (validation errors were hard to surface). After reporting this to the developer it was fixed quickly. 
-2. ADL decomposes JSON into elemental components, which changes the on-disk representation. For round-tripping and GenAI workflows, a model centred on those components might be clearer than top-level `dataObjectMappings` alone.
-
-For this proof of concept, ADL is a nice to have because of the show stoppers. I decided to keep it out of this POC.
-
-## Data Solution Automation metadata
-
-[Data Solution Automation (DSA)](https://github.com/data-solution-automation-engine/data-warehouse-automation-metadata-schema) metadata is an open JSON exchange format for connections, data objects, and source-to-target mappings—the *what* of a data solution without locking it to one ETL product or cloud stack. [Roelant Vos](https://roelantvos.com/blog/interface-for-data-warehouse-automation-metadata-released/) has written about the intent behind this kind of portable automation metadata for years.
-
-After more than twenty years in data engineering I have seen frameworks and vendors change constantly, while the underlying transformation logic stays much the same. Describing that logic in a shared, human-readable standard pays off:
-
-1. **Shared vocabulary** — other engineers can read mappings and data objects without learning a project-specific config dialect.
-2. **Longer-lived specifications** — Data solution specification can outlive the life of a data solution implementation because it can be reused in a new platform or tooling.
-3. **Ecosystem and conventions** — Using common standards allows us to collaborate.
-
-However, when working with DSA In this proof of concept, I hit the following issues:
-1. The schema defines data object mappings as one condensed JSON schema, containing data objects and connections. I think it's better to describe those elemental objects separately instead of in a condensed form, so that we don't have any redundancy when, for example, a data object is used in multiple mappings. This is also done when reading this DSA schema by the ADL tool.
-2. I think metadata should be as simple as possible And easy to read and understand. For this reason, I think it's good To define identities as local reference paths instead of hash codes. This way, the identity reveals the name and location of the artifact. This also makes the name attribute redundant.
+**Takeaway:** Treat Cursor skills and rules like other engineering assets—version them, review changes, and reuse them across projects.
 
 ## Project structure
 
