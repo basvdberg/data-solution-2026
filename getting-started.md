@@ -68,6 +68,7 @@ python -m extractor_and_poller.openmeteo.extractor --mapping daily-temperature
   - Release
     - Notes
       - [Release v2026.06.02.1](release/notes/v2026.06.02.1.md)
+      - [Release v2026.06.02.2](release/notes/v2026.06.02.2.md)
     - [Release <version>](release/release-notes-template.md)
   - Setting
   - Template

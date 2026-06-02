@@ -48,7 +48,7 @@ Start-Process powershell -ArgumentList @(
     "-Branch", "main",
     "-TimeoutMinutes", "20",
     "-PollSeconds", "15",
-    "-RequireCiSuccess", "true",
+    "-RequireCiSuccess", "1",
     "-NotifyMode", "ntfy",
     "-NtfyTopic", $ntfyTopic,
     "-TriggerCommand", "`"$trigger`""

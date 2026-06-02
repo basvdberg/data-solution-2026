@@ -2,7 +2,7 @@ param(
     [string]$Branch = "main",
     [int]$TimeoutMinutes = 20,
     [int]$PollSeconds = 15,
-    [bool]$RequireCiSuccess = $true,
+    [string]$RequireCiSuccess = "true",
     [string]$TriggerCommand = "Write-Host 'No trigger command configured. Nothing to run.'",
     [string]$NotifyMode = "ntfy",
     [string]$WebhookUrl = "",
@@ -132,7 +132,9 @@ if (-not (Test-CommandExists "git")) {
     throw "git is required but was not found."
 }
 
-if ($RequireCiSuccess -and -not (Test-CommandExists "gh")) {
+$requireCi = @("1", "true", "yes", "y", "on") -contains $RequireCiSuccess.ToLowerInvariant()
+
+if ($requireCi -and -not (Test-CommandExists "gh")) {
     throw "gh CLI is required when -RequireCiSuccess is enabled."
 }
 
@@ -158,7 +160,7 @@ try {
     }
 
     # Step 2: wait for CI success (optional)
-    if ($RequireCiSuccess) {
+    if ($requireCi) {
         while ((Get-Date) -lt $deadline) {
             $ci = Get-CiState -CommitSha $commitSha -TargetBranch $Branch
             Write-Host $ci.Message

@@ -103,6 +103,7 @@ docker compose up -d
   - Release
     - Notes
       - [Release v2026.06.02.1](notes/v2026.06.02.1.md)
+      - [Release v2026.06.02.2](notes/v2026.06.02.2.md)
     - [Release <version>](release-notes-template.md)
   - Setting
   - Template
