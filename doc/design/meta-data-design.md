@@ -168,7 +168,7 @@ The path IDs in the repo remain the stable names humans use in reviews and logs.
       - Data Object Mapping
     - Design
       - [Architecture](architecture.md)
-      - [CI/CD workflow (local + NAS)](ci-cd.md)
+      - [CI/CD workflow (main only + server pull deploy)](ci-cd.md)
       - [Event-based orchestration plan (single data object)](event-based-orchestration-plan.md)
       - [Meta data design](meta-data-design.md)
   - Extractor_And_Poller
@@ -178,6 +178,10 @@ The path IDs in the repo remain the stable names humans use in reviews and logs.
       - Poller
     - Poller
     - Tests
+  - Release
+    - Notes
+      - [Release v2026.06.02.1](../../release/notes/v2026.06.02.1.md)
+    - [Release <version>](../../release/release-notes-template.md)
   - Setting
   - Template
   - [Getting started](../../getting-started.md)

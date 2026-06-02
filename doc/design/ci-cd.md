@@ -1,4 +1,4 @@
-# CI/CD workflow (local + NAS)
+# CI/CD workflow (main only + server pull deploy)
 
 ## Table of contents
 
@@ -7,20 +7,14 @@
 - [Goal](#goal)
 - [CI/CD model](#cicd-model)
 - [Prerequisites](#prerequisites)
-- [Local development in Cursor](#local-development-in-cursor)
-  - [1) Create a feature branch](#1-create-a-feature-branch)
-  - [2) Develop locally](#2-develop-locally)
-  - [3) Push and open PR](#3-push-and-open-pr)
-- [Test on NAS using Cursor Remote SSH](#test-on-nas-using-cursor-remote-ssh)
-  - [1) Open NAS workspace in Cursor](#1-open-nas-workspace-in-cursor)
-  - [2) Sync branch or release candidate](#2-sync-branch-or-release-candidate)
-  - [3) Run NAS-specific tests](#3-run-nas-specific-tests)
-  - [4) Validate logs and side effects](#4-validate-logs-and-side-effects)
-- [Deploy release to NAS](#deploy-release-to-nas)
-  - [1) Prepare and push release tag from laptop](#1-prepare-and-push-release-tag-from-laptop)
-  - [2) Update NAS clone to the release](#2-update-nas-clone-to-the-release)
-  - [3) Apply release actions](#3-apply-release-actions)
-  - [4) Verify deployment](#4-verify-deployment)
+- [Versioning and release notes](#versioning-and-release-notes)
+  - [Version format](#version-format)
+  - [Release folder](#release-folder)
+  - [Simple release flow on main](#simple-release-flow-on-main)
+- [Deploy model without GitHub to NAS access](#deploy-model-without-github-to-nas-access)
+- [Server-side deploy script](#server-side-deploy-script)
+- [Auto trigger from Cursor on push](#auto-trigger-from-cursor-on-push)
+- [Poller rollout merged into CI/CD](#poller-rollout-merged-into-cicd)
 - [Rollback](#rollback)
 - [Operational notes](#operational-notes)
 <!-- markdown-toc:end -->
@@ -30,138 +24,199 @@
 CI/CD workflow for this repo. Pattern definitions: [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/readme.md#purpose).
 
 - [Separate what and how](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/generic/separate-what-and-how.md) — Git metadata is deployed; runtime code and DAGs implement *how* on NAS.
-- [Simplicity](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/generic/simplicity.md) — manual tag-and-clone deploy before full automation.
+- [Simplicity](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/generic/simplicity.md) — keep one straightforward main-line deployment path.
 
 ## Goal
 
-Use a simple CI/CD loop where development happens locally in Cursor, validation happens both locally and on NAS, releases are deployed to NAS from tagged Git commits.
+Keep CI/CD simple: commit to `main`, run checks in GitHub Actions, then deploy from NAS by pulling from `main`. Track each deploy with a version and release notes.
 
 ## CI/CD model
 
-- **Local machine (Cursor)**: write and review code, run fast unit checks, prepare release.
-- **Git remote**: source of truth for branches, pull requests, and release tags.
-- **NAS (runtime)**: integration testing and deployment target.
+- **Main only**: all development and deployment happens through `main`.
+- **Git remote**: source of truth for commit history, tags, and release notes.
+- **GitHub Actions**: runs checks on each commit to `main`.
+- **NAS (runtime)**: deployment target for Airflow, poller, and extractor runtime.
 
 ## Prerequisites
 
 - NAS has `git`, Python, and runtime dependencies installed.
 - A deployment folder exists on NAS, for example `~/apps/data-solution-2026`.
-- Secrets are stored on NAS in `.env` (or a secret manager), never committed to Git.
-- Cursor Remote SSH is configured for your NAS host.
+- Secrets are stored on NAS in `.env` (or secret manager), never in Git.
+- NAS can pull from Git remote (HTTPS token or SSH deploy key).
+- Airflow/Kafka/Postgres are reachable from NAS runtime.
 
-## Local development in Cursor
+## Versioning and release notes
 
-### 1) Create a feature branch
+### Version format
 
-```bash
-git checkout main
-git pull
-git checkout -b feat/<short-topic>
-```
+Use calendar versioning with an increment for same-day changes:
 
-### 2) Develop locally
+- `vYYYY.MM.DD.N` (example: `v2026.06.02.1`)
 
-- Implement changes in Cursor on your laptop.
-- Keep commits small and focused.
-- Run fast local checks before pushing.
+Rules:
 
-Example:
+- Increment `N` for each additional release on the same day.
+- Create an annotated tag for each deployable release.
+- Keep `release/VERSION` in sync with the latest intended release.
 
-```bash
-python -m pytest -q
-```
+### Release folder
 
-### 3) Push and open PR
+Use files under `release/`:
 
-```bash
-git push -u origin feat/<short-topic>
-```
+- `release/VERSION`: next or current release version.
+- `release/release-notes-template.md`: template for every release note.
+- `release/notes/`: one file per release, for example `v2026.06.02.1.md`.
 
-Create a pull request and wait for CI to pass.
+### Simple release flow on main
 
-## Test on NAS using Cursor Remote SSH
-
-### 1) Open NAS workspace in Cursor
-
-- Connect to NAS using Cursor Remote SSH.
-- Open `~/apps/data-solution-2026` (or your NAS clone path).
-
-### 2) Sync branch or release candidate
-
-```bash
-cd ~/apps/data-solution-2026
-git fetch --all --tags
-git checkout feat/<short-topic>
-git pull
-```
-
-### 3) Run NAS-specific tests
-
-Run integration checks that need NAS services, network, storage, or scheduler behavior.
+1. Pull latest `main`.
+2. Make your changes directly on `main`.
+3. Update `release/VERSION`.
+4. Create `release/notes/<version>.md` from the template.
+5. Commit and push to `main` (this triggers CI checks).
+6. On NAS, run deploy script to pull latest `main`.
+7. If deploy is healthy, create and push annotated tag for traceability.
 
 Example:
 
 ```bash
-python -m pytest -m integration -q
-```
-
-### 4) Validate logs and side effects
-
-- Check service logs.
-- Confirm outputs were written where expected.
-- Validate one end-to-end data flow (extract -> stage -> map).
-
-## Deploy release to NAS
-
-### 1) Prepare and push release tag from laptop
-
-```bash
 git checkout main
 git pull
+# edit files + release/VERSION + release/notes/vYYYY.MM.DD.N.md
+git add .
+git commit -m "release: vYYYY.MM.DD.N"
+git push origin main
 git tag -a vYYYY.MM.DD.N -m "Release vYYYY.MM.DD.N"
-git push origin main --tags
+git push origin --tags
 ```
 
-### 2) Update NAS clone to the release
+## Deploy model without GitHub to NAS access
+
+Because GitHub cannot reach the local/NAS server, deployment is pull-based:
+
+1. Push commit to `main`.
+2. GitHub Actions runs CI checks only.
+3. After CI is green, trigger deploy from NAS (manual command or scheduled job).
+4. NAS updates to latest `origin/main`.
+5. NAS applies runtime actions (install deps, restart services, optional migrations).
+6. NAS runs smoke checks.
+
+GitHub workflow used for checks: `.github/workflows/deploy-main.yml`.
+
+## Server-side deploy script
+
+Run on NAS from `~/apps/data-solution-2026`:
 
 ```bash
+set -e
 cd ~/apps/data-solution-2026
 git fetch --all --tags
-git checkout vYYYY.MM.DD.N
+git checkout main
+git pull origin main
+python -m pip install --upgrade pip
+pip install -e .
+docker compose up -d
+python -m extractor_and_poller.poller --list
 ```
 
-### 3) Apply release actions
+Optional automation on NAS:
 
-- Run required database/schema migration steps.
-- Ensure NAS `.env` has production values.
-- Restart services.
+- Cron every N minutes to run a deploy script after checking CI status manually.
+- Systemd timer for controlled periodic pulls.
+- Manual trigger from Cursor Remote SSH for full control.
 
-If you use Docker Compose:
+## Auto trigger from Cursor on push
+
+You can auto-trigger NAS deployment from this development environment right after each push to `main`.
+
+How it works:
+
+1. `post-push` hook starts a background script.
+2. Script waits until the commit is visible on `origin/main`.
+3. Script waits until GitHub Actions CI is successful for that commit.
+4. Script runs a trigger command (typically SSH to NAS deploy script).
+
+Scripts in this repo:
+
+- `release/scripts/wait-and-trigger-pull.ps1`
+- `release/scripts/post-push-hook.ps1`
+- `release/scripts/install-post-push-hook.ps1`
+- `release/scripts/deploy-on-nas.sh`
+
+Setup:
+
+1. Edit `release/scripts/post-push-hook.ps1` and set your NAS SSH command.
+2. Install the Git hook once from repo root:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\release\scripts\install-post-push-hook.ps1
+```
+
+Notes:
+
+- The CI wait script uses `gh` CLI; run `gh auth login` in this environment.
+- The watcher timeout and polling interval are configurable:
+  - `-TimeoutMinutes` (default `20`)
+  - `-PollSeconds` (default `15`)
+- If CI fails, deployment is aborted automatically.
+- `ntfy` is the default notification channel in the scripts.
+- Default topic: `bas-data-solution-deploy`.
+- Subscribe using app/web/CLI before first run, for example:
 
 ```bash
-docker compose pull
-docker compose up -d
+ntfy sub bas-data-solution-deploy
 ```
 
-### 4) Verify deployment
+- Or in browser:
+  - `https://ntfy.sh/bas-data-solution-deploy`
+- Notification options in `wait-and-trigger-pull.ps1`:
+  - `-NotifyMode ntfy` (default)
+  - `-NotifyMode console`
+  - `-NotifyMode toast` (Windows desktop toast via BurntToast module)
+  - `-NotifyMode webhook` (POST JSON to `-WebhookUrl`, useful for Teams/Slack/ntfy)
+  - `-NotifyMode both` (toast + webhook)
 
-- Confirm all services are healthy.
-- Run one smoke pipeline run.
-- Check logs for startup/runtime errors.
+## Poller rollout merged into CI/CD
+
+Use this sequence after NAS pull deploy is active:
+
+1. Confirm runtime root is `data-solution-2026/` on NAS.
+2. Configure Airflow variables for poller mode:
+   - `poller_mapping_id=daily-temperature`
+   - `poller_data_object_id=source/openmeteo/daily-temperature`
+   - `poller_state_backend=postgres`
+   - `poller_publish=stdout` for first smoke run, then `kafka`
+3. Create DAG `openmeteo_data_object_poller` in paused mode:
+   - `catchup=false`
+   - `max_active_runs=1`
+   - retries/timeouts configured
+4. Run command in DAG task:
+   - `python -m extractor_and_poller.poller --mapping daily-temperature --state-backend postgres --publish kafka`
+5. Trigger manual run and verify logs:
+   - marker compare result (`data_object_change` or `data_object_unchanged`)
+   - state persisted
+   - publish status
+6. Unpause schedule only after successful smoke validation.
 
 ## Rollback
 
-If verification fails, switch to the previous known-good tag and restart services:
+If deployment fails:
+
+1. On NAS, checkout previous known-good tag.
+2. Restart runtime services.
+3. Disable/keep paused new Airflow schedule until validated.
 
 ```bash
+cd ~/apps/data-solution-2026
+git fetch --all --tags
 git checkout <previous-tag>
 docker compose up -d
 ```
 
 ## Operational notes
 
-- Do not edit release code manually on NAS; use Git branches/tags.
-- Keep release notes with migration and restart steps.
+- Keep release notes mandatory for every deploy to `main`.
+- Do not edit release code manually on NAS.
 - Keep tags consistent for traceability.
 - Never expose internal service ports publicly; use VPN or SSH.
 
@@ -187,7 +242,7 @@ docker compose up -d
       - Data Object Mapping
     - Design
       - [Architecture](architecture.md)
-      - [CI/CD workflow (local + NAS)](ci-cd.md)
+      - [CI/CD workflow (main only + server pull deploy)](ci-cd.md)
       - [Event-based orchestration plan (single data object)](event-based-orchestration-plan.md)
       - [Meta data design](meta-data-design.md)
   - Extractor_And_Poller
@@ -197,6 +252,10 @@ docker compose up -d
       - Poller
     - Poller
     - Tests
+  - Release
+    - Notes
+      - [Release v2026.06.02.1](../../release/notes/v2026.06.02.1.md)
+    - [Release <version>](../../release/release-notes-template.md)
   - Setting
   - Template
   - [Getting started](../../getting-started.md)

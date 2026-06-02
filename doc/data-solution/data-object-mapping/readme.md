@@ -139,7 +139,7 @@ Git (mapping + data objects)
       - Data Object Mapping
     - Design
       - [Architecture](../../design/architecture.md)
-      - [CI/CD workflow (local + NAS)](../../design/ci-cd.md)
+      - [CI/CD workflow (main only + server pull deploy)](../../design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](../../design/event-based-orchestration-plan.md)
       - [Meta data design](../../design/meta-data-design.md)
   - Extractor_And_Poller
@@ -149,6 +149,10 @@ Git (mapping + data objects)
       - Poller
     - Poller
     - Tests
+  - Release
+    - Notes
+      - [Release v2026.06.02.1](../../../release/notes/v2026.06.02.1.md)
+    - [Release <version>](../../../release/release-notes-template.md)
   - Setting
   - Template
   - [Getting started](../../../getting-started.md)

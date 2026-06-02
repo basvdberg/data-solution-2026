@@ -1,39 +1,72 @@
-# Extractor and poller
+# Release <version>
 
 ## Table of contents
 
 <!-- markdown-toc:start -->
-- [Overview](#overview)
+- [Metadata](#metadata)
+- [Scope](#scope)
+- [Changes](#changes)
+- [Poller and Airflow impact](#poller-and-airflow-impact)
+- [Deployment steps](#deployment-steps)
+- [Validation](#validation)
+- [Rollback plan](#rollback-plan)
+- [Notes](#notes)
 <!-- markdown-toc:end -->
 
-## Overview
+## Metadata
 
-Open-Meteo extractor and poller driven by `data-object-mapping/` JSON.
+- Version: `<version>`
+- Date: `<YYYY-MM-DD>`
+- Branch: `main`
+- Commit: `<sha>`
 
-Run from the solution root (`data-solution-2026/`):
+## Scope
 
-```powershell
-# List Enabled data object poller
-python -m extractor_and_poller.poller --list
+- Brief description of what is included in this release.
 
-# Poll source/openmeteo/daily-temperature
-python -m extractor_and_poller.poller --mapping daily-temperature
+## Changes
 
-# Run extractor for OpenMeteo data object
-python -m extractor_and_poller.openmeteo.extractor --mapping daily-temperature
+- Added:
+- Changed:
+- Fixed:
+
+## Poller and Airflow impact
+
+- Poller mapping:
+- Airflow DAG:
+- Runtime variables changed:
+
+## Deployment steps
+
+- Auto deployment trigger: push to `main`
+- NAS actions required after deploy:
+  - [ ] Dependencies updated
+  - [ ] Services restarted
+  - [ ] Airflow DAGs available
+
+## Validation
+
+- [ ] Unit tests passed
+- [ ] Integration checks passed
+- [ ] Airflow poller manual run passed
+- [ ] Kafka publish verified (or stdout in smoke mode)
+- [ ] Postgres state persistence verified
+
+## Rollback plan
+
+- Previous stable tag: `<tag>`
+- Rollback command:
+
+```bash
+cd ~/apps/data-solution-2026
+git fetch --all --tags
+git checkout <tag>
+docker compose up -d
 ```
 
-Event-oriented poller options:
+## Notes
 
-```powershell
-# Persist state in Postgres and publish envelopes to Kafka
-python -m extractor_and_poller.poller --mapping daily-temperature --state-backend postgres --publish kafka
-
-# Local smoke run: publish event payloads to stdout
-python -m extractor_and_poller.poller --mapping daily-temperature --publish stdout
-```
-
-The `openmeteo/` subfolder holds the `extractor/` and `poller/` packages. Shared helpers live under `common/`; the generic poller CLI is in `poller/`.
+- Additional operational notes.
 
 ## Project structure
 
@@ -69,8 +102,8 @@ The `openmeteo/` subfolder holds the `extractor/` and `poller/` packages. Shared
     - Tests
   - Release
     - Notes
-      - [Release v2026.06.02.1](../release/notes/v2026.06.02.1.md)
-    - [Release <version>](../release/release-notes-template.md)
+      - [Release v2026.06.02.1](notes/v2026.06.02.1.md)
+    - [Release <version>](release-notes-template.md)
   - Setting
   - Template
   - [Getting started](../getting-started.md)
