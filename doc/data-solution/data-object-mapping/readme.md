@@ -121,6 +121,9 @@ Git (mapping + data objects)
 
 <!-- markdown-project-structure:start -->
 - [Data Solution 2026](../../../readme.md)
+  - Code
+    - Airflow
+      - Dags
   - Connection
   - Data
     - Staging
@@ -142,6 +145,7 @@ Git (mapping + data objects)
       - [CI/CD workflow (main only + server pull deploy)](../../design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](../../design/event-based-orchestration-plan.md)
       - [Meta data design](../../design/meta-data-design.md)
+    - [Implementation plan (Open-Meteo → event orchestration)](../../implementation-plan.md)
   - Extractor_And_Poller
     - Common
     - Openmeteo
@@ -149,7 +153,14 @@ Git (mapping + data objects)
       - Poller
     - Poller
     - Tests
+  - Infra
+    - Airflow
+      - Dags
+    - Kafka
   - Release
+    - Details
+      - V2026.06.02.1
+      - V2026.06.02.2
     - Notes
       - [Release v2026.06.02.1](../../../release/notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../../../release/notes/v2026.06.02.2.md)

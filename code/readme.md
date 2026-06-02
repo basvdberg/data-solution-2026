@@ -1,41 +1,49 @@
-# Extractor and poller
+# Code (generated runtime)
 
 ## Table of contents
 
 <!-- markdown-toc:start -->
-- [Overview](#overview)
+- [Purpose](#purpose)
+- [Layout](#layout)
+- [Relationship to metadata](#relationship-to-metadata)
+- [Airflow](#airflow)
 <!-- markdown-toc:end -->
 
-## Overview
+## Purpose
 
-Open-Meteo extractor and poller driven by `data-object-mapping/` JSON.
+This folder holds **generated and hand-maintained runtime code** that implements *how* the data solution runs on BasNAS: orchestration (Airflow), future event controllers, and similar artefacts.
 
-Run from the solution root (`data-solution-2026/`):
+It is separate from:
 
-```powershell
-# List Enabled data object poller
-python -m extractor_and_poller.poller --list
+| Location | Role |
+|----------|------|
+| `data-object-mapping/`, `data-object/`, `connection/` | DSA metadata — *what* should happen |
+| `extractor_and_poller/` | Shared Python libraries invoked by DAG tasks |
+| `output/` | ADL-generated SQL |
+| `infra/` | Docker Compose and deploy scripts (no application DAG source) |
 
-# Poll source/openmeteo/daily-temperature
-python -m extractor_and_poller.poller --mapping daily-temperature
+## Layout
 
-# Run extractor for OpenMeteo data object
-python -m extractor_and_poller.openmeteo.extractor --mapping daily-temperature
+```text
+code/
+  readme.md
+  airflow/
+    readme.md
+    dags/
+      openmeteo_data_object_poller.py
 ```
 
-Event-oriented poller options:
+Add new generated components under `code/` (for example `code/event-controller/` when the Kafka consumer is implemented).
 
-```powershell
-# Persist state in Postgres and publish envelopes to Kafka
-python -m extractor_and_poller.poller --mapping daily-temperature --state-backend postgres --publish kafka
+## Relationship to metadata
 
-# Local smoke run: publish event payloads to stdout
-python -m extractor_and_poller.poller --mapping daily-temperature --publish stdout
-```
+Configuration stays in Git as JSON under `data-object-mapping/`. DAGs and services in `code/` call into `extractor_and_poller` using mapping and data-object ids from that metadata. See [Separate what and how](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/generic/separate-what-and-how.md).
 
-The `openmeteo/` subfolder holds the `extractor/` and `poller/` packages. Shared helpers live under `common/`; the generic poller CLI is in `poller/`.
+## Airflow
 
-Airflow DAGs that call these modules live under [`code/airflow/`](../code/airflow/readme.md).
+DAGs live in [airflow/dags/](airflow/dags/). The Airflow container mounts `${DATA_SOLUTION_ROOT}/code/airflow/dags` (see [infra/airflow/docker-compose.standalone.yaml](../infra/airflow/docker-compose.standalone.yaml)).
+
+Rollout steps: [Implementation plan](../doc/implementation-plan.md).
 
 ## Project structure
 

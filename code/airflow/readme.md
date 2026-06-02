@@ -1,57 +1,47 @@
-# Release v2026.06.02.2
+# Airflow (generated)
 
 ## Table of contents
 
 <!-- markdown-toc:start -->
-- [Metadata](#metadata)
-- [Scope](#scope)
-- [Changes](#changes)
-- [Validation](#validation)
-- [Rollback plan](#rollback-plan)
-- [Notes](#notes)
+- [DAGs](#dags)
+- [Configuration](#configuration)
+- [Poller DAG](#poller-dag)
 <!-- markdown-toc:end -->
 
-## Metadata
+## DAGs
 
-- Version: `v2026.06.02.2`
-- Date: `2026-06-02`
-- Branch: `main`
-- Commit: `<fill-after-commit>`
+Python files under [dags/](dags/) are loaded by the Airflow scheduler from `/opt/airflow/dags` in the container.
 
-## Scope
+## Configuration
 
-- Fix CI workflow install step so tests run reliably on GitHub Actions.
-- Harden post-push CI gate argument parsing for Windows PowerShell invocation.
-- Keep deploy trigger behavior unchanged: only trigger NAS deploy after CI success.
+Set Airflow Variables (Admin → Variables) to override defaults used by the poller DAG:
 
-## Changes
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `poller_data_object_id` | `source/openmeteo/daily-temperature` | `--data-object` for the poller CLI |
+| `poller_state_backend` | `file` | `file` or `postgres` |
+| `poller_publish` | `none` | `none`, `stdout`, or `kafka` |
 
-- Changed:
-  - `.github/workflows/deploy-main.yml` install step now installs test dependencies directly.
-  - `release/scripts/wait-and-trigger-pull.ps1` now parses `RequireCiSuccess` safely from string input.
-  - `release/scripts/post-push-hook.ps1` passes `RequireCiSuccess` as numeric truthy value.
+Postgres and Kafka connection settings use environment variables consumed by `extractor_and_poller` (`POSTGRES_HOST`, `KAFKA_HOST`, etc.). See [Implementation plan](../../doc/implementation-plan.md).
 
-## Validation
+## Poller DAG
 
-- [x] Local test run succeeded (`pytest`)
-- [x] Local watcher script validates CI status and aborts on failure
-- [ ] GitHub Actions run on this release commit succeeded
-- [ ] NAS trigger validated after CI success
+| Property | Value |
+|----------|--------|
+| File | `dags/openmeteo_data_object_poller.py` |
+| `dag_id` | `openmeteo_data_object_poller` |
+| Schedule | `@hourly` (paused on creation until smoke passes) |
 
-## Rollback plan
-
-- Previous stable tag: `v2026.06.02.1`
+Task command (equivalent):
 
 ```bash
-cd ~/apps/data-solution-2026
-git fetch --all --tags
-git checkout v2026.06.02.1
-docker compose up -d
+python -m extractor_and_poller.poller \
+  --data-object source/openmeteo/daily-temperature \
+  --state-backend file \
+  --publish none
 ```
 
-## Notes
-
-- After push, update `Commit` and validation checkboxes with actual CI result.
+Run from repo root inside the container: working directory `/opt/data-solution`, `PYTHONPATH=/opt/data-solution`.
 
 ## Project structure
 
@@ -98,9 +88,9 @@ docker compose up -d
       - V2026.06.02.1
       - V2026.06.02.2
     - Notes
-      - [Release v2026.06.02.1](v2026.06.02.1.md)
-      - [Release v2026.06.02.2](v2026.06.02.2.md)
-    - [Release <version>](../release-notes-template.md)
+      - [Release v2026.06.02.1](../../release/notes/v2026.06.02.1.md)
+      - [Release v2026.06.02.2](../../release/notes/v2026.06.02.2.md)
+    - [Release <version>](../../release/release-notes-template.md)
   - Setting
   - Template
   - [Getting started](../../getting-started.md)

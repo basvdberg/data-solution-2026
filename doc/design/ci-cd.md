@@ -23,7 +23,7 @@
 
 CI/CD workflow for this repo. Pattern definitions: [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/readme.md#purpose).
 
-- [Separate what and how](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/generic/separate-what-and-how.md) — Git metadata is deployed; runtime code and DAGs implement *how* on NAS.
+- [Separate what and how](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/generic/separate-what-and-how.md) — Git metadata is deployed; runtime code under `code/` and libraries in `extractor_and_poller/` implement *how* on NAS.
 - [Simplicity](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/generic/simplicity.md) — keep one straightforward main-line deployment path.
 
 ## Goal
@@ -44,6 +44,7 @@ Keep CI/CD simple: commit to `main`, run checks in GitHub Actions, then deploy f
 - Secrets are stored on NAS in `.env` (or secret manager), never in Git.
 - NAS can pull from Git remote (HTTPS token or SSH deploy key).
 - Airflow/Kafka/Postgres are reachable from NAS runtime.
+- Docker stacks are defined under `infra/` ([infra/readme.md](../../infra/readme.md)). Sync to legacy NAS paths with `infra/scripts/deploy-infra-on-nas.sh` or `RUN_INFRA_SYNC=1` on [deploy-on-nas.sh](../../release/scripts/deploy-on-nas.sh).
 
 ## Versioning and release notes
 
@@ -98,14 +99,14 @@ Because GitHub cannot reach the local/NAS server, deployment is pull-based:
 2. GitHub Actions runs CI checks only.
 3. After CI is green, trigger deploy from NAS (manual command or scheduled job).
 4. NAS updates to latest `origin/main`.
-5. NAS applies runtime actions (install deps, restart services, optional migrations).
+5. NAS applies app-level runtime actions (for example Airflow DAG/code refresh and optional migrations).
 6. NAS runs smoke checks.
 
 GitHub workflow used for checks: `.github/workflows/deploy-main.yml`.
 
 ## Server-side deploy script
 
-Run on NAS from `~/apps/data-solution-2026`:
+Run on NAS from `~/apps/data-solution-2026` (app-only, no Docker required):
 
 ```bash
 set -e
@@ -113,10 +114,8 @@ cd ~/apps/data-solution-2026
 git fetch --all --tags
 git checkout main
 git pull origin main
-python -m pip install --upgrade pip
-pip install -e .
-docker compose up -d
-python -m extractor_and_poller.poller --list
+# Optional poller smoke check only if Python is available:
+# RUN_POLLER_CHECK=1 bash release/scripts/deploy-on-nas.sh
 ```
 
 Optional automation on NAS:
@@ -186,7 +185,7 @@ Use this sequence after NAS pull deploy is active:
    - `poller_data_object_id=source/openmeteo/daily-temperature`
    - `poller_state_backend=postgres`
    - `poller_publish=stdout` for first smoke run, then `kafka`
-3. Create DAG `openmeteo_data_object_poller` in paused mode:
+3. Deploy DAG `openmeteo_data_object_poller` from `code/airflow/dags/` (paused on creation):
    - `catchup=false`
    - `max_active_runs=1`
    - retries/timeouts configured
@@ -203,14 +202,13 @@ Use this sequence after NAS pull deploy is active:
 If deployment fails:
 
 1. On NAS, checkout previous known-good tag.
-2. Restart runtime services.
+2. Reload/restart only the app services that consume repo code (if needed).
 3. Disable/keep paused new Airflow schedule until validated.
 
 ```bash
 cd ~/apps/data-solution-2026
 git fetch --all --tags
 git checkout <previous-tag>
-docker compose up -d
 ```
 
 ## Operational notes
@@ -224,6 +222,9 @@ docker compose up -d
 
 <!-- markdown-project-structure:start -->
 - [Data Solution 2026](../../readme.md)
+  - Code
+    - Airflow
+      - Dags
   - Connection
   - Data
     - Staging
@@ -245,6 +246,7 @@ docker compose up -d
       - [CI/CD workflow (main only + server pull deploy)](ci-cd.md)
       - [Event-based orchestration plan (single data object)](event-based-orchestration-plan.md)
       - [Meta data design](meta-data-design.md)
+    - [Implementation plan (Open-Meteo → event orchestration)](../implementation-plan.md)
   - Extractor_And_Poller
     - Common
     - Openmeteo
@@ -252,7 +254,14 @@ docker compose up -d
       - Poller
     - Poller
     - Tests
+  - Infra
+    - Airflow
+      - Dags
+    - Kafka
   - Release
+    - Details
+      - V2026.06.02.1
+      - V2026.06.02.2
     - Notes
       - [Release v2026.06.02.1](../../release/notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../../release/notes/v2026.06.02.2.md)

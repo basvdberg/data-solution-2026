@@ -33,7 +33,7 @@
 ## Poller and Airflow impact
 
 - Poller mapping:
-- Airflow DAG:
+- Airflow DAG (`code/airflow/dags/`):
 - Runtime variables changed:
 
 ## Deployment steps
@@ -72,6 +72,9 @@ docker compose up -d
 
 <!-- markdown-project-structure:start -->
 - [Data Solution 2026](../readme.md)
+  - Code
+    - Airflow
+      - Dags
   - Connection
   - Data
     - Staging
@@ -93,6 +96,7 @@ docker compose up -d
       - [CI/CD workflow (main only + server pull deploy)](../doc/design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](../doc/design/event-based-orchestration-plan.md)
       - [Meta data design](../doc/design/meta-data-design.md)
+    - [Implementation plan (Open-Meteo → event orchestration)](../doc/implementation-plan.md)
   - Extractor_And_Poller
     - Common
     - Openmeteo
@@ -100,7 +104,14 @@ docker compose up -d
       - Poller
     - Poller
     - Tests
+  - Infra
+    - Airflow
+      - Dags
+    - Kafka
   - Release
+    - Details
+      - V2026.06.02.1
+      - V2026.06.02.2
     - Notes
       - [Release v2026.06.02.1](notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](notes/v2026.06.02.2.md)

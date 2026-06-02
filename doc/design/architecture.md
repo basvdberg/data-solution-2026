@@ -16,12 +16,15 @@ The flow, left to right:
 2. **Airflow + Kafka run ingestion.** A scheduled **poller** DAG probes the source and publishes only to the event bus: `data_object_change` when the marker moved, `data_object_unchanged` when it did not. The event controller reacts to **change** events and enqueues **extract** tasks; the extractor writes Parquet under `data/staging/`. The poller never runs the extractor. PostgreSQL stores baselines and the event log - configuration stays in Git.
 3. **ADL generates staging artefacts.** Reading the same DSA metadata, ADL renders the Handlebars templates in `template/` into DDL and load SQL under `output/`, which load the Parquet landing files into the **100 Landing Area**.
 
-This solution follows the [separate what and how](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/separate-what-and-how.md) design pattern: DSA metadata files specify *what* must happen, while the Airflow DAGs, extractor, poller, and ADL-generated load procedures specify *how* it is executed.
+This solution follows the [separate what and how](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/separate-what-and-how.md) design pattern: DSA metadata files specify *what* must happen, while Airflow DAGs under `code/`, the extractor and poller in `extractor_and_poller/`, and ADL-generated load procedures under `output/` specify *how* it is executed.
 
 ## Project structure
 
 <!-- markdown-project-structure:start -->
 - [Data Solution 2026](../../readme.md)
+  - Code
+    - Airflow
+      - Dags
   - Connection
   - Data
     - Staging
@@ -43,6 +46,7 @@ This solution follows the [separate what and how](https://github.com/basvdberg/d
       - [CI/CD workflow (main only + server pull deploy)](ci-cd.md)
       - [Event-based orchestration plan (single data object)](event-based-orchestration-plan.md)
       - [Meta data design](meta-data-design.md)
+    - [Implementation plan (Open-Meteo → event orchestration)](../implementation-plan.md)
   - Extractor_And_Poller
     - Common
     - Openmeteo
@@ -50,7 +54,14 @@ This solution follows the [separate what and how](https://github.com/basvdberg/d
       - Poller
     - Poller
     - Tests
+  - Infra
+    - Airflow
+      - Dags
+    - Kafka
   - Release
+    - Details
+      - V2026.06.02.1
+      - V2026.06.02.2
     - Notes
       - [Release v2026.06.02.1](../../release/notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../../release/notes/v2026.06.02.2.md)

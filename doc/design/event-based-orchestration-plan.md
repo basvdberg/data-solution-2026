@@ -119,7 +119,7 @@ Acceptance:
 
 Deliverables:
 
-- Create poller DAG scheduled at fixed cadence (for example every hour).
+- Poller DAG in `code/airflow/dags/` (for example `openmeteo_data_object_poller.py`), scheduled at fixed cadence (for example every hour).
 - Task sequence:
   1) load mapping config,
   2) probe and compare,
@@ -266,6 +266,9 @@ Runtime rule:
 
 <!-- markdown-project-structure:start -->
 - [Data Solution 2026](../../readme.md)
+  - Code
+    - Airflow
+      - Dags
   - Connection
   - Data
     - Staging
@@ -287,6 +290,7 @@ Runtime rule:
       - [CI/CD workflow (main only + server pull deploy)](ci-cd.md)
       - [Event-based orchestration plan (single data object)](event-based-orchestration-plan.md)
       - [Meta data design](meta-data-design.md)
+    - [Implementation plan (Open-Meteo → event orchestration)](../implementation-plan.md)
   - Extractor_And_Poller
     - Common
     - Openmeteo
@@ -294,7 +298,14 @@ Runtime rule:
       - Poller
     - Poller
     - Tests
+  - Infra
+    - Airflow
+      - Dags
+    - Kafka
   - Release
+    - Details
+      - V2026.06.02.1
+      - V2026.06.02.2
     - Notes
       - [Release v2026.06.02.1](../../release/notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../../release/notes/v2026.06.02.2.md)

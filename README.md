@@ -26,8 +26,8 @@ A **staging layer** for daily mean temperature across the Netherlands.
 |--------|--------|
 | Source | [Open-Meteo](https://open-meteo.com/) — public API, no key, continuously updated models |
 | Metadata | [DSA](https://github.com/data-solution-automation-engine/data-warehouse-automation-metadata-schema) connections, data objects, and mappings |
-| Extraction | GenAI-generated Python poller and extractor |
-| Orchestration | Apache Airflow and Apache Kafka (hosted on local NAS for this PoC) |
+| Extraction | GenAI-generated Python poller and extractor (`extractor_and_poller/`) |
+| Orchestration | Apache Airflow and Apache Kafka (`code/` DAGs; hosted on local NAS for this PoC) |
 
 ## 📈 Progress
 
@@ -51,9 +51,12 @@ A **staging layer** for daily mean temperature across the Netherlands.
 | Topic | Document |
 |-------|----------|
 | Run locally | [Getting started](getting-started.md) |
+| Generated runtime (DAGs) | [code/](code/readme.md) |
+| Docker (Airflow, Kafka) | [Infrastructure](infra/readme.md) |
 | Architecture and flow | [Architecture](doc/design/architecture.md) |
 | DSA layout in Git | [Meta data design](doc/design/meta-data-design.md) |
 | Event orchestration | [Event-based orchestration plan](doc/design/event-based-orchestration-plan.md) |
+| Implementation checklist | [Implementation plan](doc/implementation-plan.md) |
 | Observations | [Lessons learned](lessons-learned.md) |
 
 ## Design patterns changed
@@ -89,6 +92,9 @@ Since the [May 19 LinkedIn post](https://github.com/basvdberg/data-engineering-2
 
 <!-- markdown-project-structure:start -->
 - [Data Solution 2026](readme.md)
+  - Code
+    - Airflow
+      - Dags
   - Connection
   - Data
     - Staging
@@ -110,6 +116,7 @@ Since the [May 19 LinkedIn post](https://github.com/basvdberg/data-engineering-2
       - [CI/CD workflow (main only + server pull deploy)](doc/design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](doc/design/event-based-orchestration-plan.md)
       - [Meta data design](doc/design/meta-data-design.md)
+    - [Implementation plan (Open-Meteo → event orchestration)](doc/implementation-plan.md)
   - Extractor_And_Poller
     - Common
     - Openmeteo
@@ -117,7 +124,14 @@ Since the [May 19 LinkedIn post](https://github.com/basvdberg/data-engineering-2
       - Poller
     - Poller
     - Tests
+  - Infra
+    - Airflow
+      - Dags
+    - Kafka
   - Release
+    - Details
+      - V2026.06.02.1
+      - V2026.06.02.2
     - Notes
       - [Release v2026.06.02.1](release/notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](release/notes/v2026.06.02.2.md)

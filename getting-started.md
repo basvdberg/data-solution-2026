@@ -5,6 +5,7 @@
 <!-- markdown-toc:start -->
 - [Prerequisites](#prerequisites)
 - [Quick start](#quick-start)
+- [Infrastructure (Docker)](#infrastructure-docker)
 - [Run key components](#run-key-components)
 <!-- markdown-toc:end -->
 
@@ -19,6 +20,12 @@
 ```powershell
 cd "c:\Dev2\Data Engineering 2.0\data-solution-2026"
 ```
+
+## Infrastructure (Docker)
+
+Airflow and Kafka Compose files for BasNAS: [infra/readme.md](infra/readme.md).
+
+Airflow DAGs (generated orchestration): [code/airflow/readme.md](code/airflow/readme.md).
 
 ## Run key components
 
@@ -37,6 +44,9 @@ python -m extractor_and_poller.openmeteo.extractor --mapping daily-temperature
 
 <!-- markdown-project-structure:start -->
 - [Data Solution 2026](readme.md)
+  - Code
+    - Airflow
+      - Dags
   - Connection
   - Data
     - Staging
@@ -58,6 +68,7 @@ python -m extractor_and_poller.openmeteo.extractor --mapping daily-temperature
       - [CI/CD workflow (main only + server pull deploy)](doc/design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](doc/design/event-based-orchestration-plan.md)
       - [Meta data design](doc/design/meta-data-design.md)
+    - [Implementation plan (Open-Meteo → event orchestration)](doc/implementation-plan.md)
   - Extractor_And_Poller
     - Common
     - Openmeteo
@@ -65,7 +76,14 @@ python -m extractor_and_poller.openmeteo.extractor --mapping daily-temperature
       - Poller
     - Poller
     - Tests
+  - Infra
+    - Airflow
+      - Dags
+    - Kafka
   - Release
+    - Details
+      - V2026.06.02.1
+      - V2026.06.02.2
     - Notes
       - [Release v2026.06.02.1](release/notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](release/notes/v2026.06.02.2.md)

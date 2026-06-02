@@ -10,12 +10,12 @@ if (-not (Test-Path $hooksDir)) {
 }
 
 $hookContent = @"
-#!/usr/bin/env pwsh
-`$ErrorActionPreference = 'Stop'
-pwsh -NoProfile -ExecutionPolicy Bypass -File "$repoRoot/release/scripts/post-commit-hook.ps1"
+#!/usr/bin/env bash
+set -euo pipefail
+powershell -NoProfile -ExecutionPolicy Bypass -File "$repoRoot/release/scripts/post-commit-hook.ps1"
 "@
 
 Set-Content -Path $hookPath -Value $hookContent -Encoding UTF8
 
 Write-Host "Installed post-commit hook at $hookPath"
-Write-Host "Note: update NAS host/user in release/scripts/post-commit-hook.ps1"
+Write-Host "On each commit it updates release/details for the active release version."

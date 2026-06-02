@@ -1,13 +1,36 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd ~/apps/data-solution-2026
+# App-only deployment defaults (no Docker requirement):
+# - Set APP_ROOT if your clone is not under ~/apps/data-solution-2026
+# - Set RUN_POLLER_CHECK=1 to run optional Python poller smoke check
+# - Set RUN_INFRA_SYNC=1 to sync infra/ to ~/apache-airflow and ~/kafka
+APP_ROOT="${APP_ROOT:-$HOME/apps/data-solution-2026}"
+RUN_POLLER_CHECK="${RUN_POLLER_CHECK:-0}"
+RUN_INFRA_SYNC="${RUN_INFRA_SYNC:-0}"
+
+cd "$APP_ROOT"
 git fetch --all --tags
 git checkout main
 git pull origin main
-python -m pip install --upgrade pip
-pip install -e .
-docker compose up -d
-python -m extractor_and_poller.poller --list
+
+echo "App-only deploy completed: repo updated to latest main."
+
+if [ "$RUN_INFRA_SYNC" = "1" ]; then
+  bash "${APP_ROOT}/infra/scripts/deploy-infra-on-nas.sh"
+fi
+
+if [ "$RUN_POLLER_CHECK" = "1" ]; then
+  if command -v python >/dev/null 2>&1; then
+    PYTHON_BIN="python"
+  elif command -v python3 >/dev/null 2>&1; then
+    PYTHON_BIN="python3"
+  else
+    echo "WARN: python/python3 not found; skipping poller smoke check."
+    echo "NAS deploy completed."
+    exit 0
+  fi
+  "$PYTHON_BIN" -m extractor_and_poller.poller --list
+fi
 
 echo "NAS deploy completed."

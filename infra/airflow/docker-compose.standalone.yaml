@@ -1,0 +1,34 @@
+# Airflow standalone for data-solution-2026 (BasNAS PoC).
+# Usage: docker compose -f docker-compose.standalone.yaml up -d
+
+services:
+  airflow:
+    image: apache/airflow:3.2.0
+    container_name: airflow-standalone
+    command: standalone
+    env_file:
+      - .env
+    ports:
+      - "${AIRFLOW_HOST_PORT:-8081}:8080"
+    volumes:
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ${DATA_SOLUTION_ROOT:-../../}:/opt/data-solution:ro
+      - ${DATA_SOLUTION_ROOT:-../../}/code/airflow/dags:/opt/airflow/dags:ro
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "true"
+      PYTHONPATH: /opt/data-solution
+      _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-requests>=2.32,<3 pandas>=2.2,<3 pyarrow>=16 jsonschema>=4 kafka-python}
+    restart: unless-stopped
+    networks:
+      - default
+      # Uncomment after infra/kafka is running (external network kafka_default):
+      # - kafka
+
+networks:
+  default:
+    name: apache-airflow_default
+  # kafka:
+  #   external: true
+  #   name: kafka_default

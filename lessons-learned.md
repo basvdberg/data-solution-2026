@@ -86,6 +86,9 @@ I bought a very good microphone and used Wispr Flow to translate my voice to tex
 
 <!-- markdown-project-structure:start -->
 - [Data Solution 2026](readme.md)
+  - Code
+    - Airflow
+      - Dags
   - Connection
   - Data
     - Staging
@@ -107,6 +110,7 @@ I bought a very good microphone and used Wispr Flow to translate my voice to tex
       - [CI/CD workflow (main only + server pull deploy)](doc/design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](doc/design/event-based-orchestration-plan.md)
       - [Meta data design](doc/design/meta-data-design.md)
+    - [Implementation plan (Open-Meteo → event orchestration)](doc/implementation-plan.md)
   - Extractor_And_Poller
     - Common
     - Openmeteo
@@ -114,7 +118,14 @@ I bought a very good microphone and used Wispr Flow to translate my voice to tex
       - Poller
     - Poller
     - Tests
+  - Infra
+    - Airflow
+      - Dags
+    - Kafka
   - Release
+    - Details
+      - V2026.06.02.1
+      - V2026.06.02.2
     - Notes
       - [Release v2026.06.02.1](release/notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](release/notes/v2026.06.02.2.md)
