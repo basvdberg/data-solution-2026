@@ -6,7 +6,14 @@ services:
     image: apache/airflow:3.2.0
     container_name: airflow-standalone
     hostname: airflow-standalone
-    command: standalone
+    # Airflow 3 Simple Auth Manager: fixed admin password from .env (not random per recreate)
+    entrypoint: ["/bin/bash", "-ec"]
+    command:
+      - |
+        mkdir -p /opt/airflow/config
+        : "$${AIRFLOW_ADMIN_PASSWORD:?Set AIRFLOW_ADMIN_PASSWORD in .env}"
+        python3 -c "import json, os; json.dump({'admin': os.environ['AIRFLOW_ADMIN_PASSWORD']}, open('/opt/airflow/config/simple_auth_manager_passwords.json', 'w'))"
+        exec /entrypoint standalone
     # Match host volume owner (AIRFLOW_UID in .env, typically id -u on NAS/Linux)
     user: "${AIRFLOW_UID:-50000}:0"
     env_file:
@@ -19,6 +26,8 @@ services:
       - ${DATA_SOLUTION_ROOT:-../../}:/opt/data-solution:ro
       - ${DATA_SOLUTION_ROOT:-../../}/code/airflow/dags:/opt/airflow/dags:ro
     environment:
+      AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: "admin:admin"
+      AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_PASSWORDS_FILE: "/opt/airflow/config/simple_auth_manager_passwords.json"
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       # Docker/QNAP often yields empty getfqdn(); without a hostname the UI builds http://:8793/log/...
       AIRFLOW__CORE__HOSTNAME_CALLABLE: airflow.utils.net.get_host_ip_address
