@@ -5,5 +5,10 @@
 NAS_REMOTE_PATH="${HOME}/.local/bin:/opt/bin:/opt/sbin:/usr/bin:/bin:/usr/sbin:/sbin"
 export PATH="${NAS_REMOTE_PATH}${PATH:+:${PATH}}"
 
+# QNAP QGit (HTTPS remotes need git-remote-https; prefer SSH origin on NAS)
+if [ -d /opt/QGit/libexec/git-core ]; then
+  export PATH="${PATH}:/opt/QGit/libexec/git-core"
+fi
+
 # Container Station / Entware (deploy-infra-on-nas.sh also extends PATH)
 export PATH="${PATH}:/share/CACHEDEV1_DATA/.qpkg/container-station/bin:/share/CACHEDEV1_DATA/.qpkg/Entware/bin"

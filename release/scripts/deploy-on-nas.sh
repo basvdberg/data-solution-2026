@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+APP_ROOT="${APP_ROOT:-$HOME/apps/data-solution-2026}"
+# Non-interactive SSH uses a minimal PATH; load git wrapper and tooling paths.
+# shellcheck source=../../infra/scripts/nas-remote-env.sh
+source "${APP_ROOT}/infra/scripts/nas-remote-env.sh"
+
 # App-only deployment defaults (no Docker requirement):
 # - Set APP_ROOT if your clone is not under ~/apps/data-solution-2026
 # - Set RUN_POLLER_CHECK=1 to run optional Python poller smoke check
 # - Set RUN_INFRA_SYNC=1 to sync infra/ to ~/apache-airflow and ~/kafka
-APP_ROOT="${APP_ROOT:-$HOME/apps/data-solution-2026}"
 RUN_POLLER_CHECK="${RUN_POLLER_CHECK:-0}"
 RUN_INFRA_SYNC="${RUN_INFRA_SYNC:-0}"
 

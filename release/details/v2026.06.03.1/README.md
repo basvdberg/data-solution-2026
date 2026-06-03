@@ -6,40 +6,26 @@
 - [Linked files](#linked-files)
 <!-- markdown-toc:end -->
 
-## Table of contents
-
-
-﻿## Table of contents
-
-
-﻿## Table of contents
-
-
-﻿# Release v2026.06.02.2 - Details
+﻿# Release v2026.06.03.1 - Details
 
 ## Release metadata
 
-- Version: `v2026.06.02.2`
-- Development start: `2026-06-02T15:37:35+02:00`
-- Development end: `2026-06-03T10:18:07+02:00`
+
+- Development end: `2026-06-03T11:27:02+02:00`
+- Development start: `2026-06-03T11:27:02+02:00`
+- Version: `v2026.06.03.1`
 - Release branch: `main`
-- Release commit: `233f2ad05dc62a7e15f3aa5e3ea6070223380e56`
-- Published release URL: <https://github.com/basvdberg/data-solution-2026/releases/tag/v2026.06.02.2>
+- Release commit: `ec50be7bf0d821e82214dd93f4bf65c2d54cb808`
 
 ## Sequential summary of applied changes
 
-1. Tested the new CI/CD setup and inspected failing GitHub Actions run.
-2. Identified root cause in CI dependency installation (`pip install -e .`) due to multi top-level package discovery.
-3. Updated workflow install step to explicit test dependencies (`pytest`, `requests`).
-4. Fixed post-push script parameter handling for `RequireCiSuccess` across shell invocations.
-5. Re-tested local workflow behavior:
-   - tests pass locally
-   - watcher correctly blocks deploy when CI fails
-6. Updated release version to `v2026.06.02.2`, created release notes, tagged, and published GitHub release.
+1. Fixed ntfy topic mismatch between docs and post-push hook.
+2. Added immediate ntfy notification when CI/CD watcher starts.
+3. Full CI/CD cycle: commit → push → GitHub Actions → NAS pull deploy.
 
 ## Linked files
 
-- Release note: [`release/notes/v2026.06.02.2.md`](../../notes/v2026.06.02.2.md)
+- Release note: [`release/notes/v2026.06.03.1.md`](../../notes/v2026.06.03.1.md)
 
 ## Project structure
 

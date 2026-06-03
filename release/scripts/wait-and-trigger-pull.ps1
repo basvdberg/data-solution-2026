@@ -6,7 +6,7 @@ param(
     [string]$TriggerCommand = "Write-Host 'No trigger command configured. Nothing to run.'",
     [string]$NotifyMode = "ntfy",
     [string]$WebhookUrl = "",
-    [string]$NtfyTopic = "bas-data-solution-deploy",
+    [string]$NtfyTopic = "data-solution-2026-deploy",
     [string]$NtfyBaseUrl = "https://ntfy.sh"
 )
 
@@ -143,6 +143,7 @@ try {
     $deadline = (Get-Date).AddMinutes($TimeoutMinutes)
 
     Write-Host "Monitoring commit $commitSha on branch '$Branch'..."
+    Send-Notification -Title "CI/CD watcher started" -Message "Waiting for commit $commitSha on origin/$Branch (CI required: $requireCi)." -Level "INFO"
 
     # Step 1: wait until commit is visible on origin/main
     while ((Get-Date) -lt $deadline) {
