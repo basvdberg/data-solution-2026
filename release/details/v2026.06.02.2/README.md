@@ -86,10 +86,12 @@
       - V2026.06.02.1
       - V2026.06.02.2
       - V2026.06.03.1
+      - V2026.06.03.2
     - Notes
       - [Release v2026.06.02.1](../../notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../../notes/v2026.06.02.2.md)
       - [Release v2026.06.03.1](../../notes/v2026.06.03.1.md)
+      - [Release v2026.06.03.2](../../notes/v2026.06.03.2.md)
     - [Release <version>](../../release-notes-template.md)
   - Setting
   - Template

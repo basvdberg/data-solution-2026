@@ -184,6 +184,9 @@ try {
     # Step 3: trigger NAS pull/deploy action
     Write-Host "Running trigger command..."
     Invoke-Expression $TriggerCommand
+    if ($LASTEXITCODE -ne 0) {
+        throw "Deploy trigger command failed with exit code $LASTEXITCODE."
+    }
     Write-Host "Trigger command completed."
     Send-Notification -Title "NAS deploy trigger succeeded" -Message "Commit $commitSha passed checks and trigger command completed." -Level "SUCCESS"
 } catch {

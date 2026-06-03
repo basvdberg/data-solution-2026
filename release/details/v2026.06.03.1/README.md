@@ -6,16 +6,19 @@
 - [Linked files](#linked-files)
 <!-- markdown-toc:end -->
 
+﻿## Table of contents
+
+
 ﻿# Release v2026.06.03.1 - Details
 
 ## Release metadata
 
 
-- Development end: `2026-06-03T11:27:02+02:00`
+- Development end: `2026-06-03T11:35:12+02:00`
 - Development start: `2026-06-03T11:27:02+02:00`
 - Version: `v2026.06.03.1`
 - Release branch: `main`
-- Release commit: `ec50be7bf0d821e82214dd93f4bf65c2d54cb808`
+- Release commit: `874e7a061a342952e80491fa077ff6c955623445`
 
 ## Sequential summary of applied changes
 
@@ -72,10 +75,12 @@
       - V2026.06.02.1
       - V2026.06.02.2
       - V2026.06.03.1
+      - V2026.06.03.2
     - Notes
       - [Release v2026.06.02.1](../../notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../../notes/v2026.06.02.2.md)
       - [Release v2026.06.03.1](../../notes/v2026.06.03.1.md)
+      - [Release v2026.06.03.2](../../notes/v2026.06.03.2.md)
     - [Release <version>](../../release-notes-template.md)
   - Setting
   - Template
