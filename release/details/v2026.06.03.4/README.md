@@ -1,5 +1,3 @@
-# Release v2026.06.03.4 - Details
-
 ## Table of contents
 
 <!-- markdown-toc:start -->
@@ -8,11 +6,16 @@
 - [Linked files](#linked-files)
 <!-- markdown-toc:end -->
 
+﻿# Release v2026.06.03.4 - Details
+
 ## Release metadata
 
+
+- Development end: `2026-06-03T11:47:34+02:00`
+- Development start: `2026-06-03T11:47:34+02:00`
 - Version: `v2026.06.03.4`
 - Release branch: `main`
-- Release commit: `<fill-after-commit>`
+- Release commit: `9577fc901211402c33964e506c1f1d244d355bbc`
 
 ## Summary
 

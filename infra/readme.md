@@ -11,6 +11,7 @@
 - [Airflow](#airflow)
   - [UI shows Bad Gateway or Missing Meta Database / Scheduler / Triggerer](#ui-shows-bad-gateway-or-missing-meta-database-scheduler-triggerer)
   - [Non-interactive SSH: git fails with libcharset.so.1](#non-interactive-ssh-git-fails-with-libcharsetso1)
+  - [SSH: docker: command not found](#ssh-docker-command-not-found)
   - [Task logs show http://:8793/... No host supplied](#task-logs-show-http8793-no-host-supplied)
 - [Kafka](#kafka)
 - [Related docs](#related-docs)
@@ -126,6 +127,25 @@ bash infra/scripts/enable-nas-ssh-user-env.sh
 ```
 
 Deploy scripts source [nas-remote-env.sh](scripts/nas-remote-env.sh) automatically. Do **not** set global `LD_LIBRARY_PATH` in `~/.profile` — it breaks QNAP `/bin/bash` and Cursor Remote SSH.
+
+### SSH: `docker: command not found`
+
+Container Station installs `docker` under `/share/CACHEDEV*_DATA/.qpkg/container-station/bin`, which QNAP does not put on `PATH` for SSH sessions.
+
+Fix (run once on NAS after pull):
+
+```bash
+bash infra/scripts/setup-nas-ssh-env.sh
+```
+
+That extends `~/.ssh/environment`, `~/.local/bin/nas-path.sh`, and `~/.local/bin/docker` (symlink). Interactive `ssh bas@basnas` loads `nas-path.sh` from `~/.profile`. For bare `ssh bas@basnas 'docker …'`, enable [enable-nas-ssh-user-env.sh](scripts/enable-nas-ssh-user-env.sh) once (admin password).
+
+Verify:
+
+```bash
+ssh bas@basnas 'docker --version'
+ssh bas@basnas 'command -v docker'
+```
 
 ### Task logs show `http://:8793/... No host supplied`
 

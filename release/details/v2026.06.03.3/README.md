@@ -6,6 +6,9 @@
 - [Linked files](#linked-files)
 <!-- markdown-toc:end -->
 
+## Table of contents
+
+
 ﻿# Release v2026.06.03.3 - Details
 
 ## Release metadata

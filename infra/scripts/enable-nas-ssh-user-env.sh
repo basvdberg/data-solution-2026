@@ -37,4 +37,6 @@ else
   echo "WARN: could not restart sshd automatically; reload SSH from QNAP Control Panel." >&2
 fi
 
-echo "Done. Test from another machine: ssh bas@basnas 'git --version'"
+echo "Done. Test from another machine:"
+echo "  ssh bas@basnas 'git --version'"
+echo "  ssh bas@basnas 'docker --version'"

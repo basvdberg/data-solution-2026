@@ -57,6 +57,8 @@ This folder stores detailed, audit-friendly release content per version.
 
 - [$version](v2026.06.03.3/README.md)
 
+- [$version](v2026.06.03.4/README.md)
+
 ## Project structure
 
 <!-- markdown-project-structure:start -->
@@ -122,5 +124,3 @@ This folder stores detailed, audit-friendly release content per version.
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026) — Course and learning materials
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns) — Design pattern catalogue
 <!-- markdown-project-structure:end -->
-
-- [$version](v2026.06.03.4/README.md)
