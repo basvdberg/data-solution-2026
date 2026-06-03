@@ -6,16 +6,19 @@
 - [Linked files](#linked-files)
 <!-- markdown-toc:end -->
 
+﻿## Table of contents
+
+
 ﻿# Release v2026.06.03.2 - Details
 
 ## Release metadata
 
 
-- Development end: `2026-06-03T11:36:46+02:00`
+- Development end: `2026-06-03T11:38:14+02:00`
 - Development start: `2026-06-03T11:36:46+02:00`
 - Version: `v2026.06.03.2`
 - Release branch: `main`
-- Release commit: `09655fce5593e68fd7ba64d8ccefb0bb8fb32297`
+- Release commit: `ee5ba9a73a861fee8cb2b07502c5cf0e63847145`
 
 ## Summary
 
@@ -71,11 +74,13 @@ Full automated CI/CD cycle test with deploy exit-code checking in the watcher.
       - V2026.06.02.2
       - V2026.06.03.1
       - V2026.06.03.2
+      - V2026.06.03.3
     - Notes
       - [Release v2026.06.02.1](../../notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../../notes/v2026.06.02.2.md)
       - [Release v2026.06.03.1](../../notes/v2026.06.03.1.md)
       - [Release v2026.06.03.2](../../notes/v2026.06.03.2.md)
+      - [Release v2026.06.03.3](../../notes/v2026.06.03.3.md)
     - [Release <version>](../../release-notes-template.md)
   - Setting
   - Template

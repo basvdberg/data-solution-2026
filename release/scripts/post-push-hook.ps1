@@ -38,6 +38,7 @@ $repoRoot = (git rev-parse --show-toplevel).Trim()
 $scriptPath = Join-Path $repoRoot "release\scripts\wait-and-trigger-pull.ps1"
 
 # Replace these values for your environment.
+# bash -lc required: non-interactive ssh does not load ~/.profile (git wrapper PATH).
 $trigger = "ssh bas@basnas 'bash -lc ''bash ~/apps/data-solution-2026/release/scripts/deploy-on-nas.sh'''"
 $ntfyTopic = "data-solution-2026-deploy"
 

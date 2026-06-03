@@ -1,41 +1,26 @@
-# Release v2026.06.02.1 - Details
+# Release v2026.06.03.3 - Details
 
 ## Table of contents
 
 <!-- markdown-toc:start -->
 - [Release metadata](#release-metadata)
-- [Sequential summary of applied changes](#sequential-summary-of-applied-changes)
+- [Summary](#summary)
 - [Linked files](#linked-files)
 <!-- markdown-toc:end -->
 
 ## Release metadata
 
-- Version: `v2026.06.02.1`
-- Development start: `2026-06-02`
-- Development end: `2026-06-02T15:37:34+02:00`
+- Version: `v2026.06.03.3`
 - Release branch: `main`
-- Release commit: `f67d88dd2e2e23a36997df33a716eacb3a53186e`
+- Release commit: `<fill-after-commit>`
 
-## Sequential summary of applied changes
+## Summary
 
-1. Created and documented a simplified CI/CD model using `main` as the only working branch.
-2. Added `release/` governance structure with:
-   - `release/VERSION`
-   - release notes template
-   - release note file for `v2026.06.02.1`
-3. Reworked deployment strategy from push-to-server to NAS pull deployment because GitHub cannot access NAS directly.
-4. Added GitHub workflow for CI checks on `main`.
-5. Added automation scripts for post-push deployment orchestration:
-   - wait for commit on `origin/main`
-   - wait for GitHub CI status
-   - trigger NAS deployment script
-6. Added default `ntfy` notification support and setup documentation.
-7. Updated `doc/design/ci-cd.md` to reflect full end-to-end process and operational guidance.
+End-to-end automated deploy verification after `bash -lc` SSH fix.
 
 ## Linked files
 
-- Release note: [`release/notes/v2026.06.02.1.md`](../../notes/v2026.06.02.1.md)
-- Prompts for this release: [`prompts.md`](prompts.md)
+- Release note: [`release/notes/v2026.06.03.3.md`](../../notes/v2026.06.03.3.md)
 
 ## Project structure
 

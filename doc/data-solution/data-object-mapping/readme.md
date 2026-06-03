@@ -163,11 +163,13 @@ Git (mapping + data objects)
       - V2026.06.02.2
       - V2026.06.03.1
       - V2026.06.03.2
+      - V2026.06.03.3
     - Notes
       - [Release v2026.06.02.1](../../../release/notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../../../release/notes/v2026.06.02.2.md)
       - [Release v2026.06.03.1](../../../release/notes/v2026.06.03.1.md)
       - [Release v2026.06.03.2](../../../release/notes/v2026.06.03.2.md)
+      - [Release v2026.06.03.3](../../../release/notes/v2026.06.03.3.md)
     - [Release <version>](../../../release/release-notes-template.md)
   - Setting
   - Template
