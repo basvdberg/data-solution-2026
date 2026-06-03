@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+# Configure BasNAS user env for non-interactive SSH (git libcharset + PATH).
+#
+# QNAP /usr/bin/git needs libcharset from an optional QPKG. Do not set LD_LIBRARY_PATH
+# globally in ~/.profile — that breaks QNAP /bin/bash and Cursor/VS Code Remote SSH.
+#
+# Usage (on NAS):
+#   bash infra/scripts/setup-nas-ssh-env.sh
+#
+# After setup, non-interactive git works when either:
+#   - PermitUserEnvironment is enabled (see enable-nas-ssh-user-env.sh), or
+#   - commands use bash -lc '...', or
+#   - deploy scripts source nas-remote-env.sh
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=nas-remote-env.sh
+source "${SCRIPT_DIR}/nas-remote-env.sh"
+
+GIT_REAL="/usr/bin/git"
+GIT_WRAPPER="${HOME}/.local/bin/git"
+GIT_LIB_DIRS="/share/CACHEDEV1_DATA/.qpkg/NGinX/lib"
+SSH_ENV="${HOME}/.ssh/environment"
+NAS_LOGIN_SH="${HOME}/.local/bin/nas-login-sh"
+
+if [ ! -f "$GIT_REAL" ]; then
+  echo "ERROR: system git not found at ${GIT_REAL}" >&2
+  exit 1
+fi
+
+if ! ls "${GIT_LIB_DIRS}/libcharset.so"* >/dev/null 2>&1; then
+  echo "WARN: libcharset not found under ${GIT_LIB_DIRS}; git may still fail." >&2
+fi
+
+mkdir -p "$(dirname "$GIT_WRAPPER")" "${HOME}/.ssh"
+chmod 700 "${HOME}/.ssh"
+
+cat >"$GIT_WRAPPER" <<EOF
+#!/bin/sh
+export LD_LIBRARY_PATH="${GIT_LIB_DIRS}\${LD_LIBRARY_PATH:+:\$LD_LIBRARY_PATH}"
+exec ${GIT_REAL} "\$@"
+EOF
+chmod +x "$GIT_WRAPPER"
+
+cat >"$NAS_LOGIN_SH" <<'EOF'
+#!/bin/bash
+export PATH="${HOME}/.local/bin:/opt/bin:/opt/sbin:/usr/bin:/bin:/usr/sbin:/sbin"
+if [ "${1:-}" = "-c" ] && [ -n "${2:-}" ]; then
+  bash -lc "$2"
+  exit $?
+fi
+if [ $# -gt 0 ]; then
+  exec "$@"
+fi
+exec bash -l
+EOF
+chmod +x "$NAS_LOGIN_SH"
+
+printf 'PATH=%s\n' "$NAS_REMOTE_PATH" >"$SSH_ENV"
+chmod 600 "$SSH_ENV"
+
+if ! grep -q 'nas-ssh-env (data-solution-2026)' "$HOME/.profile" 2>/dev/null; then
+  cat >>"$HOME/.profile" <<'EOF'
+
+# nas-ssh-env (data-solution-2026): git wrapper in ~/.local/bin; no global LD_LIBRARY_PATH.
+# Non-interactive ssh (ssh host 'cmd') ignores ~/.profile. Enable PermitUserEnvironment
+# (enable-nas-ssh-user-env.sh) or use bash -lc / source infra/scripts/nas-remote-env.sh.
+EOF
+fi
+
+echo "Installed ${GIT_WRAPPER}"
+echo "Installed ${NAS_LOGIN_SH} (optional login shell via QNAP user settings)"
+echo "Wrote ${SSH_ENV} (active when PermitUserEnvironment yes in sshd_config)"
+
+if command -v git >/dev/null 2>&1 && [ "$(command -v git)" = "$GIT_WRAPPER" ]; then
+  git --version
+elif [ -x "$GIT_WRAPPER" ]; then
+  "$GIT_WRAPPER" --version
+else
+  echo "ERROR: git wrapper not executable." >&2
+  exit 1
+fi
+
+if grep -q '^PermitUserEnvironment yes' /etc/ssh/sshd_config 2>/dev/null; then
+  echo "PermitUserEnvironment is enabled; ~/.ssh/environment should apply to ssh 'cmd'."
+else
+  echo "NOTE: PermitUserEnvironment is still disabled. Run enable-nas-ssh-user-env.sh once (sudo)."
+fi

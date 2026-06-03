@@ -6,15 +6,18 @@
 - [Linked files](#linked-files)
 <!-- markdown-toc:end -->
 
+﻿## Table of contents
+
+
 ﻿# Release v2026.06.02.2 - Details
 
 ## Release metadata
 
 - Version: `v2026.06.02.2`
 - Development start: `2026-06-02T15:37:35+02:00`
-- Development end: `2026-06-02T17:50:56+02:00`
+- Development end: `2026-06-03T10:01:52+02:00`
 - Release branch: `main`
-- Release commit: `845240c55f75990bcad1ee79650580222d44ec0f`
+- Release commit: `7e5ad501337838e99f544c1985024836ba68849d`
 - Published release URL: <https://github.com/basvdberg/data-solution-2026/releases/tag/v2026.06.02.2>
 
 ## Sequential summary of applied changes

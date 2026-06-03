@@ -14,13 +14,17 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=nas-remote-env.sh
+source "${SCRIPT_DIR}/nas-remote-env.sh"
+
 APP_ROOT="${APP_ROOT:-$HOME/apps/data-solution-2026}"
 AIRFLOW_DEST="${AIRFLOW_DEST:-$HOME/apache-airflow}"
 KAFKA_DEST="${KAFKA_DEST:-$HOME/kafka}"
 RUN_COMPOSE="${RUN_COMPOSE:-1}"
 DRY_RUN="${DRY_RUN:-0}"
 
-export PATH="${PATH}:/share/CACHEDEV1_DATA/.qpkg/container-station/bin:/share/CACHEDEV1_DATA/.qpkg/Entware/bin:/opt/bin:/usr/local/bin"
+# nas-remote-env.sh already extends PATH for git wrapper + Container Station.
 
 INFRA="${APP_ROOT}/infra"
 APP_ABS="$(cd "$APP_ROOT" && pwd)"
@@ -60,6 +64,12 @@ ensure_airflow_env() {
     echo "Appending DATA_SOLUTION_ROOT to ${env_file}"
     if [ "$DRY_RUN" != "1" ]; then
       printf '\nDATA_SOLUTION_ROOT=%s\n' "$APP_ABS" >>"$env_file"
+    fi
+  fi
+  if ! grep -q '^AIRFLOW_ADMIN_PASSWORD=' "$env_file" 2>/dev/null; then
+    echo "Appending AIRFLOW_ADMIN_PASSWORD to ${env_file} (change it after deploy)"
+    if [ "$DRY_RUN" != "1" ]; then
+      printf '\nAIRFLOW_ADMIN_PASSWORD=changeme\n' >>"$env_file"
     fi
   fi
 }
@@ -115,6 +125,10 @@ main() {
   echo "App root:     ${APP_ABS}"
   echo "Airflow dest: ${AIRFLOW_DEST}"
   echo "Kafka dest:   ${KAFKA_DEST}"
+
+  if [ -x "${SCRIPT_DIR}/setup-nas-ssh-env.sh" ]; then
+    bash "${SCRIPT_DIR}/setup-nas-ssh-env.sh"
+  fi
 
   run mkdir -p "${AIRFLOW_DEST}/logs" "${AIRFLOW_DEST}/plugins"
   run mkdir -p "${KAFKA_DEST}"

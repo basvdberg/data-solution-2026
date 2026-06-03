@@ -10,6 +10,7 @@
   - [Manual compose (from repo paths)](#manual-compose-from-repo-paths)
 - [Airflow](#airflow)
   - [UI shows Bad Gateway or Missing Meta Database / Scheduler / Triggerer](#ui-shows-bad-gateway-or-missing-meta-database-scheduler-triggerer)
+  - [Non-interactive SSH: git fails with libcharset.so.1](#non-interactive-ssh-git-fails-with-libcharsetso1)
   - [Task logs show http://:8793/... No host supplied](#task-logs-show-http8793-no-host-supplied)
 - [Kafka](#kafka)
 - [Related docs](#related-docs)
@@ -106,7 +107,25 @@ Common causes on BasNAS:
 2. **Logs volume permissions** — `logs/` and `plugins/` on the host must be writable by the container user. Set `AIRFLOW_UID=$(id -u)` in `.env` and use the `user:` line in [docker-compose.standalone.yaml](airflow/docker-compose.standalone.yaml). Symptom in logs: `PermissionError: ... '/opt/airflow/logs/dag_processor'`.
 3. **HTTPS proxy** — `https://airflow.basnas/` proxies to `http://airflow-standalone:8080`. NGINX must share the `apache-airflow_default` network with the Airflow container (see BasNAS deploy skill `patch-bridge-upstreams.sh` after recreates).
 
-Admin password after a fresh standalone init: `docker logs airflow-standalone 2>&1 | grep "Password for user"`.
+**Admin login:** user `admin`, password from `AIRFLOW_ADMIN_PASSWORD` in [airflow/.env](airflow/.env) (see [.env.example](airflow/.env.example)). The compose file writes that value into the Simple Auth Manager passwords file on each container start, so recreating the stack does not change the password. After upgrading an existing NAS `.env`, add `AIRFLOW_ADMIN_PASSWORD=...` (or re-sync from `.env.example` on a new install).
+
+### Non-interactive SSH: `git` fails with `libcharset.so.1`
+
+QNAP `/usr/bin/git` needs `libcharset.so.1` from an optional QPKG (NGinX on this NAS). Non-interactive SSH (`ssh bas@basnas 'git …'`) uses `PATH=/usr/bin:/bin` only and does not load `~/.profile`.
+
+Fix (run once on NAS after pull):
+
+```bash
+bash infra/scripts/setup-nas-ssh-env.sh
+```
+
+That installs `~/.local/bin/git` (sets `LD_LIBRARY_PATH` only for git) and writes `~/.ssh/environment`. For bare `ssh … git` without `bash -lc`, enable user environment once (admin password):
+
+```bash
+bash infra/scripts/enable-nas-ssh-user-env.sh
+```
+
+Deploy scripts source [nas-remote-env.sh](scripts/nas-remote-env.sh) automatically. Do **not** set global `LD_LIBRARY_PATH` in `~/.profile` — it breaks QNAP `/bin/bash` and Cursor Remote SSH.
 
 ### Task logs show `http://:8793/... No host supplied`
 
