@@ -1,5 +1,3 @@
-# Release v2026.06.03.3 - Details
-
 ## Table of contents
 
 <!-- markdown-toc:start -->
@@ -8,11 +6,16 @@
 - [Linked files](#linked-files)
 <!-- markdown-toc:end -->
 
+﻿# Release v2026.06.03.3 - Details
+
 ## Release metadata
 
+
+- Development end: `2026-06-03T11:39:34+02:00`
+- Development start: `2026-06-03T11:39:34+02:00`
 - Version: `v2026.06.03.3`
 - Release branch: `main`
-- Release commit: `<fill-after-commit>`
+- Release commit: `9533ed699b5a83b3883b2675cb157f04f843a2cc`
 
 ## Summary
 
@@ -69,12 +72,14 @@ End-to-end automated deploy verification after `bash -lc` SSH fix.
       - V2026.06.03.1
       - V2026.06.03.2
       - V2026.06.03.3
+      - V2026.06.03.4
     - Notes
       - [Release v2026.06.02.1](../../notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../../notes/v2026.06.02.2.md)
       - [Release v2026.06.03.1](../../notes/v2026.06.03.1.md)
       - [Release v2026.06.03.2](../../notes/v2026.06.03.2.md)
       - [Release v2026.06.03.3](../../notes/v2026.06.03.3.md)
+      - [Release v2026.06.03.4](../../notes/v2026.06.03.4.md)
     - [Release <version>](../../release-notes-template.md)
   - Setting
   - Template

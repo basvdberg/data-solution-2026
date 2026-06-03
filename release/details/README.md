@@ -55,6 +55,8 @@ This folder stores detailed, audit-friendly release content per version.
 
 - [$version](v2026.06.03.2/README.md)
 
+- [$version](v2026.06.03.3/README.md)
+
 ## Project structure
 
 <!-- markdown-project-structure:start -->
@@ -102,12 +104,14 @@ This folder stores detailed, audit-friendly release content per version.
       - V2026.06.03.1
       - V2026.06.03.2
       - V2026.06.03.3
+      - V2026.06.03.4
     - Notes
       - [Release v2026.06.02.1](../notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../notes/v2026.06.02.2.md)
       - [Release v2026.06.03.1](../notes/v2026.06.03.1.md)
       - [Release v2026.06.03.2](../notes/v2026.06.03.2.md)
       - [Release v2026.06.03.3](../notes/v2026.06.03.3.md)
+      - [Release v2026.06.03.4](../notes/v2026.06.03.4.md)
     - [Release <version>](../release-notes-template.md)
   - Setting
   - Template
@@ -119,4 +123,4 @@ This folder stores detailed, audit-friendly release content per version.
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns) — Design pattern catalogue
 <!-- markdown-project-structure:end -->
 
-- [$version](v2026.06.03.3/README.md)
+- [$version](v2026.06.03.4/README.md)

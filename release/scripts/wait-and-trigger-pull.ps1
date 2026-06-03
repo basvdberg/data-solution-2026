@@ -18,11 +18,96 @@ function Test-CommandExists {
     return [bool](Get-Command $Name -ErrorAction SilentlyContinue)
 }
 
+function Get-RepoRoot {
+    return (git rev-parse --show-toplevel).Trim()
+}
+
+function Get-ReleaseVersion {
+    param([string]$RepoRoot)
+    $versionFile = Join-Path $RepoRoot "release\VERSION"
+    if (-not (Test-Path $versionFile)) {
+        return $null
+    }
+    $version = (Get-Content -Path $versionFile -Raw).Trim()
+    if ([string]::IsNullOrWhiteSpace($version)) {
+        return $null
+    }
+    if ($version -notmatch '^v') {
+        $version = "v$version"
+    }
+    return $version
+}
+
+function Get-GitHubRepoSlug {
+    $remoteUrl = (git remote get-url origin 2>$null)
+    if ([string]::IsNullOrWhiteSpace($remoteUrl)) {
+        return $null
+    }
+    if ($remoteUrl -match 'github\.com[:/]([^/]+/[^/.]+)') {
+        return $Matches[1]
+    }
+    return $null
+}
+
+function Get-ReleaseNotesUrl {
+    param(
+        [string]$Version,
+        [string]$TargetBranch
+    )
+    if ([string]::IsNullOrWhiteSpace($Version)) {
+        return $null
+    }
+    $repoSlug = Get-GitHubRepoSlug
+    if ([string]::IsNullOrWhiteSpace($repoSlug)) {
+        return $null
+    }
+    return "https://github.com/$repoSlug/blob/$TargetBranch/release/notes/$Version.md"
+}
+
+function Get-DeployNotificationContext {
+    param(
+        [string]$CommitSha,
+        [string]$TargetBranch
+    )
+    $repoRoot = Get-RepoRoot
+    $version = Get-ReleaseVersion -RepoRoot $repoRoot
+    $notesUrl = Get-ReleaseNotesUrl -Version $version -TargetBranch $TargetBranch
+    $shortSha = if ($CommitSha.Length -ge 7) { $CommitSha.Substring(0, 7) } else { $CommitSha }
+    return @{
+        Version = $version
+        NotesUrl = $notesUrl
+        ShortSha = $shortSha
+        FullSha = $CommitSha
+    }
+}
+
+function Format-DeployNotificationMessage {
+    param(
+        [hashtable]$Context,
+        [string]$OutcomeLine,
+        [string]$ErrorDetail = ""
+    )
+    $versionLabel = if ($Context.Version) { $Context.Version } else { "(no release/VERSION)" }
+    $lines = @(
+        $OutcomeLine
+        "Release: $versionLabel"
+        "Commit: $($Context.ShortSha)"
+    )
+    if (-not [string]::IsNullOrWhiteSpace($ErrorDetail)) {
+        $lines += "Error: $ErrorDetail"
+    }
+    if ($Context.NotesUrl) {
+        $lines += "Release notes: $($Context.NotesUrl)"
+    }
+    return ($lines -join [Environment]::NewLine)
+}
+
 function Send-Notification {
     param(
         [string]$Title,
         [string]$Message,
-        [string]$Level
+        [string]$Level,
+        [string]$ClickUrl = ""
     )
     Write-Host "[$Level] $Title - $Message"
 
@@ -46,6 +131,9 @@ function Send-Notification {
                 "Title" = $ntfyTitle
                 "Priority" = $ntfyPriority
                 "Tags" = if ($Level -eq "ERROR") { "x,warning" } else { "white_check_mark,rocket" }
+            }
+            if (-not [string]::IsNullOrWhiteSpace($ClickUrl)) {
+                $headers["Click"] = $ClickUrl
             }
             Invoke-RestMethod -Method Post -Uri $ntfyUrl -Headers $headers -Body $Message | Out-Null
         } catch {
@@ -140,6 +228,7 @@ if ($requireCi -and -not (Test-CommandExists "gh")) {
 
 try {
     $commitSha = Get-HeadCommit
+    $deployContext = Get-DeployNotificationContext -CommitSha $commitSha -TargetBranch $Branch
     $deadline = (Get-Date).AddMinutes($TimeoutMinutes)
 
     Write-Host "Monitoring commit $commitSha on branch '$Branch'..."
@@ -188,9 +277,18 @@ try {
         throw "Deploy trigger command failed with exit code $LASTEXITCODE."
     }
     Write-Host "Trigger command completed."
-    Send-Notification -Title "NAS deploy trigger succeeded" -Message "Commit $commitSha passed checks and trigger command completed." -Level "SUCCESS"
+    $versionLabel = if ($deployContext.Version) { $deployContext.Version } else { "unknown" }
+    $successTitle = "Deploy succeeded: $versionLabel"
+    $successMessage = Format-DeployNotificationMessage -Context $deployContext -OutcomeLine "NAS deployment completed."
+    Send-Notification -Title $successTitle -Message $successMessage -Level "SUCCESS" -ClickUrl $deployContext.NotesUrl
 } catch {
     $errorMessage = $_.Exception.Message
-    Send-Notification -Title "NAS deploy trigger failed" -Message $errorMessage -Level "ERROR"
+    if (-not $deployContext) {
+        $deployContext = Get-DeployNotificationContext -CommitSha (Get-HeadCommit) -TargetBranch $Branch
+    }
+    $versionLabel = if ($deployContext.Version) { $deployContext.Version } else { "unknown" }
+    $failureTitle = "Deploy failed: $versionLabel"
+    $failureMessage = Format-DeployNotificationMessage -Context $deployContext -OutcomeLine "NAS deployment did not complete." -ErrorDetail $errorMessage
+    Send-Notification -Title $failureTitle -Message $failureMessage -Level "ERROR" -ClickUrl $deployContext.NotesUrl
     throw
 }

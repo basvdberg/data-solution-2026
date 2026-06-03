@@ -174,6 +174,7 @@ ntfy sub data-solution-2026-deploy
   - `-NotifyMode toast` (Windows desktop toast via BurntToast module)
   - `-NotifyMode webhook` (POST JSON to `-WebhookUrl`, useful for Teams/Slack/ntfy)
   - `-NotifyMode both` (toast + webhook)
+- On deploy **success** or **failure**, ntfy includes the release version from `release/VERSION` and a link to the release notes on GitHub (`release/notes/<version>.md`). Tapping the notification opens that URL.
 
 ## Poller rollout merged into CI/CD
 
@@ -265,12 +266,14 @@ git checkout <previous-tag>
       - V2026.06.03.1
       - V2026.06.03.2
       - V2026.06.03.3
+      - V2026.06.03.4
     - Notes
       - [Release v2026.06.02.1](../../release/notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../../release/notes/v2026.06.02.2.md)
       - [Release v2026.06.03.1](../../release/notes/v2026.06.03.1.md)
       - [Release v2026.06.03.2](../../release/notes/v2026.06.03.2.md)
       - [Release v2026.06.03.3](../../release/notes/v2026.06.03.3.md)
+      - [Release v2026.06.03.4](../../release/notes/v2026.06.03.4.md)
     - [Release <version>](../../release/release-notes-template.md)
   - Setting
   - Template
