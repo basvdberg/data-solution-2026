@@ -5,7 +5,10 @@ services:
   airflow:
     image: apache/airflow:3.2.0
     container_name: airflow-standalone
+    hostname: airflow-standalone
     command: standalone
+    # Match host volume owner (AIRFLOW_UID in .env, typically id -u on NAS/Linux)
+    user: "${AIRFLOW_UID:-50000}:0"
     env_file:
       - .env
     ports:
@@ -17,6 +20,8 @@ services:
       - ${DATA_SOLUTION_ROOT:-../../}/code/airflow/dags:/opt/airflow/dags:ro
     environment:
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      # Docker/QNAP often yields empty getfqdn(); without a hostname the UI builds http://:8793/log/...
+      AIRFLOW__CORE__HOSTNAME_CALLABLE: airflow.utils.net.get_host_ip_address
       AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "true"
       PYTHONPATH: /opt/data-solution
       _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-requests>=2.32,<3 pandas>=2.2,<3 pyarrow>=16 jsonschema>=4 kafka-python}

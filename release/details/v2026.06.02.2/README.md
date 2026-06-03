@@ -1,5 +1,3 @@
-# Release v2026.06.02.2 - Details
-
 ## Table of contents
 
 <!-- markdown-toc:start -->
@@ -8,13 +6,15 @@
 - [Linked files](#linked-files)
 <!-- markdown-toc:end -->
 
+﻿# Release v2026.06.02.2 - Details
+
 ## Release metadata
 
 - Version: `v2026.06.02.2`
 - Development start: `2026-06-02T15:37:35+02:00`
-- Development end: `2026-06-02T15:48:33+02:00`
+- Development end: `2026-06-02T17:50:56+02:00`
 - Release branch: `main`
-- Release commit: `08c07ba5315486ce2b3b975add241b28ffa64d57`
+- Release commit: `845240c55f75990bcad1ee79650580222d44ec0f`
 - Published release URL: <https://github.com/basvdberg/data-solution-2026/releases/tag/v2026.06.02.2>
 
 ## Sequential summary of applied changes
@@ -31,7 +31,6 @@
 ## Linked files
 
 - Release note: [`release/notes/v2026.06.02.2.md`](../../notes/v2026.06.02.2.md)
-- Prompts for this release: [`prompts.md`](prompts.md)
 
 ## Project structure
 
@@ -84,7 +83,8 @@
   - Setting
   - Template
   - [Getting started](../../../getting-started.md)
-  - [Lessons learned](../../../lessons-learned.md)
+  - [Lessons learned](../../../lessons-learned-part1.md)
+  - [Lessons learned (part 2)](../../../lessons-learned-part2.md)
 - Related repositories
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026) — Course and learning materials
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns) — Design pattern catalogue

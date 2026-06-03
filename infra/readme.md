@@ -9,6 +9,8 @@
   - [Sync script (recommended)](#sync-script-recommended)
   - [Manual compose (from repo paths)](#manual-compose-from-repo-paths)
 - [Airflow](#airflow)
+  - [UI shows Bad Gateway or Missing Meta Database / Scheduler / Triggerer](#ui-shows-bad-gateway-or-missing-meta-database-scheduler-triggerer)
+  - [Task logs show http://:8793/... No host supplied](#task-logs-show-http8793-no-host-supplied)
 - [Kafka](#kafka)
 - [Related docs](#related-docs)
 <!-- markdown-toc:end -->
@@ -96,6 +98,39 @@ HTTPS UI: `https://airflow.basnas/` and `https://kafka.basnas/` (see [BasNAS dep
 
 Optional: uncomment the `kafka` external network in [docker-compose.standalone.yaml](airflow/docker-compose.standalone.yaml) after Kafka is up so tasks can reach `kafka:9092`.
 
+### UI shows Bad Gateway or Missing Meta Database / Scheduler / Triggerer
+
+Common causes on BasNAS:
+
+1. **Still starting** — On each `up` or recreate, the image may run `_PIP_ADDITIONAL_REQUIREMENTS` and `airflow standalone` DB init (often 3–5 minutes). NGINX returns **502 Bad Gateway** until the API listens on port 8080. Wait, then check: `curl -s http://127.0.0.1:8081/api/v2/monitor/health`.
+2. **Logs volume permissions** — `logs/` and `plugins/` on the host must be writable by the container user. Set `AIRFLOW_UID=$(id -u)` in `.env` and use the `user:` line in [docker-compose.standalone.yaml](airflow/docker-compose.standalone.yaml). Symptom in logs: `PermissionError: ... '/opt/airflow/logs/dag_processor'`.
+3. **HTTPS proxy** — `https://airflow.basnas/` proxies to `http://airflow-standalone:8080`. NGINX must share the `apache-airflow_default` network with the Airflow container (see BasNAS deploy skill `patch-bridge-upstreams.sh` after recreates).
+
+Admin password after a fresh standalone init: `docker logs airflow-standalone 2>&1 | grep "Password for user"`.
+
+### Task logs show `http://:8793/... No host supplied`
+
+Airflow 3 stores a worker hostname on each task run and builds log URLs like `http://<hostname>:8793/log/...`. In Docker on QNAP, the default hostname detector (`getfqdn`) often returns an empty string, so the UI shows **Could not read served logs: Invalid URL 'http://:8793/...': No host supplied**.
+
+Fix (already in [docker-compose.standalone.yaml](airflow/docker-compose.standalone.yaml)):
+
+- Set container `hostname: airflow-standalone`
+- Set `AIRFLOW__CORE__HOSTNAME_CALLABLE=airflow.utils.net.get_host_ip_address`
+
+Redeploy on BasNAS:
+
+```bash
+cd ~/apache-airflow   # or ~/apps/data-solution-2026/infra/airflow
+docker compose -f docker-compose.standalone.yaml up -d
+```
+
+**Existing runs** keep the old empty hostname in the DB; trigger a new DAG run to verify. To read logs for a failed run immediately:
+
+```bash
+docker exec airflow-standalone ls /opt/airflow/logs/dag_id=openmeteo_data_object_poller/
+docker exec airflow-standalone cat '/opt/airflow/logs/dag_id=openmeteo_data_object_poller/run_id=.../task_id=poll_openmeteo_daily_temperature/attempt=2.log'
+```
+
 ## Kafka
 
 - Broker: `apache/kafka:3.8.0` on ports `9092` / `9093`.
@@ -159,7 +194,8 @@ Optional: uncomment the `kafka` external network in [docker-compose.standalone.y
   - Setting
   - Template
   - [Getting started](../getting-started.md)
-  - [Lessons learned](../lessons-learned.md)
+  - [Lessons learned](../lessons-learned-part1.md)
+  - [Lessons learned (part 2)](../lessons-learned-part2.md)
 - Related repositories
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026) — Course and learning materials
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns) — Design pattern catalogue

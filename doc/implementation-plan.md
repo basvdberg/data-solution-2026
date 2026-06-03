@@ -316,7 +316,8 @@ For schema-level acceptance criteria, use [Definition of done](design/event-base
   - Setting
   - Template
   - [Getting started](../getting-started.md)
-  - [Lessons learned](../lessons-learned.md)
+  - [Lessons learned](../lessons-learned-part1.md)
+  - [Lessons learned (part 2)](../lessons-learned-part2.md)
 - Related repositories
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026) — Course and learning materials
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns) — Design pattern catalogue

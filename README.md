@@ -139,7 +139,8 @@ Since the [May 19 LinkedIn post](https://github.com/basvdberg/data-engineering-2
   - Setting
   - Template
   - [Getting started](getting-started.md)
-  - [Lessons learned](lessons-learned.md)
+  - [Lessons learned](lessons-learned-part1.md)
+  - [Lessons learned (part 2)](lessons-learned-part2.md)
 - Related repositories
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026) — Course and learning materials
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns) — Design pattern catalogue

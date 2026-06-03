@@ -16,5 +16,4 @@ Collected from project prompt history and release work context.
 
 ## Source references
 
-- Project prompt history: [`prompts.md`](../../../prompts.md)
 - Release note baseline: [`release/notes/v2026.06.02.1.md`](../../notes/v2026.06.02.1.md)
