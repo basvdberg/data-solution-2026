@@ -159,15 +159,15 @@ Notes:
   - `-PollSeconds` (default `15`)
 - If CI fails, deployment is aborted automatically.
 - `ntfy` is the default notification channel in the scripts.
-- Default topic: `bas-data-solution-deploy`.
+- Default topic: `data-solution-2026-deploy` (must match `post-push-hook.ps1`).
 - Subscribe using app/web/CLI before first run, for example:
 
 ```bash
-ntfy sub bas-data-solution-deploy
+ntfy sub data-solution-2026-deploy
 ```
 
 - Or in browser:
-  - `https://ntfy.sh/bas-data-solution-deploy`
+  - `https://ntfy.sh/data-solution-2026-deploy`
 - Notification options in `wait-and-trigger-pull.ps1`:
   - `-NotifyMode ntfy` (default)
   - `-NotifyMode console`
@@ -262,9 +262,11 @@ git checkout <previous-tag>
     - Details
       - V2026.06.02.1
       - V2026.06.02.2
+      - V2026.06.03.1
     - Notes
       - [Release v2026.06.02.1](../../release/notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../../release/notes/v2026.06.02.2.md)
+      - [Release v2026.06.03.1](../../release/notes/v2026.06.03.1.md)
     - [Release <version>](../../release/release-notes-template.md)
   - Setting
   - Template
