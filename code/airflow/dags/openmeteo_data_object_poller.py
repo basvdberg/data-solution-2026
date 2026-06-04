@@ -6,17 +6,19 @@ Mounted into Airflow at ``/opt/airflow/dags``; application code at ``/opt/data-s
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timedelta
 
 from airflow import DAG
+from airflow.exceptions import AirflowException
 from airflow.models import Variable
-from airflow.operators.bash import BashOperator
+from airflow.providers.standard.operators.python import PythonOperator
 
 DAG_ID = "openmeteo_data_object_poller"
-REPO_ROOT = "/opt/data-solution"
-CODE_ROOT = f"{REPO_ROOT}/code"
 DEFAULT_DATA_OBJECT_ID = "source/openmeteo/daily-temperature"
 DEFAULT_PUBLISH = "none"
+
+log = logging.getLogger(__name__)
 
 
 def _variable(name: str, default: str) -> str:
@@ -26,20 +28,26 @@ def _variable(name: str, default: str) -> str:
         return default
 
 
-def _poll_command() -> str:
-    data_object_id = _variable("poller_data_object_id", DEFAULT_DATA_OBJECT_ID)
-    publish = _variable("poller_publish", DEFAULT_PUBLISH)
-    poller = (
-        f"python -u -m extractor_and_poller.poller "
-        f"--data-object {data_object_id} "
-        f"--publish {publish}"
-    )
-    # Immediate shell line so Airflow task logs show activity before Python imports.
-    return (
-        "set -e\n"
-        'echo "[poller] starting at $(date -u +%Y-%m-%dT%H:%M:%SZ)"\n'
-        f"{poller}"
-    )
+def run_openmeteo_poller() -> None:
+    """Thin wrapper: delegate to the poller CLI ``main()`` (no duplicated logic)."""
+    log.info("Starting Open-Meteo data object poller task")
+
+    from extractor_and_poller.poller.__main__ import main
+
+    argv = [
+        "--data-object",
+        _variable("poller_data_object_id", DEFAULT_DATA_OBJECT_ID),
+        "--publish",
+        _variable("poller_publish", DEFAULT_PUBLISH),
+    ]
+    exit_code = main(argv)
+
+    if exit_code == 2:
+        raise AirflowException("poller exited with code 2 (configuration or validation error)")
+    if exit_code == 1:
+        log.info("Poller finished: data object change detected")
+    else:
+        log.info("Poller finished: no change")
 
 
 default_args = {
@@ -62,12 +70,7 @@ with DAG(
     is_paused_upon_creation=True,
     tags=["openmeteo", "poller", "data-object"],
 ) as dag:
-    BashOperator(
+    PythonOperator(
         task_id="poll_openmeteo_daily_temperature",
-        bash_command=_poll_command(),
-        cwd=REPO_ROOT,
-        env={
-            "PYTHONPATH": f"{CODE_ROOT}:{REPO_ROOT}",
-            "PYTHONUNBUFFERED": "1",
-        },
+        python_callable=run_openmeteo_poller,
     )

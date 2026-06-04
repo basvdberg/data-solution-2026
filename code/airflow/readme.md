@@ -31,7 +31,9 @@ Poller state is always stored in Postgres (table `poller`). Postgres connection 
 | `dag_id` | `openmeteo_data_object_poller` |
 | Schedule | `@hourly` (paused on creation until smoke passes) |
 
-Task command (equivalent):
+The DAG task is a `PythonOperator` that calls `extractor_and_poller.poller.__main__.main()` with the same arguments as the CLI (no duplicated poller logic).
+
+Equivalent manual run inside the Airflow container:
 
 ```bash
 python -m extractor_and_poller.poller \
@@ -39,7 +41,7 @@ python -m extractor_and_poller.poller \
   --publish none
 ```
 
-Run from repo root inside the container: `cwd=/opt/data-solution`, `PYTHONPATH=/opt/data-solution/code:/opt/data-solution`.
+`PYTHONPATH` is set in the Airflow container (`/opt/data-solution/code:/opt/data-solution`).
 
 ## Project structure
 
