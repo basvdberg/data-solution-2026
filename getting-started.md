@@ -13,7 +13,7 @@
 
 - Python 3.11+
 - Dependencies installed for `data-solution-2026` (including `psycopg[binary]` for poller metadata and optional `kafka-python` for event publish)
-- Postgres running with database `data_solution` (see [infra/postgres](infra/postgres/docker-compose.yml))
+- Postgres running with database `data-solution-2026` (see [infra/postgres](infra/postgres/docker-compose.yml))
 - Run commands from the `data-solution-2026/` root
 
 ## Quick start

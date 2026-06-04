@@ -3,7 +3,7 @@
   "name": "metadata-postgres",
   "extensions": [
     { "key": "protocol", "value": "POSTGRES" },
-    { "key": "database", "value": "data_solution" },
+    { "key": "database", "value": "data-solution-2026" },
     { "key": "connectionType", "value": "Database" }
   ]
 }

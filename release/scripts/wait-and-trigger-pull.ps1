@@ -3,6 +3,7 @@ param(
     [int]$TimeoutMinutes = 20,
     [int]$PollSeconds = 15,
     [string]$RequireCiSuccess = "true",
+    [string]$SkipPublish = "false",
     [string]$TriggerCommand = "Write-Host 'No trigger command configured. Nothing to run.'",
     [string]$NotifyMode = "ntfy",
     [string]$WebhookUrl = "",
@@ -221,6 +222,7 @@ if (-not (Test-CommandExists "git")) {
 }
 
 $requireCi = @("1", "true", "yes", "y", "on") -contains $RequireCiSuccess.ToLowerInvariant()
+$skipPublish = @("1", "true", "yes", "y", "on") -contains $SkipPublish.ToLowerInvariant()
 
 if ($requireCi -and -not (Test-CommandExists "gh")) {
     throw "gh CLI is required when -RequireCiSuccess is enabled."
@@ -270,14 +272,18 @@ try {
         }
     }
 
-    # Step 3: tag and publish GitHub release for release/VERSION at this commit
-    $publishScript = Join-Path (Get-RepoRoot) "release\scripts\publish-release.ps1"
-    if (Test-Path $publishScript) {
-        Write-Host "Publishing release for commit $commitSha..."
-        & powershell -NoProfile -ExecutionPolicy Bypass -File $publishScript -CommitSha $commitSha
-        if ($LASTEXITCODE -ne 0) {
-            throw "publish-release.ps1 failed with exit code $LASTEXITCODE."
+    # Step 3: tag and publish GitHub release (skipped when GitHub Actions already published)
+    if (-not $skipPublish) {
+        $publishScript = Join-Path (Get-RepoRoot) "release\scripts\publish-release.ps1"
+        if (Test-Path $publishScript) {
+            Write-Host "Publishing release for commit $commitSha..."
+            & powershell -NoProfile -ExecutionPolicy Bypass -File $publishScript -CommitSha $commitSha
+            if ($LASTEXITCODE -ne 0) {
+                throw "publish-release.ps1 failed with exit code $LASTEXITCODE."
+            }
         }
+    } else {
+        Write-Host "Skipping local publish (GitHub Actions publishes release on main)."
     }
 
     # Step 4: trigger NAS pull/deploy action

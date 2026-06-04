@@ -116,8 +116,10 @@ Optional: uncomment the `kafka` external network in [docker-compose.standalone.y
 ## Postgres
 
 - Image: `postgres:16-alpine`, container `data-solution-postgres`, hostname `postgres`.
-- Database: `data_solution` (see [postgres/.env.example](postgres/.env.example)).
+- Database: `data-solution-2026` (see [postgres/.env.example](postgres/.env.example)).
 - Init DDL: [code/postgres/schema.sql](../code/postgres/schema.sql) mounted into `docker-entrypoint-initdb.d` on first start.
+- Application role: `data-solution-2026_app` (login, `SELECT`/`INSERT` on `poller` only). Create or rotate with [postgres/create-app-user.sh](postgres/create-app-user.sh); set `POSTGRES_USER` / `POSTGRES_PASSWORD` in Airflow `.env` to that role (see [airflow/.env.example](airflow/.env.example)).
+- Upgrading from `data_solution`: run [postgres/migrate-database-name.sh](postgres/migrate-database-name.sh) once, update `.env`, then `create-app-user.sh`.
 - Poller appends one row per probe to table `poller` (`data_object_id`, `polled_at_utc`, `old_marker`, `new_marker`, event envelope fields).
 
 ### UI shows Bad Gateway or Missing Meta Database / Scheduler / Triggerer

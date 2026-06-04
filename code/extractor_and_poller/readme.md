@@ -37,7 +37,7 @@ Airflow DAGs: [`code/airflow/`](../airflow/readme.md).
 
 - No local files or directories are created by the poller.
 - Each run appends one row to Postgres table `poller` (see [../postgres/schema.sql](../postgres/schema.sql)).
-- Environment: `POSTGRES_HOST`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` (default `data_solution`), or `POSTGRES_DSN`.
+- Environment: `POSTGRES_HOST`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` (default `data-solution-2026`), or `POSTGRES_DSN`.
 
 ## Project structure
 

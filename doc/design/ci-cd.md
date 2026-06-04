@@ -34,7 +34,8 @@ Keep CI/CD simple: commit to `main`, run checks in GitHub Actions, then deploy f
 
 - **Main only**: all development and deployment happens through `main`.
 - **Git remote**: source of truth for commit history, tags, and release notes.
-- **GitHub Actions**: runs checks on each commit to `main`.
+- **GitHub Actions** (`.github/workflows/deploy-main.yml`): on each push to `main`, sends an **ntfy** notification, runs tests, publishes the GitHub release, and optionally deploys via SSH when repository secrets are set.
+- **Post-push hook** (local): after you push from this machine, waits for CI success and SSH-triggers NAS deploy (required when GitHub cannot reach the NAS).
 - **NAS (runtime)**: deployment target for Airflow, poller, and extractor runtime.
 
 ## Prerequisites
@@ -77,11 +78,13 @@ Releases are automated when you commit and push on `main`:
    - Scaffolds `release/notes/<version>.md` and `release/details/<version>/`.
    - Skipped when only release-metadata files are staged, on non-`main` branches, or when `SKIP_RELEASE=1`.
 2. **Commit**: edit the new release note scope/changes if needed; hooks refresh TOC, prompts, and release details.
-3. **Push to `main`**: GitHub Actions runs CI.
-4. **Post-push watcher** (`wait-and-trigger-pull.ps1`):
-   - Waits for the commit on `origin/main` and CI success.
-   - Runs `publish-release.ps1` (annotated tag + GitHub Release from `release/notes/<version>.md`).
-   - Triggers NAS deploy via SSH.
+3. **Push to `main`**: starts the CI/CD cycle:
+   - **ntfy** immediately: “CI/CD started” (GitHub Actions) and “Push to main” (post-push hook, if installed).
+   - **GitHub Actions**: tests → publish tag/release → optional NAS SSH deploy.
+   - **Post-push watcher** (`wait-and-trigger-pull.ps1`, `-SkipPublish`):
+     - Waits for the commit on `origin/main` and CI success.
+     - Triggers NAS deploy via SSH (`deploy-on-nas.sh`).
+4. **ntfy** on deploy success or failure (watcher or Actions deploy job).
 5. Optional: commit post-commit staged metadata (`chore: refresh release details`) or include in the next feature commit.
 
 Manual override:
@@ -105,16 +108,17 @@ gh release create vYYYY.MM.DD.N --notes-file release/notes/vYYYY.MM.DD.N.md
 
 ## Deploy model without GitHub to NAS access
 
-Because GitHub cannot reach the local/NAS server, deployment is pull-based:
+GitHub-hosted runners usually cannot reach a LAN-only NAS. Deployment stays **pull-based** on the NAS, triggered after green CI:
 
-1. Push commit to `main`.
-2. GitHub Actions runs CI checks only.
-3. After CI is green, trigger deploy from NAS (manual command or scheduled job).
-4. NAS updates to latest `origin/main`.
-5. NAS applies app-level runtime actions (for example Airflow DAG/code refresh and optional migrations).
-6. NAS runs smoke checks.
+1. Push commit to `main` → GitHub Actions notifies via **ntfy**, runs tests, publishes release.
+2. **Post-push hook** (from your dev machine on the LAN) waits for CI green, then SSH-runs `deploy-on-nas.sh`.
+3. Alternatively, configure repository secrets for direct SSH deploy from Actions:
+   - `NAS_SSH_PRIVATE_KEY` — deploy key or user private key
+   - `NAS_SSH_HOST` — default `basnas`
+   - `NAS_SSH_USER` — default `bas`
+4. NAS updates to latest `origin/main` and applies runtime actions (Airflow DAG refresh, optional `RUN_INFRA_SYNC=1`).
 
-GitHub workflow used for checks: `.github/workflows/deploy-main.yml`.
+Workflow: `.github/workflows/deploy-main.yml` (notify → test → release → deploy).
 
 ## Server-side deploy script
 
@@ -138,14 +142,13 @@ Optional automation on NAS:
 
 ## Auto trigger from Cursor on push
 
-You can auto-trigger NAS deployment from this development environment right after each push to `main`.
+Install the post-push hook once so every **push to `main`** from this machine completes the cycle (notify → CI → deploy):
 
-How it works:
-
-1. `post-push` hook starts a background script.
-2. Script waits until the commit is visible on `origin/main`.
-3. Script waits until GitHub Actions CI is successful for that commit.
-4. Script runs a trigger command (typically SSH to NAS deploy script).
+1. **ntfy** on push: “Push to main” (immediate).
+2. **GitHub Actions** on `origin/main`: ntfy “CI/CD started”, tests, release publish.
+3. `post-push` hook starts `wait-and-trigger-pull.ps1` in the background.
+4. Watcher waits until the commit is on `origin/main` and CI is green.
+5. Watcher SSH-triggers `deploy-on-nas.sh` and sends ntfy success/failure.
 
 Scripts in this repo:
 

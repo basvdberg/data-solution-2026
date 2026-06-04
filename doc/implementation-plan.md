@@ -132,7 +132,7 @@ Set **Airflow Variables** (Admin → Variables) or export env vars in compose fo
 | `poller_data_object_id` | `source/openmeteo/daily-temperature` | Selects mapping via source id |
 | `poller_publish` | `none` → `stdout` → `kafka` | Event transport (ramp gradually) |
 | `POSTGRES_HOST` | `postgres:5432` on Docker network | Poller metadata (`poller` table) |
-| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | `data_solution` on NAS | DSN pieces for poller |
+| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | `data-solution-2026` on NAS | DSN pieces for poller |
 | `KAFKA_HOST` | `kafka:9092` on shared Docker network | When `poller_publish=kafka` |
 
 Optional: uncomment the `kafka` external network in [docker-compose.standalone.yaml](../infra/airflow/docker-compose.standalone.yaml) so the Airflow container can reach the broker.

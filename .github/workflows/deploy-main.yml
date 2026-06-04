@@ -1,12 +1,54 @@
-name: CI on main
+name: CI/CD on main
 
 on:
   push:
     branches:
       - main
 
+permissions:
+  contents: write
+
+env:
+  NTFY_TOPIC: data-solution-2026-deploy
+  NTFY_BASE_URL: https://ntfy.sh
+
 jobs:
+  notify-push:
+    name: Notify — push to main
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      short_sha: ${{ steps.version.outputs.short_sha }}
+      notes_url: ${{ steps.version.outputs.notes_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read release metadata
+        id: version
+        run: |
+          v=$(tr -d ' \r\n' < release/VERSION)
+          if [[ "$v" != v* ]]; then
+            v="v${v}"
+          fi
+          short="${GITHUB_SHA:0:7}"
+          notes="https://github.com/${GITHUB_REPOSITORY}/blob/main/release/notes/${v}.md"
+          echo "version=${v}" >> "$GITHUB_OUTPUT"
+          echo "short_sha=${short}" >> "$GITHUB_OUTPUT"
+          echo "notes_url=${notes}" >> "$GITHUB_OUTPUT"
+
+      - name: Notify — CI/CD cycle started
+        run: |
+          chmod +x release/scripts/notify-ntfy.sh
+          bash release/scripts/notify-ntfy.sh \
+            "CI/CD started: ${{ steps.version.outputs.version }}" \
+            "Push to main (${{ steps.version.outputs.short_sha }}). Running tests, release, then NAS deploy." \
+            "default" \
+            "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
   test:
+    name: Test
+    needs: notify-push
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -25,3 +67,97 @@ jobs:
       - name: Run tests
         run: python -m pytest -q
 
+  release:
+    name: Publish release
+    needs: [notify-push, test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Publish tag and GitHub release
+        env:
+          COMMIT_SHA: ${{ github.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          chmod +x release/scripts/publish-release.sh
+          bash release/scripts/publish-release.sh
+
+      - name: Notify — release published
+        if: success()
+        run: |
+          chmod +x release/scripts/notify-ntfy.sh
+          bash release/scripts/notify-ntfy.sh \
+            "Release published: ${{ needs.notify-push.outputs.version }}" \
+            "Tag and GitHub release for commit ${{ needs.notify-push.outputs.short_sha }}." \
+            "default" \
+            "${{ needs.notify-push.outputs.notes_url }}"
+
+  deploy:
+    name: Deploy to NAS
+    needs: [notify-push, test, release]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH (optional)
+        id: ssh_deploy
+        env:
+          NAS_SSH_PRIVATE_KEY: ${{ secrets.NAS_SSH_PRIVATE_KEY }}
+          NAS_SSH_HOST: ${{ secrets.NAS_SSH_HOST }}
+          NAS_SSH_USER: ${{ secrets.NAS_SSH_USER }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${NAS_SSH_PRIVATE_KEY:-}" ]]; then
+            echo "skip_ssh=true" >> "$GITHUB_OUTPUT"
+            echo "NAS_SSH_PRIVATE_KEY not configured; deploy is triggered by post-push hook or NAS pull."
+            exit 0
+          fi
+          host="${NAS_SSH_HOST:-basnas}"
+          user="${NAS_SSH_USER:-bas}"
+          install -m 700 -d ~/.ssh
+          echo "$NAS_SSH_PRIVATE_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -H "$host" >> ~/.ssh/known_hosts 2>/dev/null || true
+          ssh -i ~/.ssh/id_deploy -o StrictHostKeyChecking=accept-new \
+            "${user}@${host}" \
+            "bash -lc 'bash ~/apps/data-solution-2026/release/scripts/deploy-on-nas.sh'"
+          echo "skip_ssh=false" >> "$GITHUB_OUTPUT"
+
+      - name: Notify — deploy succeeded
+        if: success() && steps.ssh_deploy.outputs.skip_ssh != 'true'
+        run: |
+          chmod +x release/scripts/notify-ntfy.sh
+          bash release/scripts/notify-ntfy.sh \
+            "Deploy succeeded: ${{ needs.notify-push.outputs.version }}" \
+            "NAS deployment completed for commit ${{ needs.notify-push.outputs.short_sha }}." \
+            "default" \
+            "${{ needs.notify-push.outputs.notes_url }}"
+
+      - name: Notify — deploy delegated to post-push
+        if: success() && steps.ssh_deploy.outputs.skip_ssh == 'true'
+        run: |
+          chmod +x release/scripts/notify-ntfy.sh
+          bash release/scripts/notify-ntfy.sh \
+            "CI green — deploy pending: ${{ needs.notify-push.outputs.version }}" \
+            "Tests and release published. NAS pull runs via post-push hook (install with release/scripts/install-post-push-hook.ps1) or manual SSH." \
+            "low" \
+            "${{ needs.notify-push.outputs.notes_url }}"
+
+  notify-failure:
+    name: Notify — failure
+    needs: [notify-push, test, release, deploy]
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Notify — CI/CD failed
+        run: |
+          chmod +x release/scripts/notify-ntfy.sh
+          bash release/scripts/notify-ntfy.sh \
+            "CI/CD failed: ${{ needs.notify-push.outputs.version }}" \
+            "Pipeline failed for commit ${{ needs.notify-push.outputs.short_sha }}. See GitHub Actions logs." \
+            "high" \
+            "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
