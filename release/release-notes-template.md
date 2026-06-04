@@ -121,8 +121,10 @@ docker compose up -d
       - V2026.06.04.1
       - V2026.06.04.2
       - V2026.06.04.3
+      - V2026.06.04.4
       - ﻿V2026.06.04.1
       - ﻿V2026.06.04.2
+      - ﻿V2026.06.04.3
     - Notes
       - [Release v2026.06.02.1](notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](notes/v2026.06.02.2.md)
@@ -133,6 +135,7 @@ docker compose up -d
       - [V2026.06.04.1](notes/v2026.06.04.1.md)
       - [V2026.06.04.2](notes/v2026.06.04.2.md)
       - [V2026.06.04.3](notes/v2026.06.04.3.md)
+      - [V2026.06.04.4](notes/v2026.06.04.4.md)
     - [Release <version>](release-notes-template.md)
   - Setting
   - Template

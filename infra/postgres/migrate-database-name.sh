@@ -62,5 +62,5 @@ else
 fi
 
 echo "Migration finished."
-echo "Update ${ENV_FILE}: POSTGRES_DB=${NEW_DB}, DATA_SOLUTION_APP_USER=${NEW_USER} (keep POSTGRES_USER=postgres)."
-echo "Update Airflow .env: POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD. Then run create-app-user.sh."
+echo "Update ${ENV_FILE}: DATA_SOLUTION_DB=${NEW_DB}, DATA_SOLUTION_APP_USER=${NEW_USER} (keep POSTGRES_USER=postgres)."
+echo "Update Airflow .env: DATA_SOLUTION_DB, POSTGRES_USER, POSTGRES_PASSWORD. Then run create-app-user.sh."

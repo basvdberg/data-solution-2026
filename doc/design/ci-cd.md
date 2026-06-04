@@ -34,7 +34,7 @@ Keep CI/CD simple: commit to `main`, run checks in GitHub Actions, then deploy f
 
 - **Main only**: all development and deployment happens through `main`.
 - **Git remote**: source of truth for commit history, tags, and release notes.
-- **GitHub Actions** (`.github/workflows/deploy-main.yml`): on each push to `main`, sends an **ntfy** notification, runs tests, publishes the GitHub release, and optionally deploys via SSH when repository secrets are set.
+- **GitHub Actions** (`.github/workflows/deploy-main.yml`): on each push to `main`, sends an **ntfy** notification, runs tests, and publishes the GitHub release (no NAS deploy from GitHub).
 - **Post-push hook** (local): after you push from this machine, waits for CI success and SSH-triggers NAS deploy (required when GitHub cannot reach the NAS).
 - **NAS (runtime)**: deployment target for Airflow, poller, and extractor runtime.
 
@@ -80,11 +80,11 @@ Releases are automated when you commit and push on `main`:
 2. **Commit**: edit the new release note scope/changes if needed; hooks refresh TOC, prompts, and release details.
 3. **Push to `main`**: starts the CI/CD cycle:
    - **ntfy** immediately: “CI/CD started” (GitHub Actions) and “Push to main” (post-push hook, if installed).
-   - **GitHub Actions**: tests → publish tag/release → optional NAS SSH deploy.
+   - **GitHub Actions**: tests → publish tag/release.
    - **Post-push watcher** (`wait-and-trigger-pull.ps1`, `-SkipPublish`):
      - Waits for the commit on `origin/main` and CI success.
      - Triggers NAS deploy via SSH (`deploy-on-nas.sh`).
-4. **ntfy** on deploy success or failure (watcher or Actions deploy job).
+4. **ntfy** on deploy success or failure (post-push watcher).
 5. Optional: commit post-commit staged metadata (`chore: refresh release details`) or include in the next feature commit.
 
 Manual override:
@@ -112,13 +112,9 @@ GitHub-hosted runners usually cannot reach a LAN-only NAS. Deployment stays **pu
 
 1. Push commit to `main` → GitHub Actions notifies via **ntfy**, runs tests, publishes release.
 2. **Post-push hook** (from your dev machine on the LAN) waits for CI green, then SSH-runs `deploy-on-nas.sh`.
-3. Alternatively, configure repository secrets for direct SSH deploy from Actions:
-   - `NAS_SSH_PRIVATE_KEY` — deploy key or user private key
-   - `NAS_SSH_HOST` — default `basnas`
-   - `NAS_SSH_USER` — default `bas`
-4. NAS updates to latest `origin/main` and applies runtime actions (Airflow DAG refresh, optional `RUN_INFRA_SYNC=1`).
+3. NAS updates to latest `origin/main` and applies runtime actions (Airflow DAG refresh, optional `RUN_INFRA_SYNC=1`).
 
-Workflow: `.github/workflows/deploy-main.yml` (notify → test → release → deploy).
+Workflow: `.github/workflows/deploy-main.yml` (notify → test → release).
 
 ## Server-side deploy script
 
@@ -286,8 +282,10 @@ git checkout <previous-tag>
       - V2026.06.04.1
       - V2026.06.04.2
       - V2026.06.04.3
+      - V2026.06.04.4
       - ﻿V2026.06.04.1
       - ﻿V2026.06.04.2
+      - ﻿V2026.06.04.3
     - Notes
       - [Release v2026.06.02.1](../../release/notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../../release/notes/v2026.06.02.2.md)
@@ -298,6 +296,7 @@ git checkout <previous-tag>
       - [V2026.06.04.1](../../release/notes/v2026.06.04.1.md)
       - [V2026.06.04.2](../../release/notes/v2026.06.04.2.md)
       - [V2026.06.04.3](../../release/notes/v2026.06.04.3.md)
+      - [V2026.06.04.4](../../release/notes/v2026.06.04.4.md)
     - [Release <version>](../../release/release-notes-template.md)
   - Setting
   - Template

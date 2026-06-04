@@ -37,7 +37,7 @@ services:
       POSTGRES_HOST: ${POSTGRES_HOST:-postgres:5432}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
-      POSTGRES_DB: ${POSTGRES_DB:-data-solution-2026}
+      DATA_SOLUTION_DB: ${DATA_SOLUTION_DB:-${POSTGRES_DB:-data-solution-2026}}
       _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-requests>=2.32,<3 pandas>=2.2,<3 pyarrow>=16 jsonschema>=4 kafka-python psycopg[binary]}
     restart: unless-stopped
     networks:

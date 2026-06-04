@@ -7,6 +7,8 @@
 - [Scope](#scope)
 - [Related documentation](#related-documentation)
 - [Prerequisites](#prerequisites)
+  - [BasNAS server setup (ordered)](#basnas-server-setup-ordered)
+  - [Application and smoke checks](#application-and-smoke-checks)
 - [Implementation steps](#implementation-steps)
   - [Step 1 — Run the Open-Meteo data object poller in Airflow](#step-1-run-the-open-meteo-data-object-poller-in-airflow)
     - [1.1 Create the DAG folder and file](#11-create-the-dag-folder-and-file)
@@ -48,21 +50,150 @@ Out of scope for this plan: additional sources, multi-mapping routing, and advan
 |-------|----------|
 | Target architecture and event contract | [Event-based orchestration plan](design/event-based-orchestration-plan.md) |
 | Airflow / Kafka Compose on NAS | [Infrastructure](../infra/readme.md) |
-| Deploy and poller rollout sequence | [CI/CD workflow](design/ci-cd.md) |
+| Deploy to BasNAS (commit + push `main`) | [CI/CD workflow](design/ci-cd.md) · Cursor skill `.cursor/skills/deploy-basnas-via-cicd` |
 | Poller CLI and options | [Extractor and poller](../code/extractor_and_poller/readme.md) |
 | Airflow DAGs and variables | [code/airflow](../code/airflow/readme.md) |
 | Local commands | [Getting started](../getting-started.md) |
 
 ## Prerequisites
 
-Complete before Step 1:
+Complete everything below before [Step 1](#step-1-run-the-open-meteo-data-object-poller-in-airflow). Detailed stack behaviour: [Infrastructure](../infra/readme.md). Deploy automation: [CI/CD workflow](design/ci-cd.md).
 
-- [ ] `data-solution-2026` clone on BasNAS at `~/apps/data-solution-2026` (or your `APP_ROOT`).
-- [ ] Airflow standalone stack running; repo mounted at `/opt/data-solution` via `DATA_SOLUTION_ROOT` in [infra/airflow/.env.example](../infra/airflow/.env.example).
-- [ ] Postgres metadata stack running (`infra/postgres`); Airflow on network `data-solution-postgres_default`.
-- [ ] Container has poller dependencies (`requests`, `pandas`, `pyarrow`, `jsonschema`, `psycopg[binary]`).
-- [ ] Mapping config exists: `data-object-mapping/staging/openmeteo/daily-temperature.json`.
-- [ ] Local poller smoke passes from repo root:
+### BasNAS server setup (ordered)
+
+Run on BasNAS over SSH unless noted. Check off each step in order.
+
+#### 1 — One-time host tooling
+
+- [ ] **Docker** available for SSH sessions. If `docker: command not found`, run once from the repo clone:
+
+```bash
+cd ~/apps/data-solution-2026
+bash infra/scripts/setup-nas-ssh-env.sh
+```
+
+- [ ] **Git** works over non-interactive SSH. If `git` fails with `libcharset.so.1`, the same script fixes it; for bare `ssh … git`, also run `bash infra/scripts/enable-nas-ssh-user-env.sh` once (admin password). See [Infrastructure — SSH troubleshooting](../infra/readme.md#non-interactive-ssh-git-fails-with-libcharsetso1).
+
+#### 2 — Clone the application repo
+
+- [ ] Clone or update `data-solution-2026` at `~/apps/data-solution-2026` (or set `APP_ROOT` to your path). NAS must be able to `git pull` from the remote (HTTPS token or deploy key).
+
+```bash
+mkdir -p ~/apps
+cd ~/apps
+git clone <your-remote-url> data-solution-2026   # first time only
+cd ~/apps/data-solution-2026
+git checkout main
+git pull origin main
+```
+
+#### 3 — Postgres metadata stack
+
+**First-time tip:** Seed compose files and `.env` without starting containers, then edit secrets, then start stacks:
+
+```bash
+cd ~/apps/data-solution-2026
+RUN_COMPOSE=0 bash infra/scripts/deploy-infra-on-nas.sh
+# Edit ~/data-solution-postgres/.env and ~/apache-airflow/.env (steps 3 and 5), then run deploy again without RUN_COMPOSE=0
+```
+
+- [ ] **Create `.env`** at `~/data-solution-postgres/.env` (deploy script can seed this from [infra/postgres/.env.example](../infra/postgres/.env.example)). Edit secrets — do not commit `.env`:
+
+| Variable | Set to | Notes |
+|----------|--------|--------|
+| `POSTGRES_USER` | `postgres` | Bootstrap superuser inside the container |
+| `POSTGRES_PASSWORD` | Strong secret | Superuser password |
+| `DATA_SOLUTION_DB` | `data-solution-2026` | Database name |
+| `POSTGRES_HOST_PORT` | e.g. `5433` | Host port if `5432` is taken on QNAP |
+| `DATA_SOLUTION_APP_USER` | `data-solution-2026_app` | Poller / Airflow application role |
+| `DATA_SOLUTION_APP_PASSWORD` | Strong secret | Must match Airflow `.env` after step 5 |
+| `DATA_SOLUTION_ROOT` | Absolute path to clone | e.g. `/share/.../apps/data-solution-2026` |
+
+- [ ] **Start Postgres** (first in stack order):
+
+```bash
+cd ~/apps/data-solution-2026
+bash infra/scripts/deploy-infra-on-nas.sh
+# Or Postgres only: RUN_COMPOSE=0 … then cd ~/data-solution-postgres && docker compose up -d
+```
+
+- [ ] **Create the application role** (reads `~/data-solution-postgres/.env`; prints password if generated):
+
+```bash
+cd ~/apps/data-solution-2026
+bash infra/postgres/create-app-user.sh
+```
+
+- [ ] **Verify**: container `data-solution-postgres` is up; init applied [code/postgres/schema.sql](../code/postgres/schema.sql) on first start.
+
+#### 4 — Kafka stack (needed before Step 2; optional for Step 1)
+
+- [ ] **Optional `.env`** at `~/kafka/.env` — only if you need a new cluster id ([infra/kafka/.env.example](../infra/kafka/.env.example)); changing `KAFKA_CLUSTER_ID` on an existing volume wipes data.
+
+- [ ] **Start Kafka** (included in `deploy-infra-on-nas.sh` after Postgres). Confirm broker and UI: `https://kafka.basnas/` or host port `8085`.
+
+#### 5 — Airflow standalone stack
+
+- [ ] **Create or update `.env`** at `~/apache-airflow/.env` from [infra/airflow/.env.example](../infra/airflow/.env.example). Required values:
+
+| Variable | Set to | Notes |
+|----------|--------|--------|
+| `AIRFLOW_ADMIN_PASSWORD` | Strong secret | UI login user `admin` |
+| `AIRFLOW_UID` | `id -u` on NAS | Writable `logs/` and `plugins/` on host |
+| `DATA_SOLUTION_ROOT` | Same absolute path as Postgres | Mounts repo at `/opt/data-solution` |
+| `AIRFLOW_HOST_PORT` | e.g. `8081` | Host → container `8080` |
+| `POSTGRES_HOST` | `postgres:5432` | Docker service name on shared network |
+| `POSTGRES_USER` | `data-solution-2026_app` | From `create-app-user.sh` |
+| `POSTGRES_PASSWORD` | Same as `DATA_SOLUTION_APP_PASSWORD` | Must match Postgres `.env` |
+| `DATA_SOLUTION_DB` | `data-solution-2026` | |
+
+- [ ] **`_PIP_ADDITIONAL_REQUIREMENTS`** — leave commented to use the compose default (`requests`, `pandas`, `pyarrow`, `jsonschema`, `psycopg[binary]`, optional `kafka-python`).
+
+- [ ] **Start Airflow** (deploy script starts Postgres → Kafka → Airflow). First start can take **3–5 minutes** (`_PIP_ADDITIONAL_REQUIREMENTS` + DB init); `https://airflow.basnas/` may return 502 until healthy.
+
+```bash
+curl -s http://127.0.0.1:8081/api/v2/monitor/health
+```
+
+- [ ] **Verify mounts**: DAG folder `${DATA_SOLUTION_ROOT}/code/airflow/dags` → `/opt/airflow/dags`; app code at `/opt/data-solution`; `PYTHONPATH` includes `/opt/data-solution/code`.
+
+- [ ] **Verify network**: Airflow container joins external network `data-solution-postgres_default` so tasks reach `postgres:5432`.
+
+- [ ] **Optional (Step 2+)**: Uncomment the `kafka` external network in [docker-compose.standalone.yaml](../infra/airflow/docker-compose.standalone.yaml) and set `KAFKA_HOST=kafka:9092` when enabling Kafka publish.
+
+#### 6 — Sync compose files and restart stacks
+
+After pushing `infra/` changes to `main`, run on BasNAS (app pull is already done by CI/CD):
+
+```bash
+RUN_INFRA_SYNC=1 bash ~/apps/data-solution-2026/release/scripts/deploy-on-nas.sh
+```
+
+That runs `infra/scripts/deploy-infra-on-nas.sh`: copies compose to `~/apache-airflow`, `~/kafka`, and `~/data-solution-postgres`, preserves `.env`, sets `DATA_SOLUTION_ROOT` when missing, ensures `data/staging/...` dirs exist, and runs `docker compose up -d` in order. Options: `RUN_COMPOSE=0` (sync only), `DRY_RUN=1` (print actions). See [infra/readme.md](../infra/readme.md).
+
+#### 7 — Airflow Variables (before first poller DAG run)
+
+Set in the UI (**Admin → Variables**) or export the same names in `~/apache-airflow/.env` for the scheduler/worker environment:
+
+| Variable / env | Initial value | Purpose |
+|----------------|---------------|---------|
+| `poller_data_object_id` | `source/openmeteo/daily-temperature` | Poller `--data-object` |
+| `poller_publish` | `none` | Ramp: `none` → `stdout` → `kafka` (Step 2) |
+
+Postgres connection for the poller uses `POSTGRES_HOST`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `DATA_SOLUTION_DB` from step 5 (not Airflow Variables).
+
+#### 8 — Service readiness checklist
+
+- [ ] Postgres: `docker ps` shows `data-solution-postgres`; poller can connect as `data-solution-2026_app`.
+- [ ] Airflow: UI loads at `https://airflow.basnas/` (or `http://<nas>:8081`); login `admin` + `AIRFLOW_ADMIN_PASSWORD`.
+- [ ] DAG `openmeteo_data_object_poller` appears without import errors (paused by default).
+- [ ] HTTPS reverse proxy: NGINX shares the Airflow Docker network with `airflow-standalone` (see BasNAS deploy skill if 502 persists after health is green).
+
+### Application and smoke checks
+
+- [ ] **Mapping config** exists: `data-object-mapping/staging/openmeteo/daily-temperature.json`.
+
+- [ ] **Optional — local poller smoke** (dev machine; confirms CLI before NAS DAG):
 
 ```powershell
 cd "c:\Dev2\Data Engineering 2.0\data-solution-2026"
@@ -71,7 +202,21 @@ python -m extractor_and_poller.poller --list
 python -m extractor_and_poller.poller --data-object source/openmeteo/daily-temperature --publish stdout
 ```
 
-Expected: log line with `data_object_change` or `data_object_unchanged` and a JSON envelope on stdout.
+Expected: log line with `data_object_change` or `data_object_unchanged` and a JSON envelope on stdout. On NAS, the equivalent check is a manual DAG trigger in Step 1.5.
+
+- [ ] **Optional — poller smoke on NAS** after Postgres is up:
+
+```bash
+docker exec airflow-standalone bash -lc '
+  cd /opt/data-solution &&
+  PYTHONPATH=/opt/data-solution/code:/opt/data-solution \
+  python -m extractor_and_poller.poller \
+    --data-object source/openmeteo/daily-temperature \
+    --publish none
+'
+```
+
+Expected: probe log and `Persisted poller rows to Postgres table poller`.
 
 ---
 
@@ -110,16 +255,15 @@ Pass connection settings via Airflow Variables or environment (see 1.3).
 
 #### 1.2 Deploy DAGs to the running Airflow container
 
-On BasNAS:
+**Routine deploy:** commit and push to `main`; [CI/CD](design/ci-cd.md) runs tests and the post-push hook runs `release/scripts/deploy-on-nas.sh` on BasNAS (`git pull`). DAGs are bind-mounted from `code/airflow/dags/`—no manual copy.
+
+After deploy (or if compose under `infra/` changed), sync stacks when needed:
 
 ```bash
-cd ~/apps/data-solution-2026
-git pull origin main
-bash infra/scripts/deploy-infra-on-nas.sh
-# Or restart only Airflow:
-cd ~/apache-airflow   # or infra/airflow on host
-docker compose -f docker-compose.standalone.yaml up -d
+RUN_INFRA_SYNC=1 bash ~/apps/data-solution-2026/release/scripts/deploy-on-nas.sh
 ```
+
+Manual fallback only (troubleshooting): `git pull` on NAS or restart Airflow in `~/apache-airflow`.
 
 Confirm the DAG appears in the UI (`https://airflow.basnas/` or host port `8081`) without import errors.
 
@@ -132,7 +276,7 @@ Set **Airflow Variables** (Admin → Variables) or export env vars in compose fo
 | `poller_data_object_id` | `source/openmeteo/daily-temperature` | Selects mapping via source id |
 | `poller_publish` | `none` → `stdout` → `kafka` | Event transport (ramp gradually) |
 | `POSTGRES_HOST` | `postgres:5432` on Docker network | Poller metadata (`poller` table) |
-| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | `data-solution-2026` on NAS | DSN pieces for poller |
+| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `DATA_SOLUTION_DB` | `data-solution-2026` on NAS | DSN pieces for poller |
 | `KAFKA_HOST` | `kafka:9092` on shared Docker network | When `poller_publish=kafka` |
 
 Optional: uncomment the `kafka` external network in [docker-compose.standalone.yaml](../infra/airflow/docker-compose.standalone.yaml) so the Airflow container can reach the broker.
@@ -235,7 +379,7 @@ Document any failures in [lessons-learned.md](../lessons-learned.md).
 
 Align with [Poller rollout merged into CI/CD](design/ci-cd.md#poller-rollout-merged-into-cicd) and release process:
 
-1. Merge DAG and controller code to `main`; tag release; NAS `git pull` via deploy script.
+1. Commit and push DAG and controller code to `main`; release and NAS deploy run via [CI/CD](design/ci-cd.md) (post-push hook → `deploy-on-nas.sh`).
 2. Roll out in order: poller DAG (paused) → Kafka publish → passive controller → active triggers → idempotency tests.
 3. Record DAG ids and rollback tag in [release notes](../release/release-notes-template.md).
 4. Keep poller DAG paused on failed deploy until smoke passes.
@@ -308,8 +452,10 @@ For schema-level acceptance criteria, use [Definition of done](design/event-base
       - V2026.06.04.1
       - V2026.06.04.2
       - V2026.06.04.3
+      - V2026.06.04.4
       - ﻿V2026.06.04.1
       - ﻿V2026.06.04.2
+      - ﻿V2026.06.04.3
     - Notes
       - [Release v2026.06.02.1](../release/notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../release/notes/v2026.06.02.2.md)
@@ -320,6 +466,7 @@ For schema-level acceptance criteria, use [Definition of done](design/event-base
       - [V2026.06.04.1](../release/notes/v2026.06.04.1.md)
       - [V2026.06.04.2](../release/notes/v2026.06.04.2.md)
       - [V2026.06.04.3](../release/notes/v2026.06.04.3.md)
+      - [V2026.06.04.4](../release/notes/v2026.06.04.4.md)
     - [Release <version>](../release/release-notes-template.md)
   - Setting
   - Template

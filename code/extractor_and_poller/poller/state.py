@@ -45,7 +45,9 @@ def default_postgres_dsn() -> str:
     host = os.getenv("POSTGRES_HOST", "localhost:5432")
     user = os.getenv("POSTGRES_USER", "postgres")
     password = os.getenv("POSTGRES_PASSWORD", "postgres")
-    database = os.getenv("POSTGRES_DB", "data-solution-2026")
+    database = os.getenv("DATA_SOLUTION_DB") or os.getenv(
+        "POSTGRES_DB", "data-solution-2026"
+    )
     return f"postgresql://{user}:{password}@{host}/{database}"
 
 

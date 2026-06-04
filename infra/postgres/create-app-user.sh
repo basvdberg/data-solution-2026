@@ -15,7 +15,7 @@ POSTGRES_DEST="${POSTGRES_DEST:-$HOME/data-solution-postgres}"
 ENV_FILE="${ENV_FILE:-${POSTGRES_DEST}/.env}"
 CONTAINER="${POSTGRES_CONTAINER:-data-solution-postgres}"
 APP_USER="${DATA_SOLUTION_APP_USER:-data-solution-2026_app}"
-APP_DB="${POSTGRES_DB:-data-solution-2026}"
+APP_DB="${DATA_SOLUTION_DB:-${POSTGRES_DB:-data-solution-2026}}"
 GRANT_SQL="${GRANT_SQL:-${REPO_ROOT}/code/postgres/grant-app-user.sql}"
 
 if [ -f "$ENV_FILE" ]; then

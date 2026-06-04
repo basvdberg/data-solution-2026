@@ -37,7 +37,7 @@ Airflow DAGs: [`code/airflow/`](../airflow/readme.md).
 
 - No local files or directories are created by the poller.
 - Each run appends one row to Postgres table `poller` (see [../postgres/schema.sql](../postgres/schema.sql)).
-- Environment: `POSTGRES_HOST`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` (default `data-solution-2026`), or `POSTGRES_DSN`.
+- Environment: `POSTGRES_HOST`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `DATA_SOLUTION_DB` (default `data-solution-2026`), or `POSTGRES_DSN`.
 
 ## Project structure
 
@@ -92,8 +92,10 @@ Airflow DAGs: [`code/airflow/`](../airflow/readme.md).
       - V2026.06.04.1
       - V2026.06.04.2
       - V2026.06.04.3
+      - V2026.06.04.4
       - ﻿V2026.06.04.1
       - ﻿V2026.06.04.2
+      - ﻿V2026.06.04.3
     - Notes
       - [Release v2026.06.02.1](../../release/notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../../release/notes/v2026.06.02.2.md)
@@ -104,6 +106,7 @@ Airflow DAGs: [`code/airflow/`](../airflow/readme.md).
       - [V2026.06.04.1](../../release/notes/v2026.06.04.1.md)
       - [V2026.06.04.2](../../release/notes/v2026.06.04.2.md)
       - [V2026.06.04.3](../../release/notes/v2026.06.04.3.md)
+      - [V2026.06.04.4](../../release/notes/v2026.06.04.4.md)
     - [Release <version>](../../release/release-notes-template.md)
   - Setting
   - Template
