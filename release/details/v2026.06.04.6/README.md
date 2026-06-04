@@ -6,6 +6,12 @@
 - [Linked files](#linked-files)
 <!-- markdown-toc:end -->
 
+## Table of contents
+
+
+﻿## Table of contents
+
+
 ﻿## Table of contents
 
 
@@ -15,9 +21,9 @@
 
 - Version: `v2026.06.04.6`
 - Development start: `2026-06-04T14:54:38+02:00`
-- Development end: `2026-06-04T14:54:50+02:00`
+- Development end: `2026-06-04T14:55:14+02:00`
 - Release branch: `main`
-- Release commit: `5b21270e2c5a1eeb63a3d273143edad1b7f9d34e`
+- Release commit: `8640873ec0cbabb1b9bf81c1c5e42dc1b61540ad`
 
 ## Summary
 
@@ -83,12 +89,14 @@
       - V2026.06.04.4
       - V2026.06.04.5
       - V2026.06.04.6
+      - V2026.06.04.7
       - ﻿V2026.06.04.1
       - ﻿V2026.06.04.2
       - ﻿V2026.06.04.3
       - ﻿V2026.06.04.4
       - ﻿V2026.06.04.5
       - ﻿V2026.06.04.6
+      - ﻿V2026.06.04.7
     - Notes
       - [Release v2026.06.02.1](../../notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../../notes/v2026.06.02.2.md)
@@ -102,6 +110,7 @@
       - [V2026.06.04.4](../../notes/v2026.06.04.4.md)
       - [V2026.06.04.5](../../notes/v2026.06.04.5.md)
       - [V2026.06.04.6](../../notes/v2026.06.04.6.md)
+      - [V2026.06.04.7](../../notes/v2026.06.04.7.md)
     - [Release <version>](../../release-notes-template.md)
   - Setting
   - Template

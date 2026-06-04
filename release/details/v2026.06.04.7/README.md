@@ -2,36 +2,30 @@
 
 <!-- markdown-toc:start -->
 - [Release metadata](#release-metadata)
-- [Sequential summary of applied changes](#sequential-summary-of-applied-changes)
+- [Summary](#summary)
 - [Linked files](#linked-files)
 <!-- markdown-toc:end -->
-
-## Table of contents
-
 
 ﻿## Table of contents
 
 
-﻿# Release v2026.06.03.1 - Details
+﻿# Release v2026.06.04.7 - Details
 
 ## Release metadata
 
-
-- Development end: `2026-06-03T11:35:12+02:00`
-- Development start: `2026-06-03T11:27:02+02:00`
-- Version: `v2026.06.03.1`
+- Version: `v2026.06.04.7`
+- Development start: `2026-06-04T15:14:08+02:00`
+- Development end: `2026-06-04T15:14:21+02:00`
 - Release branch: `main`
-- Release commit: `874e7a061a342952e80491fa077ff6c955623445`
+- Release commit: `c73380265bd014a841813c6722105a99f4226e03`
 
-## Sequential summary of applied changes
+## Summary
 
-1. Fixed ntfy topic mismatch between docs and post-push hook.
-2. Added immediate ntfy notification when CI/CD watcher starts.
-3. Full CI/CD cycle: commit → push → GitHub Actions → NAS pull deploy.
+- Update scope and changes in `release/notes/v2026.06.04.7.md`.
 
 ## Linked files
 
-- Release note: [`release/notes/v2026.06.03.1.md`](../../notes/v2026.06.03.1.md)
+- Release note: [`release/notes/v2026.06.04.7.md`](../../notes/v2026.06.04.7.md)
 
 ## Project structure
 
