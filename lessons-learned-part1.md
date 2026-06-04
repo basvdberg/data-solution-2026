@@ -136,9 +136,11 @@ I bought a very good microphone and used Wispr Flow to translate my voice to tex
       - V2026.06.04.2
       - V2026.06.04.3
       - V2026.06.04.4
+      - V2026.06.04.5
       - ﻿V2026.06.04.1
       - ﻿V2026.06.04.2
       - ﻿V2026.06.04.3
+      - ﻿V2026.06.04.4
     - Notes
       - [Release v2026.06.02.1](release/notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](release/notes/v2026.06.02.2.md)
@@ -150,6 +152,7 @@ I bought a very good microphone and used Wispr Flow to translate my voice to tex
       - [V2026.06.04.2](release/notes/v2026.06.04.2.md)
       - [V2026.06.04.3](release/notes/v2026.06.04.3.md)
       - [V2026.06.04.4](release/notes/v2026.06.04.4.md)
+      - [V2026.06.04.5](release/notes/v2026.06.04.5.md)
     - [Release <version>](release/release-notes-template.md)
   - Setting
   - Template

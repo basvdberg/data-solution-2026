@@ -8,6 +8,14 @@
 - [Related documentation](#related-documentation)
 - [Prerequisites](#prerequisites)
   - [BasNAS server setup (ordered)](#basnas-server-setup-ordered)
+    - [1 — One-time host tooling](#1-one-time-host-tooling)
+    - [2 — Clone the application repo](#2-clone-the-application-repo)
+    - [3 — Postgres metadata stack](#3-postgres-metadata-stack)
+    - [4 — Kafka stack (needed before Step 2; optional for Step 1)](#4-kafka-stack-needed-before-step-2-optional-for-step-1)
+    - [5 — Airflow standalone stack](#5-airflow-standalone-stack)
+    - [6 — Sync compose files and restart stacks](#6-sync-compose-files-and-restart-stacks)
+    - [7 — Airflow Variables (before first poller DAG run)](#7-airflow-variables-before-first-poller-dag-run)
+    - [8 — Service readiness checklist](#8-service-readiness-checklist)
   - [Application and smoke checks](#application-and-smoke-checks)
 - [Implementation steps](#implementation-steps)
   - [Step 1 — Run the Open-Meteo data object poller in Airflow](#step-1-run-the-open-meteo-data-object-poller-in-airflow)
@@ -453,9 +461,11 @@ For schema-level acceptance criteria, use [Definition of done](design/event-base
       - V2026.06.04.2
       - V2026.06.04.3
       - V2026.06.04.4
+      - V2026.06.04.5
       - ﻿V2026.06.04.1
       - ﻿V2026.06.04.2
       - ﻿V2026.06.04.3
+      - ﻿V2026.06.04.4
     - Notes
       - [Release v2026.06.02.1](../release/notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../release/notes/v2026.06.02.2.md)
@@ -467,6 +477,7 @@ For schema-level acceptance criteria, use [Definition of done](design/event-base
       - [V2026.06.04.2](../release/notes/v2026.06.04.2.md)
       - [V2026.06.04.3](../release/notes/v2026.06.04.3.md)
       - [V2026.06.04.4](../release/notes/v2026.06.04.4.md)
+      - [V2026.06.04.5](../release/notes/v2026.06.04.5.md)
     - [Release <version>](../release/release-notes-template.md)
   - Setting
   - Template
