@@ -6,6 +6,9 @@
 - [Linked files](#linked-files)
 <!-- markdown-toc:end -->
 
+## Table of contents
+
+
 ﻿## Table of contents
 
 
@@ -95,6 +98,9 @@ Deploy success/failure ntfy notifications include release version and GitHub rel
       - V2026.06.03.3
       - V2026.06.03.4
       - V2026.06.04.1
+      - V2026.06.04.2
+      - ﻿V2026.06.04.1
+      - ﻿V2026.06.04.2
     - Notes
       - [Release v2026.06.02.1](../../notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../../notes/v2026.06.02.2.md)
@@ -103,6 +109,7 @@ Deploy success/failure ntfy notifications include release version and GitHub rel
       - [Release v2026.06.03.3](../../notes/v2026.06.03.3.md)
       - [Release v2026.06.03.4](../../notes/v2026.06.03.4.md)
       - [V2026.06.04.1](../../notes/v2026.06.04.1.md)
+      - [V2026.06.04.2](../../notes/v2026.06.04.2.md)
     - [Release <version>](../../release-notes-template.md)
   - Setting
   - Template
