@@ -12,7 +12,8 @@
 ## Prerequisites
 
 - Python 3.11+
-- Dependencies installed for `data-solution-2026` (including optional `psycopg` and `kafka-python` when using those backends)
+- Dependencies installed for `data-solution-2026` (including `psycopg[binary]` for poller metadata and optional `kafka-python` for event publish)
+- Postgres running with database `data_solution` (see [infra/postgres](infra/postgres/docker-compose.yml))
 - Run commands from the `data-solution-2026/` root
 
 ## Quick start
@@ -30,10 +31,12 @@ Airflow DAGs (generated orchestration): [code/airflow/readme.md](code/airflow/re
 ## Run key components
 
 ```powershell
-# 1) List Enabled data object poller
+$env:PYTHONPATH = "code"
+
+# 1) List enabled data object poller entries
 python -m extractor_and_poller.poller --list
 
-# 2) Poll source/openmeteo/daily-temperature
+# 2) Poll source/openmeteo/daily-temperature (requires Postgres; see infra/postgres)
 python -m extractor_and_poller.poller --data-object source/openmeteo/daily-temperature
 
 # 3) Run extractor for OpenMeteo data object

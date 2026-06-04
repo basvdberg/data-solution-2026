@@ -1,17 +1,16 @@
-"""Unit tests for Open-Meteo poller (mocked HTTP)."""
+"""Unit tests for Open-Meteo poller (mocked HTTP and Postgres)."""
 
 from __future__ import annotations
 
-import tempfile
 import unittest
-from pathlib import Path
-from unittest.mock import patch
+from datetime import datetime, timezone
+from unittest.mock import MagicMock, patch
 
 from extractor_and_poller.common import config as cfg_module
 from extractor_and_poller.common.paths import PROJECT_ROOT
 from extractor_and_poller.poller import change_probe
 from extractor_and_poller.poller.events import event_payload
-from extractor_and_poller.poller.state import FileStateStore, PollerLogEntry
+from extractor_and_poller.poller.state import PostgresStateStore
 from extractor_and_poller.openmeteo.poller import probe as openmeteo_probe
 
 
@@ -81,41 +80,38 @@ class TestOpenMeteoPoller(unittest.TestCase):
         self.assertFalse(result.changed)
         self.assertEqual(result.event_type, "data_object_unchanged")
 
-    @patch("extractor_and_poller.openmeteo.extractor.client.requests.get")
-    def test_file_log_table_appends_poll_entry(self, mock_get) -> None:
-        mock_resp = mock_get.return_value
-        mock_resp.raise_for_status.return_value = None
-        mock_resp.json.return_value = OPENMETEO_FIXTURE
+    @patch("extractor_and_poller.poller.state.PostgresStateStore._connect")
+    def test_poller_table_append_and_last_marker(self, mock_connect) -> None:
+        conn = MagicMock()
+        cursor = MagicMock()
+        mock_connect.return_value = conn
+        conn.cursor.return_value.__enter__.return_value = cursor
+        cursor.fetchone.return_value = ("2026-05-21",)
 
-        with tempfile.TemporaryDirectory() as tmp:
-            state_path = Path(tmp) / "daily_temperature" / "data-object-poller-log.csv"
-            store = FileStateStore(state_path)
-            store.append(
-                PollerLogEntry(
-                    event_type="data_object_change",
-                    polled_at_utc="2026-05-26T00:00:00+00:00",
-                    old_marker=None,
-                    new_marker="2026-05-21",
-                )
-            )
+        store = PostgresStateStore("postgresql://example")
+        self.assertEqual(
+            store.last_marker("source/openmeteo/daily-temperature"),
+            "2026-05-21",
+        )
 
-            result = change_probe.poll_mapping(
-                self.mapping,
-                self.config,
-                run_id="run-1",
-                previous_marker=store.last_marker(),
-            )
-            store.append(PollerLogEntry.from_poll_result(result))
-            store.save()
+        result = change_probe.PollResult(
+            event_id="evt-1",
+            run_id="run-1",
+            data_object_id="source/openmeteo/daily-temperature",
+            source_data_object_id="source/openmeteo/daily-temperature",
+            target_data_object_id="staging/openmeteo/daily-temperature",
+            current_marker="2026-05-26",
+            previous_marker="2026-05-21",
+            event_time_utc=datetime(2026, 5, 26, tzinfo=timezone.utc),
+            event_type="data_object_change",
+        )
+        store.append(result)
 
-            lines = state_path.read_text(encoding="utf-8").splitlines()
-            self.assertGreaterEqual(len(lines), 3)
-            self.assertEqual(
-                lines[0],
-                "event_type,polled_at_utc,old_marker,new_marker",
-            )
-            self.assertIn("2026-05-21", lines[-1])
-            self.assertIn("2026-05-26", lines[-1])
+        insert_sql = cursor.execute.call_args_list[-1][0][0]
+        self.assertIn("insert into poller", insert_sql.lower())
+        insert_args = cursor.execute.call_args_list[-1][0][1]
+        self.assertEqual(insert_args[2], "source/openmeteo/daily-temperature")
+        self.assertEqual(insert_args[8], "2026-05-26")
 
     @patch("extractor_and_poller.openmeteo.extractor.client.requests.get")
     def test_event_payload_contract_fields(self, mock_get) -> None:

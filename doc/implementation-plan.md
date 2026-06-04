@@ -49,7 +49,7 @@ Out of scope for this plan: additional sources, multi-mapping routing, and advan
 | Target architecture and event contract | [Event-based orchestration plan](design/event-based-orchestration-plan.md) |
 | Airflow / Kafka Compose on NAS | [Infrastructure](../infra/readme.md) |
 | Deploy and poller rollout sequence | [CI/CD workflow](design/ci-cd.md) |
-| Poller CLI and options | [Extractor and poller](../extractor_and_poller/readme.md) |
+| Poller CLI and options | [Extractor and poller](../code/extractor_and_poller/readme.md) |
 | Airflow DAGs and variables | [code/airflow](../code/airflow/readme.md) |
 | Local commands | [Getting started](../getting-started.md) |
 
@@ -59,12 +59,14 @@ Complete before Step 1:
 
 - [ ] `data-solution-2026` clone on BasNAS at `~/apps/data-solution-2026` (or your `APP_ROOT`).
 - [ ] Airflow standalone stack running; repo mounted at `/opt/data-solution` via `DATA_SOLUTION_ROOT` in [infra/airflow/.env.example](../infra/airflow/.env.example).
-- [ ] Container has poller dependencies (`requests`, `pandas`, `pyarrow`, `jsonschema`; add `psycopg[binary]` when using Postgres state).
+- [ ] Postgres metadata stack running (`infra/postgres`); Airflow on network `data-solution-postgres_default`.
+- [ ] Container has poller dependencies (`requests`, `pandas`, `pyarrow`, `jsonschema`, `psycopg[binary]`).
 - [ ] Mapping config exists: `data-object-mapping/staging/openmeteo/daily-temperature.json`.
 - [ ] Local poller smoke passes from repo root:
 
 ```powershell
 cd "c:\Dev2\Data Engineering 2.0\data-solution-2026"
+$env:PYTHONPATH = "code"
 python -m extractor_and_poller.poller --list
 python -m extractor_and_poller.poller --data-object source/openmeteo/daily-temperature --publish stdout
 ```
@@ -94,23 +96,13 @@ DAG source lives under [`code/airflow/dags/`](../code/airflow/dags/). The compos
 | `max_active_runs` | `1` |
 | `is_paused_upon_creation` | `true` |
 
-The repo DAG uses `BashOperator` with working directory `/opt/data-solution` and `PYTHONPATH=/opt/data-solution`. Tune behaviour via Airflow Variables (see [code/airflow/readme.md](../code/airflow/readme.md)).
+The repo DAG uses `BashOperator` with working directory `/opt/data-solution` and `PYTHONPATH=/opt/data-solution/code:/opt/data-solution`. Tune behaviour via Airflow Variables (see [code/airflow/readme.md](../code/airflow/readme.md)).
 
-**First smoke command** (file state, no Kafka):
-
-```bash
-python -m extractor_and_poller.poller \
-  --data-object source/openmeteo/daily-temperature \
-  --state-backend file \
-  --publish none
-```
-
-**Target command** after Postgres is available (Step 1.4):
+**Smoke command** (Postgres state, optional stdout publish):
 
 ```bash
 python -m extractor_and_poller.poller \
   --data-object source/openmeteo/daily-temperature \
-  --state-backend postgres \
   --publish stdout
 ```
 
@@ -138,20 +130,19 @@ Set **Airflow Variables** (Admin → Variables) or export env vars in compose fo
 | Variable / env | Example | Purpose |
 |----------------|---------|---------|
 | `poller_data_object_id` | `source/openmeteo/daily-temperature` | Selects mapping via source id |
-| `poller_state_backend` | `file` → then `postgres` | Where baseline marker is stored |
 | `poller_publish` | `none` → `stdout` → `kafka` | Event transport (ramp gradually) |
-| `POSTGRES_HOST` | `host:5432` or tunnel `localhost:15432` | When using `--state-backend postgres` |
-| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | per your NAS Postgres | DSN pieces for poller |
+| `POSTGRES_HOST` | `postgres:5432` on Docker network | Poller metadata (`poller` table) |
+| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | `data_solution` on NAS | DSN pieces for poller |
 | `KAFKA_HOST` | `kafka:9092` on shared Docker network | When `poller_publish=kafka` |
 
 Optional: uncomment the `kafka` external network in [docker-compose.standalone.yaml](../infra/airflow/docker-compose.standalone.yaml) so the Airflow container can reach the broker.
 
-Add `psycopg[binary]` to `_PIP_ADDITIONAL_REQUIREMENTS` in Airflow `.env` before enabling Postgres state.
+`psycopg[binary]` is included in default `_PIP_ADDITIONAL_REQUIREMENTS`.
 
-#### 1.4 Wire Postgres state (recommended before schedule)
+#### 1.4 Wire Postgres metadata (before schedule)
 
-1. Ensure Postgres is reachable from the Airflow container (same host, sidecar, or tunnel).
-2. Run one manual poller execution with `--state-backend postgres`; the poller creates `data_object_poller_log` if missing (see `PostgresStateStore` in `extractor_and_poller/poller/state.py`).
+1. Start Postgres: `bash infra/scripts/deploy-infra-on-nas.sh` (starts `~/data-solution-postgres` before Airflow).
+2. Run one manual poller execution; the poller creates table `poller` if missing (see [code/postgres/schema.sql](../code/postgres/schema.sql)).
 3. Re-run the poller; confirm second run emits `data_object_unchanged` when the Open-Meteo marker did not advance.
 
 #### 1.5 Manual DAG run and acceptance
@@ -161,7 +152,7 @@ Add `psycopg[binary]` to `_PIP_ADDITIONAL_REQUIREMENTS` in Airflow `.env` before
 3. Open task logs and verify:
    - [ ] Probe reached Open-Meteo API (no import / network errors).
    - [ ] Log shows `data_object_change` or `data_object_unchanged` with `new=` / `old=` markers.
-   - [ ] State persisted (`Persisted poller state using backend '…'`).
+   - [ ] State persisted (`Persisted poller rows to Postgres table poller`).
 4. Trigger again without source change; expect `data_object_unchanged` only.
 5. When stable, set `poller_publish=stdout` and confirm JSON envelope in logs.
 6. **Unpause** the DAG only after the checks above pass.
@@ -183,7 +174,6 @@ Add `psycopg[binary]` to `_PIP_ADDITIONAL_REQUIREMENTS` in Airflow `.env` before
 ```bash
 python -m extractor_and_poller.poller \
   --data-object source/openmeteo/daily-temperature \
-  --state-backend postgres \
   --publish kafka
 ```
 
@@ -232,7 +222,7 @@ python -m extractor_and_poller.openmeteo.extractor --mapping daily-temperature
 Run the smoke sequence from the orchestration plan:
 
 1. Trigger poller DAG manually (or wait for schedule).
-2. Verify Kafka message and Postgres `data_object_poller_log` / `event_log` rows.
+2. Verify Kafka message and Postgres `poller` / `event_log` rows.
 3. On marker change, verify extract DAG triggered and Parquet landed.
 4. Re-trigger with unchanged marker; verify no duplicate extract.
 5. Replay same `event_id`; verify idempotent skip.

@@ -24,6 +24,7 @@ services:
       - ./logs:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
       - ${DATA_SOLUTION_ROOT:-../../}:/opt/data-solution:ro
+      - ${DATA_SOLUTION_ROOT:-../../}/data:/opt/data-solution/data
       - ${DATA_SOLUTION_ROOT:-../../}/code/airflow/dags:/opt/airflow/dags:ro
     environment:
       AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: "admin:admin"
@@ -32,17 +33,20 @@ services:
       # Docker/QNAP often yields empty getfqdn(); without a hostname the UI builds http://:8793/log/...
       AIRFLOW__CORE__HOSTNAME_CALLABLE: airflow.utils.net.get_host_ip_address
       AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "true"
-      PYTHONPATH: /opt/data-solution
-      _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-requests>=2.32,<3 pandas>=2.2,<3 pyarrow>=16 jsonschema>=4 kafka-python}
+      PYTHONPATH: /opt/data-solution/code:/opt/data-solution
+      POSTGRES_HOST: ${POSTGRES_HOST:-postgres:5432}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: ${POSTGRES_DB:-data_solution}
+      _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-requests>=2.32,<3 pandas>=2.2,<3 pyarrow>=16 jsonschema>=4 kafka-python psycopg[binary]}
     restart: unless-stopped
     networks:
       - default
-      # Uncomment after infra/kafka is running (external network kafka_default):
-      # - kafka
+      - postgres
 
 networks:
   default:
     name: apache-airflow_default
-  # kafka:
-  #   external: true
-  #   name: kafka_default
+  postgres:
+    external: true
+    name: data-solution-postgres_default

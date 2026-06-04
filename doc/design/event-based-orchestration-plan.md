@@ -91,9 +91,9 @@ Kafka topics:
 
 Deliverables:
 
-- Keep `extractor_and_poller.poller` as the probe/decision engine.
-- Add Postgres-backed state store implementation (parallel to current local file store).
-- Ensure one authoritative marker per mapping in Postgres.
+- Keep `extractor_and_poller.poller` as the probe/decision engine (under `code/extractor_and_poller/`).
+- Persist all poller runs in Postgres table `poller` (no local files).
+- Ensure one authoritative marker per `data_object_id` in Postgres.
 - Keep CLI behavior for local smoke runs (`--mapping`).
 
 Acceptance:
@@ -165,13 +165,13 @@ Acceptance:
 
 Create or evolve these tables:
 
-- `data_object_poller_log`:
+- `poller` (implemented; see [code/postgres/schema.sql](../../code/postgres/schema.sql)):
   - `id` (pk)
-  - `data_object_id`
+  - `event_id`, `run_id`
+  - `data_object_id`, `source_data_object_id`, `target_data_object_id`
   - `event_type`
-  - `polled_at_utc`
-  - `old_marker`
-  - `new_marker`
+  - `polled_at_utc` (timestamp)
+  - `old_marker`, `new_marker` (change markers)
   - `inserted_at_utc`
 - `event_log`:
   - `event_id` (pk)

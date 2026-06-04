@@ -1,9 +1,9 @@
-"""CLI: poll data-object change markers and persist poller state.
+"""CLI: poll data-object change markers and persist state in Postgres.
 
-Run from ``data-solution-2026/``::
+Run from ``data-solution-2026/`` (with ``code/`` on PYTHONPATH)::
 
     python -m extractor_and_poller.poller --list
-    python -m extractor_and_poller.poller --mapping daily-temperature
+    python -m extractor_and_poller.poller --data-object source/openmeteo/daily-temperature
 """
 
 from __future__ import annotations
@@ -11,8 +11,6 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
-from typing import cast
-from pathlib import Path
 
 from extractor_and_poller.common.paths import PROJECT_ROOT, ensure_project_root_on_path
 
@@ -27,13 +25,7 @@ from extractor_and_poller.poller.events import (
     StdoutPublisher,
     default_kafka_bootstrap,
 )
-from extractor_and_poller.poller.state import (
-    FileStateStore,
-    PollerLogEntry,
-    PostgresStateStore,
-    StateStore,
-    default_postgres_dsn,
-)
+from extractor_and_poller.poller.state import PostgresStateStore, default_postgres_dsn
 
 DEFAULT_CONFIG = (
     PROJECT_ROOT
@@ -42,22 +34,7 @@ DEFAULT_CONFIG = (
     / "openmeteo"
     / "daily-temperature.json"
 )
-DEFAULT_STATE = (
-    PROJECT_ROOT
-    / "data"
-    / "staging"
-    / "openmeteo"
-    / "daily_temperature"
-    / "data-object-poller-log.csv"
-)
 log = logging.getLogger(__name__)
-
-
-def _state_path(arg: str) -> Path:
-    path = Path(arg)
-    if not path.is_absolute():
-        path = PROJECT_ROOT / path
-    return path
 
 
 def _format_result(result: change_probe.PollResult) -> str:
@@ -80,11 +57,6 @@ def main(argv: list[str] | None = None) -> int:
         help="deprecated: mapping selector kept for backwards compatibility",
     )
     parser.add_argument(
-        "--state-file",
-        default=str(DEFAULT_STATE.relative_to(PROJECT_ROOT)),
-        help="state file path for local runs",
-    )
-    parser.add_argument(
         "--list",
         action="store_true",
         dest="list_mappings",
@@ -92,15 +64,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--verbose", "-v", action="store_true")
     parser.add_argument(
-        "--state-backend",
-        choices=("file", "postgres"),
-        default="file",
-        help="where to read/write the data-object-poller log table",
-    )
-    parser.add_argument(
         "--postgres-dsn",
         default=default_postgres_dsn(),
-        help="Postgres DSN for --state-backend postgres",
+        help="Postgres DSN for poller metadata table",
     )
     parser.add_argument(
         "--publish",
@@ -132,18 +98,9 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{m.id}\t{iface}\t{m.name}")
         return 0
 
-    store: StateStore | None = None
-    save_fn = None
+    store = PostgresStateStore(args.postgres_dsn)
     publisher: EventPublisher | None = None
     previous: dict[str, str | None] = {}
-    if args.state_backend == "file":
-        file_store = FileStateStore(_state_path(args.state_file))
-        store = cast(StateStore, file_store)
-        save_fn = file_store.save
-    else:
-        pg_store = PostgresStateStore(args.postgres_dsn)
-        store = cast(StateStore, pg_store)
-        save_fn = pg_store.save
 
     if args.publish == "stdout":
         publisher = StdoutPublisher()
@@ -159,9 +116,9 @@ def main(argv: list[str] | None = None) -> int:
             m for m in mappings if m and m.primary_source_data_object_id() == selected_data_object_id
         ]
     for m in mappings:
-        if m and m.enabled and store is not None:
+        if m and m.enabled:
             data_object_id = m.primary_source_data_object_id()
-            previous[data_object_id] = store.last_marker()
+            previous[data_object_id] = store.last_marker(data_object_id)
 
     any_changed = False
     try:
@@ -182,17 +139,14 @@ def main(argv: list[str] | None = None) -> int:
             log.info(_format_result(result))
             if result.changed:
                 any_changed = True
-            if store is not None:
-                store.append(PollerLogEntry.from_poll_result(result))
+            store.append(result)
             if publisher is not None:
                 publisher.publish(result)
     except (KeyError, ValueError) as exc:
         print(str(exc), file=sys.stderr)
         return 2
 
-    if save_fn is not None:
-        save_fn()
-        log.info("Persisted poller state using backend '%s'", args.state_backend)
+    log.info("Persisted poller rows to Postgres table poller")
     if isinstance(publisher, KafkaPublisher):
         publisher.close()
         log.info("Closed Kafka publisher")

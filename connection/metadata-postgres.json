@@ -1,0 +1,9 @@
+{
+  "id": "connection/metadata-postgres",
+  "name": "metadata-postgres",
+  "extensions": [
+    { "key": "protocol", "value": "POSTGRES" },
+    { "key": "database", "value": "data_solution" },
+    { "key": "connectionType", "value": "Database" }
+  ]
+}

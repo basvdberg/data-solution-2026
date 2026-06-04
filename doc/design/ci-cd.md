@@ -70,25 +70,37 @@ Use files under `release/`:
 
 ### Simple release flow on main
 
-1. Pull latest `main`.
-2. Make your changes directly on `main`.
-3. Update `release/VERSION`.
-4. Create `release/notes/<version>.md` from the template.
-5. Commit and push to `main` (this triggers CI checks).
-6. On NAS, run deploy script to pull latest `main`.
-7. If deploy is healthy, create and push annotated tag for traceability.
+Releases are automated when you commit and push on `main`:
 
-Example:
+1. **Pre-commit** (`cursor-config` → `pre_commit.py` → `release/scripts/new-release.ps1`):
+   - Bumps `release/VERSION` (`vYYYY.MM.DD.N`, same-day `N` increments).
+   - Scaffolds `release/notes/<version>.md` and `release/details/<version>/`.
+   - Skipped when only release-metadata files are staged, on non-`main` branches, or when `SKIP_RELEASE=1`.
+2. **Commit**: edit the new release note scope/changes if needed; hooks refresh TOC, prompts, and release details.
+3. **Push to `main`**: GitHub Actions runs CI.
+4. **Post-push watcher** (`wait-and-trigger-pull.ps1`):
+   - Waits for the commit on `origin/main` and CI success.
+   - Runs `publish-release.ps1` (annotated tag + GitHub Release from `release/notes/<version>.md`).
+   - Triggers NAS deploy via SSH.
+5. Optional: commit post-commit staged metadata (`chore: refresh release details`) or include in the next feature commit.
+
+Manual override:
+
+```powershell
+# Skip version bump for one commit
+$env:SKIP_RELEASE = "1"
+git commit -m "chore: docs only"
+
+# Dry-run next version
+powershell -File release/scripts/new-release.ps1 -WhatIf
+```
+
+Legacy manual tagging (only if automation is disabled):
 
 ```bash
-git checkout main
-git pull
-# edit files + release/VERSION + release/notes/vYYYY.MM.DD.N.md
-git add .
-git commit -m "release: vYYYY.MM.DD.N"
-git push origin main
 git tag -a vYYYY.MM.DD.N -m "Release vYYYY.MM.DD.N"
 git push origin --tags
+gh release create vYYYY.MM.DD.N --notes-file release/notes/vYYYY.MM.DD.N.md
 ```
 
 ## Deploy model without GitHub to NAS access
@@ -184,14 +196,13 @@ Use this sequence after NAS pull deploy is active:
 2. Configure Airflow variables for poller mode:
    - `poller_mapping_id=daily-temperature`
    - `poller_data_object_id=source/openmeteo/daily-temperature`
-   - `poller_state_backend=postgres`
    - `poller_publish=stdout` for first smoke run, then `kafka`
 3. Deploy DAG `openmeteo_data_object_poller` from `code/airflow/dags/` (paused on creation):
    - `catchup=false`
    - `max_active_runs=1`
    - retries/timeouts configured
 4. Run command in DAG task:
-   - `python -m extractor_and_poller.poller --mapping daily-temperature --state-backend postgres --publish kafka`
+   - `python -m extractor_and_poller.poller --data-object source/openmeteo/daily-temperature --publish kafka`
 5. Trigger manual run and verify logs:
    - marker compare result (`data_object_change` or `data_object_unchanged`)
    - state persisted

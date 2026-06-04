@@ -19,7 +19,7 @@
 
 ## Purpose
 
-Version-controlled Docker Compose for the PoC runtime on BasNAS: **Apache Airflow** (orchestration) and **Apache Kafka** (change events). Application code stays in the repo root (`extractor_and_poller/`); these stacks only host the services.
+Version-controlled Docker Compose for the PoC runtime on BasNAS: **Apache Airflow** (orchestration), **Apache Kafka** (change events), and **PostgreSQL** (runtime metadata). Application libraries live under `code/extractor_and_poller/`; these stacks host the services.
 
 Source of truth on NAS today:
 
@@ -27,6 +27,7 @@ Source of truth on NAS today:
 |---------|----------------------|---------------------------|
 | Airflow | `~/apache-airflow/` | [airflow/docker-compose.standalone.yaml](airflow/docker-compose.standalone.yaml) |
 | Kafka | `~/kafka/` | [kafka/docker-compose.yml](kafka/docker-compose.yml) |
+| Postgres | `~/data-solution-postgres/` | [postgres/docker-compose.yml](postgres/docker-compose.yml) |
 
 ## Layout
 
@@ -34,15 +35,19 @@ Source of truth on NAS today:
 infra/
   readme.md
   scripts/
-    deploy-infra-on-nas.sh           # sync to ~/apache-airflow and ~/kafka
+    deploy-infra-on-nas.sh           # sync to ~/apache-airflow, ~/kafka, ~/data-solution-postgres
   airflow/
     docker-compose.standalone.yaml   # active Airflow stack (standalone)
     .env.example
   kafka/
     docker-compose.yml               # Kafka + Kafka UI
+  postgres/
+    docker-compose.yml               # metadata Postgres (table poller)
 
 code/                                # generated runtime (not under infra/)
   airflow/dags/                      # DAG files → /opt/airflow/dags
+  extractor_and_poller/              # poller + extractor CLIs
+  postgres/schema.sql                # DDL reference
 ```
 
 The large upstream multi-service Airflow template (`docker-compose.yaml` with Celery/Redis/Postgres) is **not** vendored here; this PoC uses **standalone** mode only. See [Apache Airflow Docker docs](https://airflow.apache.org/docs/docker-stack/index.html) if you need that layout.
@@ -66,6 +71,7 @@ Options:
 | `APP_ROOT` | `~/apps/data-solution-2026` | Repo clone |
 | `AIRFLOW_DEST` | `~/apache-airflow` | Airflow compose target |
 | `KAFKA_DEST` | `~/kafka` | Kafka compose target |
+| `POSTGRES_DEST` | `~/data-solution-postgres` | Postgres compose target |
 | `RUN_COMPOSE` | `1` | Run `docker compose up -d` after sync |
 | `DRY_RUN` | `0` | Print actions only |
 
@@ -78,6 +84,10 @@ RUN_INFRA_SYNC=1 bash release/scripts/deploy-on-nas.sh
 ### Manual compose (from repo paths)
 
 ```bash
+cd ~/apps/data-solution-2026/infra/postgres
+cp -n .env.example .env
+docker compose up -d
+
 cd ~/apps/data-solution-2026/infra/kafka
 cp -n .env.example .env 2>/dev/null || true
 docker compose up -d
@@ -94,11 +104,20 @@ HTTPS UI: `https://airflow.basnas/` and `https://kafka.basnas/` (see [BasNAS dep
 
 - Image: `apache/airflow:3.2.0`, command `standalone`, container name `airflow-standalone`.
 - Host port default: `8081` → container `8080`.
-- Mounts application repo at `/opt/data-solution` so DAG tasks can run `python -m extractor_and_poller...`.
+- Mounts application repo at `/opt/data-solution` (read-only) and `${DATA_SOLUTION_ROOT}/data` (read-write for Parquet).
+- `PYTHONPATH=/opt/data-solution/code:/opt/data-solution` so DAG tasks run `python -m extractor_and_poller...`.
 - Mounts `${DATA_SOLUTION_ROOT}/code/airflow/dags` at `/opt/airflow/dags` (see [code/airflow](../code/airflow/readme.md)).
-- Install runtime deps via `_PIP_ADDITIONAL_REQUIREMENTS` in `.env` (PoC shortcut) or a custom image for production.
+- Joins external network `data-solution-postgres_default` so tasks reach `postgres:5432` (table `poller`).
+- Install runtime deps via `_PIP_ADDITIONAL_REQUIREMENTS` in `.env` (includes `psycopg[binary]`).
 
 Optional: uncomment the `kafka` external network in [docker-compose.standalone.yaml](airflow/docker-compose.standalone.yaml) after Kafka is up so tasks can reach `kafka:9092`.
+
+## Postgres
+
+- Image: `postgres:16-alpine`, container `data-solution-postgres`, hostname `postgres`.
+- Database: `data_solution` (see [postgres/.env.example](postgres/.env.example)).
+- Init DDL: [code/postgres/schema.sql](../code/postgres/schema.sql) mounted into `docker-entrypoint-initdb.d` on first start.
+- Poller appends one row per probe to table `poller` (`data_object_id`, `polled_at_utc`, `old_marker`, `new_marker`, event envelope fields).
 
 ### UI shows Bad Gateway or Missing Meta Database / Scheduler / Triggerer
 

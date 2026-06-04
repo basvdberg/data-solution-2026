@@ -3,13 +3,16 @@
 ## Table of contents
 
 <!-- markdown-toc:start -->
-- [Purpose](#purpose)
-- [Proof of concept](#proof-of-concept)
-- [📈 Progress](#progress)
-- [Documentation](#documentation)
-- [Design patterns changed](#design-patterns-changed)
-  - [Created](#created)
-  - [Modified (pre-existing)](#modified-pre-existing)
+- [Data Solution 2026](#data-solution-2026)
+  - [Table of contents](#table-of-contents)
+  - [Purpose](#purpose)
+  - [Proof of concept](#proof-of-concept)
+  - [📈 Progress](#-progress)
+  - [Documentation](#documentation)
+  - [Design patterns changed](#design-patterns-changed)
+    - [Created](#created)
+    - [Modified (pre-existing)](#modified-pre-existing)
+  - [Project structure](#project-structure)
 <!-- markdown-toc:end -->
 
 ## Purpose
@@ -21,12 +24,13 @@ Intent is specified with [data-engineering-design-patterns](https://github.com/b
 ## Proof of concept
 
 A **staging layer** for daily mean temperature across the Netherlands.
-
+  
 | Aspect | Choice |
 |--------|--------|
 | Source | [Open-Meteo](https://open-meteo.com/) — public API, no key, continuously updated models |
 | Metadata | [DSA](https://github.com/data-solution-automation-engine/data-warehouse-automation-metadata-schema) connections, data objects, and mappings |
-| Extraction | GenAI-generated Python poller and extractor (`extractor_and_poller/`) |
+| Extraction | GenAI-generated Python poller and extractor (`code/extractor_and_poller/`) |
+| Runtime metadata | PostgreSQL table `poller` (markers and poll history) |
 | Orchestration | Apache Airflow and Apache Kafka (`code/` DAGs; hosted on local NAS for this PoC) |
 
 ## 📈 Progress

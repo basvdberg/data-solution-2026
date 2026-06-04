@@ -1,0 +1,22 @@
+# Postgres metadata store for data-solution-2026 (BasNAS PoC).
+# Usage: docker compose up -d
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: data-solution-postgres
+    hostname: postgres
+    env_file:
+      - .env
+    ports:
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
+    volumes:
+      - ./data:/var/lib/postgresql/data
+      - ${DATA_SOLUTION_ROOT:-../../}/code/postgres/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    restart: unless-stopped
+    networks:
+      - default
+
+networks:
+  default:
+    name: data-solution-postgres_default
