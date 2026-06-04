@@ -7,12 +7,17 @@ Mounted into Airflow at ``/opt/airflow/dags``; application code at ``/opt/data-s
 from __future__ import annotations
 
 import logging
+import os
 from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.exceptions import AirflowException
-from airflow.models import Variable
 from airflow.providers.standard.operators.python import PythonOperator
+
+try:
+    from airflow.sdk import Variable
+except ImportError:  # pragma: no cover - Airflow 2.x
+    from airflow.models import Variable  # type: ignore[no-redef]
 
 DAG_ID = "openmeteo_data_object_poller"
 DEFAULT_DATA_OBJECT_ID = "source/openmeteo/daily-temperature"
@@ -23,14 +28,27 @@ log = logging.getLogger(__name__)
 
 def _variable(name: str, default: str) -> str:
     try:
+        return Variable.get(name, default=default)
+    except TypeError:
         return Variable.get(name, default_var=default)
     except Exception:
         return default
 
 
+def _log_postgres_env() -> None:
+    """Log non-secret Postgres settings (inherits Airflow container env)."""
+    log.info(
+        "Postgres env for poller: POSTGRES_HOST=%s POSTGRES_USER=%s db=%s",
+        os.getenv("POSTGRES_HOST") or "<unset>",
+        os.getenv("POSTGRES_USER") or "<unset>",
+        os.getenv("DATA_SOLUTION_DB") or os.getenv("POSTGRES_DB") or "<unset>",
+    )
+
+
 def run_openmeteo_poller() -> None:
     """Thin wrapper: delegate to the poller CLI ``main()`` (no duplicated logic)."""
     log.info("Starting Open-Meteo data object poller task")
+    _log_postgres_env()
 
     from extractor_and_poller.poller.__main__ import main
 
@@ -40,7 +58,17 @@ def run_openmeteo_poller() -> None:
         "--publish",
         _variable("poller_publish", DEFAULT_PUBLISH),
     ]
-    exit_code = main(argv)
+    try:
+        exit_code = main(argv)
+    except Exception as exc:
+        if exc.__class__.__name__ == "OperationalError":
+            raise AirflowException(
+                "Postgres connection failed. The Airflow container must have POSTGRES_HOST "
+                "(e.g. postgres:5432 on the Docker network). Do not pass a custom operator "
+                f"`env` that replaces the process environment. POSTGRES_HOST="
+                f"{os.getenv('POSTGRES_HOST') or '<unset>'}"
+            ) from exc
+        raise
 
     if exit_code == 2:
         raise AirflowException("poller exited with code 2 (configuration or validation error)")

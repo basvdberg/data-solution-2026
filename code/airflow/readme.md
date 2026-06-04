@@ -43,6 +43,10 @@ python -m extractor_and_poller.poller \
 
 `PYTHONPATH` is set in the Airflow container (`/opt/data-solution/code:/opt/data-solution`).
 
+The task runs as `PythonOperator` so it **inherits** container env vars (`POSTGRES_HOST`, `POSTGRES_USER`, etc.). Do not use a custom operator `env` dict that only sets `PYTHONPATH`—that replaces the whole environment and breaks Postgres (defaults to `localhost:5432`).
+
+Confirm `infra/airflow/.env` on BasNAS includes `POSTGRES_HOST=postgres:5432` (see `.env.example`).
+
 ## Project structure
 
 <!-- markdown-project-structure:start -->

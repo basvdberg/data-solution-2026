@@ -42,7 +42,7 @@ def default_postgres_dsn() -> str:
     direct = os.getenv("POSTGRES_DSN")
     if direct:
         return direct
-    host = os.getenv("POSTGRES_HOST", "localhost:5432")
+    host = os.getenv("POSTGRES_HOST") or "localhost:5432"
     user = os.getenv("POSTGRES_USER", "postgres")
     password = os.getenv("POSTGRES_PASSWORD", "postgres")
     database = os.getenv("DATA_SOLUTION_DB") or os.getenv(
