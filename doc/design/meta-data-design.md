@@ -155,6 +155,14 @@ The path IDs in the repo remain the stable names humans use in reviews and logs.
   - Code
     - Airflow
       - Dags
+    - Extractor_And_Poller
+      - Common
+      - Openmeteo
+        - Extractor
+        - Poller
+      - Poller
+      - Tests
+    - Postgres
   - Connection
   - Data
     - Staging
@@ -178,16 +186,11 @@ The path IDs in the repo remain the stable names humans use in reviews and logs.
       - [Meta data design](meta-data-design.md)
     - [Implementation plan (Open-Meteo → event orchestration)](../implementation-plan.md)
   - Extractor_And_Poller
-    - Common
-    - Openmeteo
-      - Extractor
-      - Poller
-    - Poller
-    - Tests
   - Infra
     - Airflow
       - Dags
     - Kafka
+    - Postgres
   - Release
     - Details
       - V2026.06.02.1
@@ -196,6 +199,7 @@ The path IDs in the repo remain the stable names humans use in reviews and logs.
       - V2026.06.03.2
       - V2026.06.03.3
       - V2026.06.03.4
+      - V2026.06.04.1
     - Notes
       - [Release v2026.06.02.1](../../release/notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../../release/notes/v2026.06.02.2.md)
@@ -203,6 +207,7 @@ The path IDs in the repo remain the stable names humans use in reviews and logs.
       - [Release v2026.06.03.2](../../release/notes/v2026.06.03.2.md)
       - [Release v2026.06.03.3](../../release/notes/v2026.06.03.3.md)
       - [Release v2026.06.03.4](../../release/notes/v2026.06.03.4.md)
+      - [V2026.06.04.1](../../release/notes/v2026.06.04.1.md)
     - [Release <version>](../../release/release-notes-template.md)
   - Setting
   - Template

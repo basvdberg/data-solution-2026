@@ -66,6 +66,14 @@ This folder stores detailed, audit-friendly release content per version.
   - Code
     - Airflow
       - Dags
+    - Extractor_And_Poller
+      - Common
+      - Openmeteo
+        - Extractor
+        - Poller
+      - Poller
+      - Tests
+    - Postgres
   - Connection
   - Data
     - Staging
@@ -89,16 +97,11 @@ This folder stores detailed, audit-friendly release content per version.
       - [Meta data design](../../doc/design/meta-data-design.md)
     - [Implementation plan (Open-Meteo → event orchestration)](../../doc/implementation-plan.md)
   - Extractor_And_Poller
-    - Common
-    - Openmeteo
-      - Extractor
-      - Poller
-    - Poller
-    - Tests
   - Infra
     - Airflow
       - Dags
     - Kafka
+    - Postgres
   - Release
     - Details
       - V2026.06.02.1
@@ -107,6 +110,7 @@ This folder stores detailed, audit-friendly release content per version.
       - V2026.06.03.2
       - V2026.06.03.3
       - V2026.06.03.4
+      - V2026.06.04.1
     - Notes
       - [Release v2026.06.02.1](../notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../notes/v2026.06.02.2.md)
@@ -114,6 +118,7 @@ This folder stores detailed, audit-friendly release content per version.
       - [Release v2026.06.03.2](../notes/v2026.06.03.2.md)
       - [Release v2026.06.03.3](../notes/v2026.06.03.3.md)
       - [Release v2026.06.03.4](../notes/v2026.06.03.4.md)
+      - [V2026.06.04.1](../notes/v2026.06.04.1.md)
     - [Release <version>](../release-notes-template.md)
   - Setting
   - Template
@@ -124,3 +129,5 @@ This folder stores detailed, audit-friendly release content per version.
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026) — Course and learning materials
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns) — Design pattern catalogue
 <!-- markdown-project-structure:end -->
+
+- [$version](v2026.06.04.1/README.md)

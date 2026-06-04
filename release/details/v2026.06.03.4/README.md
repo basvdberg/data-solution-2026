@@ -21,16 +21,19 @@
 ﻿## Table of contents
 
 
+﻿## Table of contents
+
+
 ﻿# Release v2026.06.03.4 - Details
 
 ## Release metadata
 
 
-- Development end: `2026-06-03T17:04:45+02:00`
+- Development end: `2026-06-03T17:05:13+02:00`
 - Development start: `2026-06-03T11:47:34+02:00`
 - Version: `v2026.06.03.4`
 - Release branch: `main`
-- Release commit: `c8e0dd2b18dee60747638b3b25c152f02c6824f9`
+- Release commit: `5f31ade208538f81348ef10058792365db9fed64`
 
 ## Summary
 
@@ -47,6 +50,14 @@ Deploy success/failure ntfy notifications include release version and GitHub rel
   - Code
     - Airflow
       - Dags
+    - Extractor_And_Poller
+      - Common
+      - Openmeteo
+        - Extractor
+        - Poller
+      - Poller
+      - Tests
+    - Postgres
   - Connection
   - Data
     - Staging
@@ -70,16 +81,11 @@ Deploy success/failure ntfy notifications include release version and GitHub rel
       - [Meta data design](../../../doc/design/meta-data-design.md)
     - [Implementation plan (Open-Meteo → event orchestration)](../../../doc/implementation-plan.md)
   - Extractor_And_Poller
-    - Common
-    - Openmeteo
-      - Extractor
-      - Poller
-    - Poller
-    - Tests
   - Infra
     - Airflow
       - Dags
     - Kafka
+    - Postgres
   - Release
     - Details
       - V2026.06.02.1
@@ -88,6 +94,7 @@ Deploy success/failure ntfy notifications include release version and GitHub rel
       - V2026.06.03.2
       - V2026.06.03.3
       - V2026.06.03.4
+      - V2026.06.04.1
     - Notes
       - [Release v2026.06.02.1](../../notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../../notes/v2026.06.02.2.md)
@@ -95,6 +102,7 @@ Deploy success/failure ntfy notifications include release version and GitHub rel
       - [Release v2026.06.03.2](../../notes/v2026.06.03.2.md)
       - [Release v2026.06.03.3](../../notes/v2026.06.03.3.md)
       - [Release v2026.06.03.4](../../notes/v2026.06.03.4.md)
+      - [V2026.06.04.1](../../notes/v2026.06.04.1.md)
     - [Release <version>](../../release-notes-template.md)
   - Setting
   - Template

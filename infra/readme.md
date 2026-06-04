@@ -9,6 +9,7 @@
   - [Sync script (recommended)](#sync-script-recommended)
   - [Manual compose (from repo paths)](#manual-compose-from-repo-paths)
 - [Airflow](#airflow)
+- [Postgres](#postgres)
   - [UI shows Bad Gateway or Missing Meta Database / Scheduler / Triggerer](#ui-shows-bad-gateway-or-missing-meta-database-scheduler-triggerer)
   - [Non-interactive SSH: git fails with libcharset.so.1](#non-interactive-ssh-git-fails-with-libcharsetso1)
   - [SSH: docker: command not found](#ssh-docker-command-not-found)
@@ -208,6 +209,14 @@ docker exec airflow-standalone cat '/opt/airflow/logs/dag_id=openmeteo_data_obje
   - Code
     - Airflow
       - Dags
+    - Extractor_And_Poller
+      - Common
+      - Openmeteo
+        - Extractor
+        - Poller
+      - Poller
+      - Tests
+    - Postgres
   - Connection
   - Data
     - Staging
@@ -231,16 +240,11 @@ docker exec airflow-standalone cat '/opt/airflow/logs/dag_id=openmeteo_data_obje
       - [Meta data design](../doc/design/meta-data-design.md)
     - [Implementation plan (Open-Meteo → event orchestration)](../doc/implementation-plan.md)
   - Extractor_And_Poller
-    - Common
-    - Openmeteo
-      - Extractor
-      - Poller
-    - Poller
-    - Tests
   - Infra
     - Airflow
       - Dags
     - Kafka
+    - Postgres
   - Release
     - Details
       - V2026.06.02.1
@@ -249,6 +253,7 @@ docker exec airflow-standalone cat '/opt/airflow/logs/dag_id=openmeteo_data_obje
       - V2026.06.03.2
       - V2026.06.03.3
       - V2026.06.03.4
+      - V2026.06.04.1
     - Notes
       - [Release v2026.06.02.1](../release/notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../release/notes/v2026.06.02.2.md)
@@ -256,6 +261,7 @@ docker exec airflow-standalone cat '/opt/airflow/logs/dag_id=openmeteo_data_obje
       - [Release v2026.06.03.2](../release/notes/v2026.06.03.2.md)
       - [Release v2026.06.03.3](../release/notes/v2026.06.03.3.md)
       - [Release v2026.06.03.4](../release/notes/v2026.06.03.4.md)
+      - [V2026.06.04.1](../release/notes/v2026.06.04.1.md)
     - [Release <version>](../release/release-notes-template.md)
   - Setting
   - Template

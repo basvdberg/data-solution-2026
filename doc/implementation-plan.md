@@ -12,7 +12,7 @@
     - [1.1 Create the DAG folder and file](#11-create-the-dag-folder-and-file)
     - [1.2 Deploy DAGs to the running Airflow container](#12-deploy-dags-to-the-running-airflow-container)
     - [1.3 Configure Airflow for the poller task](#13-configure-airflow-for-the-poller-task)
-    - [1.4 Wire Postgres state (recommended before schedule)](#14-wire-postgres-state-recommended-before-schedule)
+    - [1.4 Wire Postgres metadata (before schedule)](#14-wire-postgres-metadata-before-schedule)
     - [1.5 Manual DAG run and acceptance](#15-manual-dag-run-and-acceptance)
   - [Step 2 — Publish poll events to Kafka](#step-2-publish-poll-events-to-kafka)
   - [Step 3 — React to change events (event controller)](#step-3-react-to-change-events-event-controller)
@@ -262,6 +262,14 @@ For schema-level acceptance criteria, use [Definition of done](design/event-base
   - Code
     - Airflow
       - Dags
+    - Extractor_And_Poller
+      - Common
+      - Openmeteo
+        - Extractor
+        - Poller
+      - Poller
+      - Tests
+    - Postgres
   - Connection
   - Data
     - Staging
@@ -285,16 +293,11 @@ For schema-level acceptance criteria, use [Definition of done](design/event-base
       - [Meta data design](design/meta-data-design.md)
     - [Implementation plan (Open-Meteo → event orchestration)](implementation-plan.md)
   - Extractor_And_Poller
-    - Common
-    - Openmeteo
-      - Extractor
-      - Poller
-    - Poller
-    - Tests
   - Infra
     - Airflow
       - Dags
     - Kafka
+    - Postgres
   - Release
     - Details
       - V2026.06.02.1
@@ -303,6 +306,7 @@ For schema-level acceptance criteria, use [Definition of done](design/event-base
       - V2026.06.03.2
       - V2026.06.03.3
       - V2026.06.03.4
+      - V2026.06.04.1
     - Notes
       - [Release v2026.06.02.1](../release/notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../release/notes/v2026.06.02.2.md)
@@ -310,6 +314,7 @@ For schema-level acceptance criteria, use [Definition of done](design/event-base
       - [Release v2026.06.03.2](../release/notes/v2026.06.03.2.md)
       - [Release v2026.06.03.3](../release/notes/v2026.06.03.3.md)
       - [Release v2026.06.03.4](../release/notes/v2026.06.03.4.md)
+      - [V2026.06.04.1](../release/notes/v2026.06.04.1.md)
     - [Release <version>](../release/release-notes-template.md)
   - Setting
   - Template

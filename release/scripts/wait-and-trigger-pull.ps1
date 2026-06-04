@@ -270,7 +270,17 @@ try {
         }
     }
 
-    # Step 3: trigger NAS pull/deploy action
+    # Step 3: tag and publish GitHub release for release/VERSION at this commit
+    $publishScript = Join-Path (Get-RepoRoot) "release\scripts\publish-release.ps1"
+    if (Test-Path $publishScript) {
+        Write-Host "Publishing release for commit $commitSha..."
+        & powershell -NoProfile -ExecutionPolicy Bypass -File $publishScript -CommitSha $commitSha
+        if ($LASTEXITCODE -ne 0) {
+            throw "publish-release.ps1 failed with exit code $LASTEXITCODE."
+        }
+    }
+
+    # Step 4: trigger NAS pull/deploy action
     Write-Host "Running trigger command..."
     Invoke-Expression $TriggerCommand
     if ($LASTEXITCODE -ne 0) {

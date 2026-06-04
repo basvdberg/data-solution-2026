@@ -89,6 +89,14 @@ I bought a very good microphone and used Wispr Flow to translate my voice to tex
   - Code
     - Airflow
       - Dags
+    - Extractor_And_Poller
+      - Common
+      - Openmeteo
+        - Extractor
+        - Poller
+      - Poller
+      - Tests
+    - Postgres
   - Connection
   - Data
     - Staging
@@ -112,16 +120,11 @@ I bought a very good microphone and used Wispr Flow to translate my voice to tex
       - [Meta data design](doc/design/meta-data-design.md)
     - [Implementation plan (Open-Meteo → event orchestration)](doc/implementation-plan.md)
   - Extractor_And_Poller
-    - Common
-    - Openmeteo
-      - Extractor
-      - Poller
-    - Poller
-    - Tests
   - Infra
     - Airflow
       - Dags
     - Kafka
+    - Postgres
   - Release
     - Details
       - V2026.06.02.1
@@ -130,6 +133,7 @@ I bought a very good microphone and used Wispr Flow to translate my voice to tex
       - V2026.06.03.2
       - V2026.06.03.3
       - V2026.06.03.4
+      - V2026.06.04.1
     - Notes
       - [Release v2026.06.02.1](release/notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](release/notes/v2026.06.02.2.md)
@@ -137,6 +141,7 @@ I bought a very good microphone and used Wispr Flow to translate my voice to tex
       - [Release v2026.06.03.2](release/notes/v2026.06.03.2.md)
       - [Release v2026.06.03.3](release/notes/v2026.06.03.3.md)
       - [Release v2026.06.03.4](release/notes/v2026.06.03.4.md)
+      - [V2026.06.04.1](release/notes/v2026.06.04.1.md)
     - [Release <version>](release/release-notes-template.md)
   - Setting
   - Template
