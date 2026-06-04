@@ -35,7 +35,7 @@ Keep CI/CD simple: commit to `main`, run checks in GitHub Actions, then deploy f
 - **Main only**: all development and deployment happens through `main`.
 - **Git remote**: source of truth for commit history, tags, and release notes.
 - **GitHub Actions** (`.github/workflows/deploy-main.yml`): on each push to `main`, sends an **ntfy** notification, runs tests, and publishes the GitHub release (no NAS deploy from GitHub).
-- **Post-push hook** (local): after you push from this machine, waits for CI success and SSH-triggers NAS deploy (required when GitHub cannot reach the NAS).
+- **pre-push hook** (local, via `core.hooksPath`): when you `git push` to `main` from this machine, starts a background watcher that waits for CI success and SSH-triggers NAS deploy (required when GitHub cannot reach the NAS).
 - **NAS (runtime)**: deployment target for Airflow, poller, and extractor runtime.
 
 ## Prerequisites
@@ -79,12 +79,12 @@ Releases are automated when you commit and push on `main`:
    - Skipped when only release-metadata files are staged, on non-`main` branches, or when `SKIP_RELEASE=1`.
 2. **Commit**: edit the new release note scope/changes if needed; hooks refresh TOC, prompts, and release details.
 3. **Push to `main`**: starts the CI/CD cycle:
-   - **ntfy** immediately: “CI/CD started” (GitHub Actions) and “Push to main” (post-push hook, if installed).
+   - **ntfy** immediately: “CI/CD started” (GitHub Actions) and “Push to main” (pre-push deploy hook, if installed).
    - **GitHub Actions**: tests → publish tag/release.
-   - **Post-push watcher** (`wait-and-trigger-pull.ps1`, `-SkipPublish`):
+   - **Deploy watcher** (`wait-and-trigger-pull.ps1`, `-SkipPublish`):
      - Waits for the commit on `origin/main` and CI success.
      - Triggers NAS deploy via SSH (`deploy-on-nas.sh`).
-4. **ntfy** on deploy success or failure (post-push watcher).
+4. **ntfy** on deploy success or failure (deploy watcher).
 5. Optional: commit post-commit staged metadata (`chore: refresh release details`) or include in the next feature commit.
 
 Manual override:
@@ -111,7 +111,7 @@ gh release create vYYYY.MM.DD.N --notes-file release/notes/vYYYY.MM.DD.N.md
 GitHub-hosted runners usually cannot reach a LAN-only NAS. Deployment stays **pull-based** on the NAS, triggered after green CI:
 
 1. Push commit to `main` → GitHub Actions notifies via **ntfy**, runs tests, publishes release.
-2. **Post-push hook** (from your dev machine on the LAN) waits for CI green, then SSH-runs `deploy-on-nas.sh`.
+2. **pre-push deploy hook** (from your dev machine on the LAN) waits for CI green, then SSH-runs `deploy-on-nas.sh`.
 3. NAS updates to latest `origin/main` and applies runtime actions (Airflow DAG refresh, optional `RUN_INFRA_SYNC=1`).
 
 Workflow: `.github/workflows/deploy-main.yml` (notify → test → release).
@@ -138,29 +138,33 @@ Optional automation on NAS:
 
 ## Auto trigger from Cursor on push
 
-Install the post-push hook once so every **push to `main`** from this machine completes the cycle (notify → CI → deploy):
+This repo sets `core.hooksPath` to `cursor-config/githooks` (shared pre-commit/post-commit). Deploy uses the **`pre-push`** hook there (Git has no `post-push` hook).
+
+Verify once from repo root:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\release\scripts\install-post-push-hook.ps1
+```
+
+Every **`git push origin main`** from this machine should complete the cycle (notify → CI → deploy):
 
 1. **ntfy** on push: “Push to main” (immediate).
 2. **GitHub Actions** on `origin/main`: ntfy “CI/CD started”, tests, release publish.
-3. `post-push` hook starts `wait-and-trigger-pull.ps1` in the background.
+3. `pre-push` hook starts `wait-and-trigger-pull.ps1` in the background.
 4. Watcher waits until the commit is on `origin/main` and CI is green.
-5. Watcher SSH-triggers `deploy-on-nas.sh` and sends ntfy success/failure.
+5. Watcher SSH-triggers `deploy-on-nas.sh` (`git pull origin main` on NAS) and sends ntfy success/failure.
 
 Scripts in this repo:
 
 - `release/scripts/wait-and-trigger-pull.ps1`
-- `release/scripts/post-push-hook.ps1`
+- `release/scripts/post-push-hook.ps1` (invoked from `cursor-config/githooks/pre-push`)
 - `release/scripts/install-post-push-hook.ps1`
 - `release/scripts/deploy-on-nas.sh`
 
 Setup:
 
 1. Edit `release/scripts/post-push-hook.ps1` and set your NAS SSH command.
-2. Install the Git hook once from repo root:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\release\scripts\install-post-push-hook.ps1
-```
+2. Ensure `cursor-config/githooks/pre-push` exists (monorepo sibling) or copy it into your `core.hooksPath`.
 
 Notes:
 
@@ -286,6 +290,7 @@ git checkout <previous-tag>
       - V2026.06.04.5
       - V2026.06.04.6
       - V2026.06.04.7
+      - V2026.06.04.8
       - ﻿V2026.06.04.1
       - ﻿V2026.06.04.2
       - ﻿V2026.06.04.3
@@ -307,6 +312,7 @@ git checkout <previous-tag>
       - [V2026.06.04.5](../../release/notes/v2026.06.04.5.md)
       - [V2026.06.04.6](../../release/notes/v2026.06.04.6.md)
       - [V2026.06.04.7](../../release/notes/v2026.06.04.7.md)
+      - [V2026.06.04.8](../../release/notes/v2026.06.04.8.md)
     - [Release <version>](../../release/release-notes-template.md)
   - Setting
   - Template

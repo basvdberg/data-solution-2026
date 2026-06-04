@@ -130,6 +130,7 @@ This folder stores detailed, audit-friendly release content per version.
       - V2026.06.04.5
       - V2026.06.04.6
       - V2026.06.04.7
+      - V2026.06.04.8
       - ﻿V2026.06.04.1
       - ﻿V2026.06.04.2
       - ﻿V2026.06.04.3
@@ -151,6 +152,7 @@ This folder stores detailed, audit-friendly release content per version.
       - [V2026.06.04.5](../notes/v2026.06.04.5.md)
       - [V2026.06.04.6](../notes/v2026.06.04.6.md)
       - [V2026.06.04.7](../notes/v2026.06.04.7.md)
+      - [V2026.06.04.8](../notes/v2026.06.04.8.md)
     - [Release <version>](../release-notes-template.md)
   - Setting
   - Template
@@ -161,3 +163,5 @@ This folder stores detailed, audit-friendly release content per version.
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026) — Course and learning materials
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns) — Design pattern catalogue
 <!-- markdown-project-structure:end -->
+
+- [$version](v2026.06.04.8/README.md)

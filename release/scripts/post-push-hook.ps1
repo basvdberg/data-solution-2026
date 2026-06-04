@@ -34,7 +34,8 @@ if (-not (Test-Path $StdinFile)) {
     throw "post-push stdin file not found: $StdinFile"
 }
 
-# Only trigger for pushes that include refs/heads/main.
+# Only trigger for pushes that update refs/heads/main.
+# pre-push stdin: <local ref> <local oid> <remote ref> <remote oid>
 $lines = Get-Content -Path $StdinFile
 $pushedMain = $false
 foreach ($line in $lines) {
@@ -45,15 +46,16 @@ foreach ($line in $lines) {
     if ($parts.Count -lt 4) {
         continue
     }
+    $localRef = $parts[0]
     $remoteRef = $parts[2]
-    if ($remoteRef -eq "refs/heads/main") {
+    if ($localRef -eq "refs/heads/main" -or $remoteRef -eq "refs/heads/main") {
         $pushedMain = $true
         break
     }
 }
 
 if (-not $pushedMain) {
-    Write-Host "post-push: no update for refs/heads/main; skipping CI/CD trigger."
+    Write-Host "deploy-hook: no push to refs/heads/main; skipping CI/CD trigger."
     exit 0
 }
 
@@ -89,4 +91,4 @@ Start-Process powershell -ArgumentList @(
     "-TriggerCommand", "`"$trigger`""
 ) | Out-Null
 
-Write-Host "post-push: background deploy watcher started for main (publish via GitHub Actions)."
+Write-Host "deploy-hook: background deploy watcher started for main (publish via GitHub Actions)."

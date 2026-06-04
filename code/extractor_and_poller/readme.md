@@ -96,6 +96,7 @@ Airflow DAGs: [`code/airflow/`](../airflow/readme.md).
       - V2026.06.04.5
       - V2026.06.04.6
       - V2026.06.04.7
+      - V2026.06.04.8
       - ﻿V2026.06.04.1
       - ﻿V2026.06.04.2
       - ﻿V2026.06.04.3
@@ -117,6 +118,7 @@ Airflow DAGs: [`code/airflow/`](../airflow/readme.md).
       - [V2026.06.04.5](../../release/notes/v2026.06.04.5.md)
       - [V2026.06.04.6](../../release/notes/v2026.06.04.6.md)
       - [V2026.06.04.7](../../release/notes/v2026.06.04.7.md)
+      - [V2026.06.04.8](../../release/notes/v2026.06.04.8.md)
     - [Release <version>](../../release/release-notes-template.md)
   - Setting
   - Template

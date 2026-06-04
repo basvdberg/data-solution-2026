@@ -85,6 +85,7 @@ End-to-end automated deploy verification after `bash -lc` SSH fix.
       - V2026.06.04.5
       - V2026.06.04.6
       - V2026.06.04.7
+      - V2026.06.04.8
       - ﻿V2026.06.04.1
       - ﻿V2026.06.04.2
       - ﻿V2026.06.04.3
@@ -106,6 +107,7 @@ End-to-end automated deploy verification after `bash -lc` SSH fix.
       - [V2026.06.04.5](../../notes/v2026.06.04.5.md)
       - [V2026.06.04.6](../../notes/v2026.06.04.6.md)
       - [V2026.06.04.7](../../notes/v2026.06.04.7.md)
+      - [V2026.06.04.8](../../notes/v2026.06.04.8.md)
     - [Release <version>](../../release-notes-template.md)
   - Setting
   - Template

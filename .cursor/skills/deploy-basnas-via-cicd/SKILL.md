@@ -2,7 +2,7 @@
 name: deploy-basnas-via-cicd
 description: >-
   Deploy this repo to BasNAS: commit and push to main; GitHub Actions runs tests
-  and release; the post-push hook deploys to NAS after CI succeeds. Use when the
+  and release; the pre-push hook deploys to NAS after CI succeeds. Use when the
   user wants changes on BasNAS, NAS deploy, production rollout, or after finishing
   implementation—do not SSH git pull unless CI/CD failed or asked manually.
 ---
@@ -22,11 +22,11 @@ description: >-
 | Step | Where |
 |------|--------|
 | Tests + GitHub release | GitHub Actions (`.github/workflows/deploy-main.yml`) |
-| `git pull` on NAS | `release/scripts/deploy-on-nas.sh` via post-push hook |
+| `git pull` on NAS | `release/scripts/deploy-on-nas.sh` via `cursor-config/githooks/pre-push` |
 
 DAGs and app code are bind-mounted from `~/apps/data-solution-2026`; no manual copy to Airflow.
 
-## One-time hook install
+## One-time hook verify
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\release\scripts\install-post-push-hook.ps1

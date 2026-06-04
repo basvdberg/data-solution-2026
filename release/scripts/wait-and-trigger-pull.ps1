@@ -197,15 +197,24 @@ function Get-CiState {
         return @{ State = "none"; Message = "No workflow runs found yet." }
     }
 
-    $inProgress = @($runs | Where-Object { $_.status -ne "completed" })
+    $workflowRuns = @($runs | Where-Object { $_.name -eq "CI/CD on main" })
+    if ($workflowRuns.Count -eq 0) {
+        $workflowRuns = @($runs)
+    }
+
+    $inProgress = @($workflowRuns | Where-Object { $_.status -ne "completed" })
     if ($inProgress.Count -gt 0) {
         return @{
             State = "running"
-            Message = "CI still running: $($inProgress.Count) workflow(s) in progress."
+            Message = "CI still running: $($inProgress.Count) workflow run(s) in progress."
         }
     }
 
-    $failed = @($runs | Where-Object { $_.conclusion -ne "success" })
+    $failed = @(
+        $workflowRuns | Where-Object {
+            $_.status -eq "completed" -and $_.conclusion -notin @("success", "skipped")
+        }
+    )
     if ($failed.Count -gt 0) {
         $names = ($failed | ForEach-Object { "$($_.name):$($_.conclusion)" }) -join ", "
         return @{
@@ -214,7 +223,12 @@ function Get-CiState {
         }
     }
 
-    return @{ State = "success"; Message = "All CI workflows for commit succeeded." }
+    $succeeded = @($workflowRuns | Where-Object { $_.conclusion -eq "success" })
+    if ($succeeded.Count -eq 0) {
+        return @{ State = "none"; Message = "CI/CD on main run not found yet for commit." }
+    }
+
+    return @{ State = "success"; Message = "CI/CD on main succeeded for commit." }
 }
 
 if (-not (Test-CommandExists "git")) {
