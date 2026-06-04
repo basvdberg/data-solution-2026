@@ -18,7 +18,7 @@ git fetch --all --tags
 git checkout main
 git pull origin main
 
-echo "App-only deploy completed: repo updated to latest main."
+echo "App-only deploy completed: $(git rev-parse --short HEAD) $(git log -1 --oneline)"
 
 if [ "$RUN_INFRA_SYNC" = "1" ]; then
   bash "${APP_ROOT}/infra/scripts/deploy-infra-on-nas.sh"

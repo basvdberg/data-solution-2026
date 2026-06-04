@@ -45,7 +45,9 @@ python -m extractor_and_poller.poller \
 
 The task runs as `PythonOperator` so it **inherits** container env vars (`POSTGRES_HOST`, `POSTGRES_USER`, etc.). Do not use a custom operator `env` dict that only sets `PYTHONPATH`—that replaces the whole environment and breaks Postgres (defaults to `localhost:5432`).
 
-Confirm `infra/airflow/.env` on BasNAS includes `POSTGRES_HOST=postgres:5432` (see `.env.example`).
+Confirm `~/apache-airflow/.env` on BasNAS includes `POSTGRES_HOST=postgres:5432` and `DATA_SOLUTION_DB=data-solution-2026` (see `infra/airflow/.env.example`). After changing `.env`, restart Airflow: `docker compose -f docker-compose.standalone.yaml up -d` in `~/apache-airflow`.
+
+**DAG still shows BashOperator?** The bind-mounted DAG file comes from `~/apps/data-solution-2026`. If the NAS clone is behind `origin/main`, run `bash ~/apps/data-solution-2026/release/scripts/deploy-on-nas.sh`, then `docker exec airflow-standalone airflow dags reserialize`, and trigger a new run (old task attempts keep the operator they started with).
 
 ## Project structure
 

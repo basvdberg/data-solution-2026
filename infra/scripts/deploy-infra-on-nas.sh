@@ -74,6 +74,17 @@ ensure_airflow_env() {
       printf '\nAIRFLOW_ADMIN_PASSWORD=changeme\n' >>"$env_file"
     fi
   fi
+  for key in POSTGRES_HOST DATA_SOLUTION_DB; do
+    if ! grep -q "^${key}=" "$env_file" 2>/dev/null; then
+      value="$(grep -E "^${key}=" "${INFRA}/airflow/.env.example" | tail -1 | cut -d= -f2- || true)"
+      if [ -n "$value" ]; then
+        echo "Appending ${key} to ${env_file}"
+        if [ "$DRY_RUN" != "1" ]; then
+          printf '%s=%s\n' "$key" "$value" >>"$env_file"
+        fi
+      fi
+    fi
+  done
 }
 
 ensure_kafka_env() {
