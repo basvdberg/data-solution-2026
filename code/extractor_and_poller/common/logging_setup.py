@@ -64,12 +64,20 @@ class PrettyColorFormatter(logging.Formatter):
         )
 
 
+class FlushingStreamHandler(logging.StreamHandler):
+    """Stream handler that flushes after each record (needed for Airflow/bash tails)."""
+
+    def emit(self, record: logging.LogRecord) -> None:
+        super().emit(record)
+        self.flush()
+
+
 def configure_logging(*, verbose: bool = False) -> None:
     """Configure root logger with a single stream handler."""
     level = logging.DEBUG if verbose else logging.INFO
     use_color = sys.stderr.isatty()
 
-    handler = logging.StreamHandler()
+    handler = FlushingStreamHandler()
     handler.setFormatter(PrettyColorFormatter(use_color=use_color))
 
     root = logging.getLogger()

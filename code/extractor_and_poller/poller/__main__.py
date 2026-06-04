@@ -8,24 +8,18 @@ Run from ``data-solution-2026/`` (with ``code/`` on PYTHONPATH)::
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import argparse
 import logging
+import os
 import sys
 
 from extractor_and_poller.common.paths import PROJECT_ROOT, ensure_project_root_on_path
 
 ensure_project_root_on_path()
 
-from extractor_and_poller.common import config as cfg_module
 from extractor_and_poller.common.logging_setup import configure_logging
-from extractor_and_poller.poller import change_probe
-from extractor_and_poller.poller.events import (
-    EventPublisher,
-    KafkaPublisher,
-    StdoutPublisher,
-    default_kafka_bootstrap,
-)
-from extractor_and_poller.poller.state import PostgresStateStore, default_postgres_dsn
 
 DEFAULT_CONFIG = (
     PROJECT_ROOT
@@ -36,8 +30,11 @@ DEFAULT_CONFIG = (
 )
 log = logging.getLogger(__name__)
 
+if TYPE_CHECKING:
+    from extractor_and_poller.poller.change_probe import PollResult
 
-def _format_result(result: change_probe.PollResult) -> str:
+
+def _format_result(result: PollResult) -> str:
     prev = result.previous_marker if result.previous_marker is not None else "(none)"
     return (
         f"{result.event_type}\t{result.data_object_id}\t"
@@ -65,7 +62,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--verbose", "-v", action="store_true")
     parser.add_argument(
         "--postgres-dsn",
-        default=default_postgres_dsn(),
+        default=None,
         help="Postgres DSN for poller metadata table",
     )
     parser.add_argument(
@@ -76,13 +73,37 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--kafka-bootstrap-servers",
-        default=default_kafka_bootstrap(),
+        default=None,
         help="Kafka bootstrap servers, e.g. localhost:9092",
     )
     args = parser.parse_args(argv)
 
     configure_logging(verbose=args.verbose)
+    log.info(
+        "Poller CLI started pid=%s data_object=%s publish=%s config=%s",
+        os.getpid(),
+        args.data_object or "(all enabled)",
+        args.publish,
+        args.config,
+    )
 
+    from extractor_and_poller.common import config as cfg_module
+    from extractor_and_poller.poller import change_probe
+    from extractor_and_poller.poller.events import (
+        EventPublisher,
+        KafkaPublisher,
+        StdoutPublisher,
+    )
+    from extractor_and_poller.poller.state import PostgresStateStore, default_postgres_dsn
+
+    if args.postgres_dsn is None:
+        args.postgres_dsn = default_postgres_dsn()
+    if args.kafka_bootstrap_servers is None:
+        from extractor_and_poller.poller.events import default_kafka_bootstrap
+
+        args.kafka_bootstrap_servers = default_kafka_bootstrap()
+
+    log.info("Loading poller config from %s", args.config)
     config = cfg_module.load(args.config)
     selected_data_object_id: str | None = args.data_object
     if selected_data_object_id is None and args.mapping:
@@ -105,6 +126,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.publish == "stdout":
         publisher = StdoutPublisher()
     elif args.publish == "kafka":
+        log.info("Kafka publisher bootstrap=%s", args.kafka_bootstrap_servers)
         publisher = KafkaPublisher(args.kafka_bootstrap_servers)
 
     mappings = config.enabled_mappings()
@@ -118,7 +140,13 @@ def main(argv: list[str] | None = None) -> int:
     for m in mappings:
         if m and m.enabled:
             data_object_id = m.primary_source_data_object_id()
+            log.info("Loading previous marker for %s", data_object_id)
             previous[data_object_id] = store.last_marker(data_object_id)
+            log.info(
+                "Previous marker for %s: %s",
+                data_object_id,
+                previous[data_object_id] if previous[data_object_id] is not None else "(none)",
+            )
 
     any_changed = False
     try:
@@ -131,6 +159,7 @@ def main(argv: list[str] | None = None) -> int:
             if not m.enabled:
                 raise ValueError(f"Mapping '{args.mapping}' is disabled")
 
+        log.info("Starting change probe run")
         for result in change_probe.iter_poll_results(
             config,
             data_object_id=selected_data_object_id,
@@ -155,4 +184,6 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    configure_logging()
+    log.info("Poller process bootstrapping")
     raise SystemExit(main())

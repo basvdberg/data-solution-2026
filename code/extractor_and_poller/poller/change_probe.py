@@ -81,6 +81,13 @@ def probe_current_value(mapping: Mapping, config: Config) -> str:
             f"No poller probe for interface_type '{interface}' on mapping "
             f"'{mapping.id}' (known: {known})"
         )
+    data_object_id = mapping.primary_source_data_object_id()
+    log.info(
+        "Probing change marker data_object=%s mapping=%s interface_type=%s",
+        data_object_id,
+        mapping.id,
+        interface,
+    )
     return probe_fn(mapping, config)
 
 

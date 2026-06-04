@@ -72,6 +72,14 @@ def probe_change_marker(
         "timezone": timezone,
         "past_days": past_days,
     }
+    log.info(
+        "Open-Meteo probe request %s lat=%s lon=%s past_days=%s timeout=%ss",
+        base_url,
+        latitude,
+        longitude,
+        past_days,
+        timeout,
+    )
     r = requests.get(base_url, params=params, timeout=timeout)
     r.raise_for_status()
     body = r.json()

@@ -56,8 +56,10 @@ class PostgresStateStore:
 
     def __init__(self, dsn: str) -> None:
         self._dsn = dsn
+        log.info("Connecting to Postgres metadata store")
         self._conn = self._connect(dsn)
         self._ensure_schema()
+        log.info("Postgres metadata store ready (table poller)")
 
     @staticmethod
     def _connect(dsn: str):

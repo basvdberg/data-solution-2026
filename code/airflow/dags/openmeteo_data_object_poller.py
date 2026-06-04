@@ -29,10 +29,16 @@ def _variable(name: str, default: str) -> str:
 def _poll_command() -> str:
     data_object_id = _variable("poller_data_object_id", DEFAULT_DATA_OBJECT_ID)
     publish = _variable("poller_publish", DEFAULT_PUBLISH)
-    return (
-        f"python -m extractor_and_poller.poller "
+    poller = (
+        f"python -u -m extractor_and_poller.poller "
         f"--data-object {data_object_id} "
         f"--publish {publish}"
+    )
+    # Immediate shell line so Airflow task logs show activity before Python imports.
+    return (
+        "set -e\n"
+        'echo "[poller] starting at $(date -u +%Y-%m-%dT%H:%M:%SZ)"\n'
+        f"{poller}"
     )
 
 
@@ -60,5 +66,8 @@ with DAG(
         task_id="poll_openmeteo_daily_temperature",
         bash_command=_poll_command(),
         cwd=REPO_ROOT,
-        env={"PYTHONPATH": f"{CODE_ROOT}:{REPO_ROOT}"},
+        env={
+            "PYTHONPATH": f"{CODE_ROOT}:{REPO_ROOT}",
+            "PYTHONUNBUFFERED": "1",
+        },
     )
