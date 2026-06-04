@@ -249,7 +249,7 @@ DAG source lives under [`code/airflow/dags/`](../code/airflow/dags/). The compos
 | `max_active_runs` | `1` |
 | `is_paused_upon_creation` | `true` |
 
-The repo DAG uses `BashOperator` with working directory `/opt/data-solution` and `PYTHONPATH=/opt/data-solution/code:/opt/data-solution`. Tune behaviour via Airflow Variables (see [code/airflow/readme.md](../code/airflow/readme.md)).
+The repo DAG uses `PythonOperator` to call `extractor_and_poller.poller` CLI `main()` (wrapper only; no duplicated poller logic). Container `PYTHONPATH` is `/opt/data-solution/code:/opt/data-solution`. Tune behaviour via Airflow Variables (see [code/airflow/readme.md](../code/airflow/readme.md)).
 
 **Smoke command** (Postgres state, optional stdout publish):
 
