@@ -76,7 +76,6 @@ Airflow DAGs: [`code/airflow/`](../airflow/readme.md).
       - [Event-based orchestration plan (single data object)](../../doc/design/event-based-orchestration-plan.md)
       - [Meta data design](../../doc/design/meta-data-design.md)
     - [Implementation plan (Open-Meteo → event orchestration)](../../doc/implementation-plan.md)
-  - Extractor_And_Poller
   - Infra
     - Airflow
       - Dags
@@ -92,6 +91,7 @@ Airflow DAGs: [`code/airflow/`](../airflow/readme.md).
       - V2026.06.03.4
       - V2026.06.04.1
       - V2026.06.04.2
+      - V2026.06.04.3
       - ﻿V2026.06.04.1
       - ﻿V2026.06.04.2
     - Notes
@@ -103,6 +103,7 @@ Airflow DAGs: [`code/airflow/`](../airflow/readme.md).
       - [Release v2026.06.03.4](../../release/notes/v2026.06.03.4.md)
       - [V2026.06.04.1](../../release/notes/v2026.06.04.1.md)
       - [V2026.06.04.2](../../release/notes/v2026.06.04.2.md)
+      - [V2026.06.04.3](../../release/notes/v2026.06.04.3.md)
     - [Release <version>](../../release/release-notes-template.md)
   - Setting
   - Template

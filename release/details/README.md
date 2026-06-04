@@ -100,7 +100,6 @@ This folder stores detailed, audit-friendly release content per version.
       - [Event-based orchestration plan (single data object)](../../doc/design/event-based-orchestration-plan.md)
       - [Meta data design](../../doc/design/meta-data-design.md)
     - [Implementation plan (Open-Meteo → event orchestration)](../../doc/implementation-plan.md)
-  - Extractor_And_Poller
   - Infra
     - Airflow
       - Dags
@@ -116,6 +115,7 @@ This folder stores detailed, audit-friendly release content per version.
       - V2026.06.03.4
       - V2026.06.04.1
       - V2026.06.04.2
+      - V2026.06.04.3
       - ﻿V2026.06.04.1
       - ﻿V2026.06.04.2
     - Notes
@@ -127,6 +127,7 @@ This folder stores detailed, audit-friendly release content per version.
       - [Release v2026.06.03.4](../notes/v2026.06.03.4.md)
       - [V2026.06.04.1](../notes/v2026.06.04.1.md)
       - [V2026.06.04.2](../notes/v2026.06.04.2.md)
+      - [V2026.06.04.3](../notes/v2026.06.04.3.md)
     - [Release <version>](../release-notes-template.md)
   - Setting
   - Template
@@ -137,3 +138,5 @@ This folder stores detailed, audit-friendly release content per version.
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026) — Course and learning materials
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns) — Design pattern catalogue
 <!-- markdown-project-structure:end -->
+
+- [$version](v2026.06.04.3/README.md)
