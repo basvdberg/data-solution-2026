@@ -3,17 +3,14 @@
 ## Table of contents
 
 <!-- markdown-toc:start -->
-- [Lessons learned](#lessons-learned)
-  - [Table of contents](#table-of-contents)
-  - [Infrastructure deployment](#infrastructure-deployment)
-  - [Keep Gen AI under control](#keep-gen-ai-under-control)
-  - [Data Solution Automation metadata](#data-solution-automation-metadata)
-  - [Agnostic Data Labs](#agnostic-data-labs)
-  - [Data extraction via API](#data-extraction-via-api)
-  - [Learning new tools](#learning-new-tools)
-  - [Versioned Cursor configuration](#versioned-cursor-configuration)
-  - [Use Voice2Text](#use-voice2text)
-  - [Project structure](#project-structure)
+- [Infrastructure deployment](#infrastructure-deployment)
+- [Keep Gen AI under control](#keep-gen-ai-under-control)
+- [Data Solution Automation metadata](#data-solution-automation-metadata)
+- [Agnostic Data Labs](#agnostic-data-labs)
+- [Data extraction via API](#data-extraction-via-api)
+- [Learning new tools](#learning-new-tools)
+- [Versioned Cursor configuration](#versioned-cursor-configuration)
+- [Use Voice2Text](#use-voice2text)
 <!-- markdown-toc:end -->
 
 ## Infrastructure deployment
@@ -149,19 +146,7 @@ I bought a very good microphone and used Wispr Flow to translate my voice to tex
       - V2026.06.05.2
       - V2026.06.05.3
       - V2026.06.05.4
-      - ﻿V2026.06.04.1
-      - ﻿V2026.06.04.2
-      - ﻿V2026.06.04.3
-      - ﻿V2026.06.04.4
-      - ﻿V2026.06.04.5
-      - ﻿V2026.06.04.6
-      - ﻿V2026.06.04.7
-      - ﻿V2026.06.04.8
-      - ﻿V2026.06.04.9
-      - ﻿V2026.06.05.1
-      - ﻿V2026.06.05.2
-      - ﻿V2026.06.05.3
-      - ﻿V2026.06.05.4
+      - V2026.06.05.5
     - Notes
       - [Release v2026.06.02.1](release/notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](release/notes/v2026.06.02.2.md)
@@ -182,6 +167,7 @@ I bought a very good microphone and used Wispr Flow to translate my voice to tex
       - [V2026.06.05.2](release/notes/v2026.06.05.2.md)
       - [V2026.06.05.3](release/notes/v2026.06.05.3.md)
       - [V2026.06.05.4](release/notes/v2026.06.05.4.md)
+      - [V2026.06.05.5](release/notes/v2026.06.05.5.md)
     - [Release <version>](release/release-notes-template.md)
   - Setting
   - Template
