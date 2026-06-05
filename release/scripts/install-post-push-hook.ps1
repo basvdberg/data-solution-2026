@@ -50,4 +50,4 @@ if (Test-Path $legacyPostPush) {
 
 Write-Host ""
 Write-Host "Prerequisites: gh auth login, ssh bas@basnas, ntfy topic data-solution-2026-deploy"
-Write-Host "After push to main: GitHub Actions (tests + release) then NAS git pull via deploy-on-nas.sh"
+Write-Host "After push to main: GitHub Actions (tests + release) then NAS deploy via deploy-on-nas.sh"

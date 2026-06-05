@@ -4,5 +4,6 @@ __pycache__/
 .idea/
 .vscode/
 .env
+infra/local-server.env
 data/
 /prompts.md

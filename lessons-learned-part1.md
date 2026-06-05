@@ -15,9 +15,9 @@
 
 ## Infrastructure deployment
 
-This proof of concept needed [Apache Airflow](https://airflow.apache.org/) and [Apache Kafka](https://kafka.apache.org/). Because I prefer not to spend costs on spinning up cloud resources, I decided to use my local QNAP NAS (“Basnas”). That required remote SSH so the agent could edit files and run commands on the NAS.Installing and tuning services from prompts worked well once SSH was in place. 
+This proof of concept needed [Apache Airflow](https://airflow.apache.org/) and [Apache Kafka](https://kafka.apache.org/). Because I prefer not to spend costs on spinning up cloud resources, I decided to use my local QNAP NAS as the **local server**. That required remote SSH so the agent could edit files and run commands on the server. Installing and tuning services from prompts worked well once SSH was in place.
 
-I wanted services to have friendly URLs (for example `https://kafka.basnas`). This took noticeable effort installing HTTPS and local DNS. To keep browser access manageable, a small sync tool merges Chrome and Brave bookmarks with Basnas service URLs from deployment config.
+I wanted services to have friendly URLs (for example `https://kafka.example` on the local server). This took noticeable effort installing HTTPS and local DNS. To keep browser access manageable, a small sync tool merges Chrome and Brave bookmarks with service URLs from deployment config ([local-server.env.example](infra/local-server.env.example), [service-url-map.yaml](https://github.com/basvdberg/cursor-config/blob/main/skills/deploy-basnas-container/service-url-map.yaml)).
 
 **Takeaway:** Local NAS hosting is viable for PoC infrastructure when deployed via Gen-AI. Cursor is really good at solving installation issues via a backtracking mechanism. It just keeps firing PowerShell scripts to try out different approaches until the issue is fixed.
 

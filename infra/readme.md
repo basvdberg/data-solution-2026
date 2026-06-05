@@ -5,7 +5,7 @@
 <!-- markdown-toc:start -->
 - [Purpose](#purpose)
 - [Layout](#layout)
-- [BasNAS deployment](#basnas-deployment)
+- [Local server deployment](#local-server-deployment)
   - [Sync script (recommended)](#sync-script-recommended)
   - [Manual compose (from repo paths)](#manual-compose-from-repo-paths)
 - [Airflow](#airflow)
@@ -20,7 +20,7 @@
 
 ## Purpose
 
-Version-controlled Docker Compose for the PoC runtime on BasNAS: **Apache Airflow** (orchestration), **Apache Kafka** (change events), and **PostgreSQL** (runtime metadata). Application libraries live under `code/extractor_and_poller/`; these stacks host the services.
+Version-controlled Docker Compose for the PoC runtime on the local server: **Apache Airflow** (orchestration), **Apache Kafka** (change events), and **PostgreSQL** (runtime metadata). Application libraries live under `code/extractor_and_poller/`; these stacks host the services. SSH and service URLs: [local-server.env.example](local-server.env.example).
 
 Source of truth on NAS today:
 
@@ -53,16 +53,14 @@ code/                                # generated runtime (not under infra/)
 
 The large upstream multi-service Airflow template (`docker-compose.yaml` with Celery/Redis/Postgres) is **not** vendored here; this PoC uses **standalone** mode only. See [Apache Airflow Docker docs](https://airflow.apache.org/docs/docker-stack/index.html) if you need that layout.
 
-## BasNAS deployment
+## Local server deployment
 
 ### Sync script (recommended)
 
 Copies compose files from `infra/` into legacy NAS folders (`~/apache-airflow`, `~/kafka`), keeps existing `.env` / `logs` / Kafka data, sets `DATA_SOLUTION_ROOT`, and restarts stacks:
 
 ```bash
-cd ~/apps/data-solution-2026
-git pull origin main
-bash infra/scripts/deploy-infra-on-nas.sh
+RUN_INFRA_SYNC=1 bash ~/apps/data-solution-2026/release/scripts/deploy-on-nas.sh
 ```
 
 Options:
@@ -99,7 +97,7 @@ cp -n .env.example .env
 docker compose -f docker-compose.standalone.yaml up -d
 ```
 
-HTTPS UI: `https://airflow.basnas/` and `https://kafka.basnas/` (see [BasNAS deploy skill](https://github.com/basvdberg/data-engineering-2026/tree/main/cursor-config/skills/deploy-basnas-container) in the parent monorepo).
+HTTPS UI: `${LOCAL_SERVER_URL_AIRFLOW}` and `${LOCAL_SERVER_URL_KAFKA}` (values in [local-server.env.example](local-server.env.example); NGINX setup in [local server deploy skill](https://github.com/basvdberg/cursor-config/tree/main/skills/deploy-basnas-container)).
 
 ## Airflow
 
@@ -124,17 +122,17 @@ Optional: uncomment the `kafka` external network in [docker-compose.standalone.y
 
 ### UI shows Bad Gateway or Missing Meta Database / Scheduler / Triggerer
 
-Common causes on BasNAS:
+Common causes on the local server:
 
 1. **Still starting** — On each `up` or recreate, the image may run `_PIP_ADDITIONAL_REQUIREMENTS` and `airflow standalone` DB init (often 3–5 minutes). NGINX returns **502 Bad Gateway** until the API listens on port 8080. Wait, then check: `curl -s http://127.0.0.1:8081/api/v2/monitor/health`.
 2. **Logs volume permissions** — `logs/` and `plugins/` on the host must be writable by the container user. Set `AIRFLOW_UID=$(id -u)` in `.env` and use the `user:` line in [docker-compose.standalone.yaml](airflow/docker-compose.standalone.yaml). Symptom in logs: `PermissionError: ... '/opt/airflow/logs/dag_processor'`.
-3. **HTTPS proxy** — `https://airflow.basnas/` proxies to `http://airflow-standalone:8080`. NGINX must share the `apache-airflow_default` network with the Airflow container (see BasNAS deploy skill `patch-bridge-upstreams.sh` after recreates).
+3. **HTTPS proxy** — `${LOCAL_SERVER_URL_AIRFLOW}` proxies to `http://airflow-standalone:8080`. NGINX must share the `apache-airflow_default` network with the Airflow container (see local server deploy skill `patch-bridge-upstreams.sh` after recreates).
 
 **Admin login:** user `admin`, password from `AIRFLOW_ADMIN_PASSWORD` in [airflow/.env](airflow/.env) (see [.env.example](airflow/.env.example)). The compose file writes that value into the Simple Auth Manager passwords file on each container start, so recreating the stack does not change the password. After upgrading an existing NAS `.env`, add `AIRFLOW_ADMIN_PASSWORD=...` (or re-sync from `.env.example` on a new install).
 
 ### Non-interactive SSH: `git` fails with `libcharset.so.1`
 
-QNAP `/usr/bin/git` needs `libcharset.so.1` from an optional QPKG (NGinX on this NAS). Non-interactive SSH (`ssh bas@basnas 'git …'`) uses `PATH=/usr/bin:/bin` only and does not load `~/.profile`.
+QNAP `/usr/bin/git` needs `libcharset.so.1` from an optional QPKG (NGinX on this NAS). Non-interactive SSH (`ssh $LOCAL_SERVER_SSH 'git …'`; see [local-server.env.example](local-server.env.example)) uses `PATH=/usr/bin:/bin` only and does not load `~/.profile`.
 
 Fix (run once on NAS after pull):
 
@@ -160,13 +158,13 @@ Fix (run once on NAS after pull):
 bash infra/scripts/setup-nas-ssh-env.sh
 ```
 
-That extends `~/.ssh/environment`, `~/.local/bin/nas-path.sh`, and `~/.local/bin/docker` (symlink). Interactive `ssh bas@basnas` loads `nas-path.sh` from `~/.profile`. For bare `ssh bas@basnas 'docker …'`, enable [enable-nas-ssh-user-env.sh](scripts/enable-nas-ssh-user-env.sh) once (admin password).
+That extends `~/.ssh/environment`, `~/.local/bin/nas-path.sh`, and `~/.local/bin/docker` (symlink). Interactive `ssh $LOCAL_SERVER_SSH` loads `nas-path.sh` from `~/.profile`. For bare `ssh $LOCAL_SERVER_SSH 'docker …'`, enable [enable-nas-ssh-user-env.sh](scripts/enable-nas-ssh-user-env.sh) once (admin password).
 
-Verify:
+Verify (after `source local-server.env.example` or your `local-server.env`):
 
 ```bash
-ssh bas@basnas 'docker --version'
-ssh bas@basnas 'command -v docker'
+ssh $LOCAL_SERVER_SSH 'docker --version'
+ssh $LOCAL_SERVER_SSH 'command -v docker'
 ```
 
 ### Task logs show `http://:8793/... No host supplied`
@@ -178,7 +176,7 @@ Fix (already in [docker-compose.standalone.yaml](airflow/docker-compose.standalo
 - Set container `hostname: airflow-standalone`
 - Set `AIRFLOW__CORE__HOSTNAME_CALLABLE=airflow.utils.net.get_host_ip_address`
 
-Redeploy on BasNAS:
+Redeploy on the local server:
 
 ```bash
 cd ~/apache-airflow   # or ~/apps/data-solution-2026/infra/airflow

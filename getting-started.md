@@ -24,7 +24,7 @@ cd "c:\Dev2\Data Engineering 2.0\data-solution-2026"
 
 ## Infrastructure (Docker)
 
-Airflow and Kafka Compose files for BasNAS: [infra/readme.md](infra/readme.md).
+Airflow and Kafka Compose files for the local server: [infra/readme.md](infra/readme.md). Connection settings: [infra/local-server.env.example](infra/local-server.env.example).
 
 Airflow DAGs (generated orchestration): [code/airflow/readme.md](code/airflow/readme.md).
 

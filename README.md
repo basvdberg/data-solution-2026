@@ -36,7 +36,7 @@ A **staging layer** for daily mean temperature across the Netherlands.
 
 **Done**
 
-- Infrastructure on BasNAS: Airflow and Kafka deployed and tuned via GenAI over SSH.
+- Infrastructure on the local server: Airflow and Kafka deployed and tuned via GenAI over SSH.
 - Design patterns created and modified to specify intent. See [design patterns changed](#design-patterns-changed).
 - After discovering that the KNMI API was actually quite old and not providing any recent data updates, we switched to a new public data API, which was relatively easy because of the new way of working.
 - Open-Meteo extractor and poller implemented.

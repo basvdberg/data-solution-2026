@@ -12,7 +12,7 @@
 
 ## Purpose
 
-This folder holds **generated and hand-maintained runtime code** that implements *how* the data solution runs on BasNAS: orchestration (Airflow), extractor/poller libraries, Postgres schema, and future event controllers.
+This folder holds **generated and hand-maintained runtime code** that implements *how* the data solution runs on the local server: orchestration (Airflow), extractor/poller libraries, Postgres schema, and future event controllers.
 
 It is separate from:
 

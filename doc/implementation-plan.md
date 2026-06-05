@@ -7,7 +7,7 @@
 - [Scope](#scope)
 - [Related documentation](#related-documentation)
 - [Prerequisites](#prerequisites)
-  - [BasNAS server setup (ordered)](#basnas-server-setup-ordered)
+  - [Local server setup (ordered)](#local-server-setup-ordered)
     - [1 — One-time host tooling](#1-one-time-host-tooling)
     - [2 — Clone the application repo](#2-clone-the-application-repo)
     - [3 — Postgres metadata stack](#3-postgres-metadata-stack)
@@ -27,14 +27,14 @@
   - [Step 2 — Publish poll events to Kafka](#step-2-publish-poll-events-to-kafka)
   - [Step 3 — React to change events (event controller)](#step-3-react-to-change-events-event-controller)
   - [Step 4 — Run extract on change in Airflow](#step-4-run-extract-on-change-in-airflow)
-  - [Step 5 — End-to-end validation on BasNAS](#step-5-end-to-end-validation-on-basnas)
+  - [Step 5 — End-to-end validation on the local server](#step-5-end-to-end-validation-on-the-local-server)
   - [Step 6 — Production rollout and operations](#step-6-production-rollout-and-operations)
 - [Definition of done](#definition-of-done)
 <!-- markdown-toc:end -->
 
 ## Goal
 
-Move from a **locally runnable** Open-Meteo poller and extractor to **scheduled, event-driven orchestration** on BasNAS: Airflow runs the poller, Kafka carries change signals, and Airflow runs extract only when the source marker advances.
+Move from a **locally runnable** Open-Meteo poller and extractor to **scheduled, event-driven orchestration** on the local server: Airflow runs the poller, Kafka carries change signals, and Airflow runs extract only when the source marker advances.
 
 This document is the **action checklist** for implementation. Technical detail for contracts, Postgres tables, and phases lives in [Event-based orchestration plan](design/event-based-orchestration-plan.md).
 
@@ -58,7 +58,7 @@ Out of scope for this plan: additional sources, multi-mapping routing, and advan
 |-------|----------|
 | Target architecture and event contract | [Event-based orchestration plan](design/event-based-orchestration-plan.md) |
 | Airflow / Kafka Compose on NAS | [Infrastructure](../infra/readme.md) |
-| Deploy to BasNAS (commit + push `main`) | [CI/CD workflow](design/ci-cd.md) · Cursor skill `.cursor/skills/deploy-basnas-via-cicd` |
+| Deploy to the local server (commit + push `main`) | [CI/CD workflow](design/ci-cd.md) · Cursor skill `.cursor/skills/deploy-basnas-via-cicd` (local server deploy) |
 | Poller CLI and options | [Extractor and poller](../code/extractor_and_poller/readme.md) |
 | Airflow DAGs and variables | [code/airflow](../code/airflow/readme.md) |
 | Local commands | [Getting started](../getting-started.md) |
@@ -67,9 +67,9 @@ Out of scope for this plan: additional sources, multi-mapping routing, and advan
 
 Complete everything below before [Step 1](#step-1-run-the-open-meteo-data-object-poller-in-airflow). Detailed stack behaviour: [Infrastructure](../infra/readme.md). Deploy automation: [CI/CD workflow](design/ci-cd.md).
 
-### BasNAS server setup (ordered)
+### Local server setup (ordered)
 
-Run on BasNAS over SSH unless noted. Check off each step in order.
+Run on the local server over SSH unless noted. Connection settings: [infra/local-server.env.example](../infra/local-server.env.example). Check off each step in order.
 
 #### 1 — One-time host tooling
 
@@ -138,7 +138,7 @@ bash infra/postgres/create-app-user.sh
 
 - [ ] **Optional `.env`** at `~/kafka/.env` — only if you need a new cluster id ([infra/kafka/.env.example](../infra/kafka/.env.example)); changing `KAFKA_CLUSTER_ID` on an existing volume wipes data.
 
-- [ ] **Start Kafka** (included in `deploy-infra-on-nas.sh` after Postgres). Confirm broker and UI: `https://kafka.basnas/` or host port `8085`.
+- [ ] **Start Kafka** (included in `deploy-infra-on-nas.sh` after Postgres). Confirm broker and UI: `${LOCAL_SERVER_URL_KAFKA}` (see [local-server.env.example](../infra/local-server.env.example)) or host port `8085`.
 
 #### 5 — Airflow standalone stack
 
@@ -157,7 +157,7 @@ bash infra/postgres/create-app-user.sh
 
 - [ ] **`_PIP_ADDITIONAL_REQUIREMENTS`** — leave commented to use the compose default (`requests`, `pandas`, `pyarrow`, `jsonschema`, `psycopg[binary]`, optional `kafka-python`).
 
-- [ ] **Start Airflow** (deploy script starts Postgres → Kafka → Airflow). First start can take **3–5 minutes** (`_PIP_ADDITIONAL_REQUIREMENTS` + DB init); `https://airflow.basnas/` may return 502 until healthy.
+- [ ] **Start Airflow** (deploy script starts Postgres → Kafka → Airflow). First start can take **3–5 minutes** (`_PIP_ADDITIONAL_REQUIREMENTS` + DB init); `${LOCAL_SERVER_URL_AIRFLOW}` may return 502 until healthy (see [local-server.env.example](../infra/local-server.env.example)).
 
 ```bash
 curl -s http://127.0.0.1:8081/api/v2/monitor/health
@@ -171,7 +171,7 @@ curl -s http://127.0.0.1:8081/api/v2/monitor/health
 
 #### 6 — Sync compose files and restart stacks
 
-After pushing `infra/` changes to `main`, run on BasNAS (app pull is already done by CI/CD):
+After pushing `infra/` changes to `main`, run on the local server (app pull is already done by CI/CD):
 
 ```bash
 RUN_INFRA_SYNC=1 bash ~/apps/data-solution-2026/release/scripts/deploy-on-nas.sh
@@ -193,9 +193,9 @@ Postgres connection for the poller uses `POSTGRES_HOST`, `POSTGRES_USER`, `POSTG
 #### 8 — Service readiness checklist
 
 - [ ] Postgres: `docker ps` shows `data-solution-postgres`; poller can connect as `data-solution-2026_app`.
-- [ ] Airflow: UI loads at `https://airflow.basnas/` (or `http://<nas>:8081`); login `admin` + `AIRFLOW_ADMIN_PASSWORD`.
+- [ ] Airflow: UI loads at `${LOCAL_SERVER_URL_AIRFLOW}` (or `http://<local-server>:8081`; URLs in [local-server.env.example](../infra/local-server.env.example)); login `admin` + `AIRFLOW_ADMIN_PASSWORD`.
 - [ ] DAG `openmeteo_data_object_poller` appears without import errors (paused by default).
-- [ ] HTTPS reverse proxy: NGINX shares the Airflow Docker network with `airflow-standalone` (see BasNAS deploy skill if 502 persists after health is green).
+- [ ] HTTPS reverse proxy: NGINX shares the Airflow Docker network with `airflow-standalone` (see local server deploy skill if 502 persists after health is green).
 
 ### Application and smoke checks
 
@@ -263,7 +263,7 @@ Pass connection settings via Airflow Variables or environment (see 1.3).
 
 #### 1.2 Deploy DAGs to the running Airflow container
 
-**Routine deploy:** commit and push to `main`; [CI/CD](design/ci-cd.md) runs tests and the post-push hook runs `release/scripts/deploy-on-nas.sh` on BasNAS (`git pull`). DAGs are bind-mounted from `code/airflow/dags/`—no manual copy.
+**Routine deploy:** commit and push to `main`; [CI/CD](design/ci-cd.md) runs tests and the post-push hook runs `release/scripts/deploy-on-nas.sh` on the local server (resets the clone to `origin/main`, discarding local edits). DAGs are bind-mounted from `code/airflow/dags/`—no manual copy.
 
 After deploy (or if compose under `infra/` changed), sync stacks when needed:
 
@@ -271,9 +271,9 @@ After deploy (or if compose under `infra/` changed), sync stacks when needed:
 RUN_INFRA_SYNC=1 bash ~/apps/data-solution-2026/release/scripts/deploy-on-nas.sh
 ```
 
-Manual fallback only (troubleshooting): `git pull` on NAS or restart Airflow in `~/apache-airflow`.
+Manual fallback only (troubleshooting): `bash ~/apps/data-solution-2026/release/scripts/deploy-on-nas.sh` or restart Airflow in `~/apache-airflow`.
 
-Confirm the DAG appears in the UI (`https://airflow.basnas/` or host port `8081`) without import errors.
+Confirm the DAG appears in the UI (`${LOCAL_SERVER_URL_AIRFLOW}` or host port `8081`; see [local-server.env.example](../infra/local-server.env.example)) without import errors.
 
 #### 1.3 Configure Airflow for the poller task
 
@@ -369,7 +369,7 @@ python -m extractor_and_poller.openmeteo.extractor --mapping daily-temperature
 
 ---
 
-### Step 5 — End-to-end validation on BasNAS
+### Step 5 — End-to-end validation on the local server
 
 Run the smoke sequence from the orchestration plan:
 
@@ -402,7 +402,7 @@ The PoC orchestration path is complete when all of the following are true:
 - [ ] **Step 2:** Poll results publish to Kafka with a stable envelope.
 - [ ] **Step 3:** Change events trigger extract orchestration (no manual extract for routine loads).
 - [ ] **Step 4:** Extract is idempotent per `event_id` and lands staging Parquet.
-- [ ] **Step 5:** End-to-end smoke on BasNAS documented in a release note.
+- [ ] **Step 5:** End-to-end smoke on the local server documented in a release note.
 - [ ] Runbook pointers updated in [readme.md](../readme.md) documentation table if new operational steps were added.
 
 For schema-level acceptance criteria, use [Definition of done](design/event-based-orchestration-plan.md#definition-of-done) in the event-based orchestration plan.

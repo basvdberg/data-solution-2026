@@ -49,7 +49,7 @@ The task runs as `PythonOperator` so it **inherits** container env vars (`POSTGR
 
 **Early progress logs:** the DAG logs **immediately** on task start and once more only if work is still running after **2 seconds** (`extractor_and_poller.common.heartbeat.log_early_progress`).
 
-Confirm `~/apache-airflow/.env` on BasNAS includes `POSTGRES_HOST=postgres:5432` and `DATA_SOLUTION_DB=data-solution-2026` (see `infra/airflow/.env.example`). After changing `.env`, restart Airflow: `docker compose -f docker-compose.standalone.yaml up -d` in `~/apache-airflow`.
+Confirm `~/apache-airflow/.env` on the local server includes `POSTGRES_HOST=postgres:5432` and `DATA_SOLUTION_DB=data-solution-2026` (see `infra/airflow/.env.example`). After changing `.env`, restart Airflow: `docker compose -f docker-compose.standalone.yaml up -d` in `~/apache-airflow`.
 
 **DAG still shows BashOperator?** The bind-mounted DAG file comes from `~/apps/data-solution-2026`. If the NAS clone is behind `origin/main`, run `bash ~/apps/data-solution-2026/release/scripts/deploy-on-nas.sh`, then `docker exec airflow-standalone airflow dags reserialize`, and trigger a new run (old task attempts keep the operator they started with).
 

@@ -125,10 +125,12 @@ set -e
 cd ~/apps/data-solution-2026
 git fetch --all --tags
 git checkout main
-git pull origin main
+git reset --hard origin/main   # discard any local edits; deploy folder mirrors remote
 # Optional poller smoke check only if Python is available:
 # RUN_POLLER_CHECK=1 bash release/scripts/deploy-on-nas.sh
 ```
+
+The deploy script always **discards local changes** in the NAS clone before updating. Treat `~/apps/data-solution-2026` as read-only at runtime; never edit application code there—commit on your dev machine and push to `main` instead.
 
 Optional automation on NAS:
 
@@ -152,7 +154,7 @@ Every **`git push origin main`** from this machine should complete the cycle (no
 2. **GitHub Actions** on `origin/main`: ntfy “CI/CD started”, tests, release publish.
 3. `pre-push` hook starts `wait-and-trigger-pull.ps1` in the background.
 4. Watcher waits until the commit is on `origin/main` and CI is green.
-5. Watcher SSH-triggers `deploy-on-nas.sh` (`git pull origin main` on NAS) and sends ntfy success/failure.
+5. Watcher SSH-triggers `deploy-on-nas.sh` (`git reset --hard origin/main` on NAS, discarding local edits) and sends ntfy success/failure.
 
 Scripts in this repo:
 

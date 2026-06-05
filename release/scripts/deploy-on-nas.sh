@@ -16,7 +16,11 @@ RUN_INFRA_SYNC="${RUN_INFRA_SYNC:-0}"
 cd "$APP_ROOT"
 git fetch --all --tags
 git checkout main
-git pull origin main
+if [ -n "$(git status --porcelain)" ]; then
+  echo "WARN: discarding local changes in ${APP_ROOT}"
+  git status --short
+fi
+git reset --hard origin/main
 
 echo "App-only deploy completed: $(git rev-parse --short HEAD) $(git log -1 --oneline)"
 

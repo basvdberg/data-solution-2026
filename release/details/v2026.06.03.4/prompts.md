@@ -144,7 +144,7 @@ does this json follow the schema? Does it validate?
 
 ## Session 19
 
-1. kafka is running on basnas on port 9092, airflow is running on same server on port 8081. Implement plan3 the first step, which consists of extracting a dataset from OData site.
+1. kafka is running on the local server on port 9092, airflow is running on same server on port 8081. Implement plan3 the first step, which consists of extracting a dataset from OData site.
 
 2. Create an extractor folder. For each extractor subtype, create a sub-folder, and specifically for the following website, create an extractor.https://haleconnect.com/ows/services/org.874.cb9ca55e-f4e7-4bd8-a02e-75d528e22118_wfs/org.874.794fa9da-8bf0-4053-83d8-1174f2317dcb?SERVICE=WFS&Request=GetCapabilities
 

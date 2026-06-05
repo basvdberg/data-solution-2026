@@ -1,15 +1,15 @@
 ---
 name: deploy-basnas-via-cicd
 description: >-
-  Deploy this repo to BasNAS: commit and push to main; GitHub Actions runs tests
+  Deploy this repo to local server: commit and push to main; GitHub Actions runs tests
   and release; the pre-push hook deploys to NAS after CI succeeds. Use when the
-  user wants changes on BasNAS, NAS deploy, production rollout, or after finishing
+  user wants changes on local server, NAS deploy, production rollout, or after finishing
   implementation—do not SSH git pull unless CI/CD failed or asked manually.
 ---
 
-# Deploy to BasNAS via CI/CD
+# Deploy to local server via CI/CD
 
-**Agents:** after code or doc changes that should reach BasNAS, **commit and push to `main` yourself** (unless the user forbids commits). Do not ask the user to deploy manually. Do not SSH to BasNAS for routine deploys.
+**Agents:** after code or doc changes that should reach local server, **commit and push to `main` yourself** (unless the user forbids commits). Do not ask the user to deploy manually. Do not SSH to local server for routine deploys.
 
 ## Agent deploy steps
 
@@ -32,7 +32,7 @@ DAGs and app code are bind-mounted from `~/apps/data-solution-2026`; no manual c
 powershell -ExecutionPolicy Bypass -File .\release\scripts\install-post-push-hook.ps1
 ```
 
-Needs `gh auth login` and `ssh bas@basnas`.
+Needs `gh auth login` and `ssh $LOCAL_SERVER_SSH`.
 
 ## Infra compose changes
 
