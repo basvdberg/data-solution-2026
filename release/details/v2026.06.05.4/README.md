@@ -9,15 +9,18 @@
 ﻿## Table of contents
 
 
+﻿## Table of contents
+
+
 ﻿# Release v2026.06.05.4 - Details
 
 ## Release metadata
 
 - Version: `v2026.06.05.4`
 - Development start: `2026-06-05T10:18:06+02:00`
-- Development end: `2026-06-05T10:18:23+02:00`
+- Development end: `2026-06-05T10:18:54+02:00`
 - Release branch: `main`
-- Release commit: `870ac794d700c44916736875f9d211bd9c3ce97a`
+- Release commit: `b7c693893a56ece6ec32712e824886b3c9e26d8b`
 
 ## Summary
 
