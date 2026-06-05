@@ -3,14 +3,17 @@
 ## Table of contents
 
 <!-- markdown-toc:start -->
-- [Infrastructure deployment](#infrastructure-deployment)
-- [Keep Gen AI under control](#keep-gen-ai-under-control)
-- [Data Solution Automation metadata](#data-solution-automation-metadata)
-- [Agnostic Data Labs](#agnostic-data-labs)
-- [Data extraction via API](#data-extraction-via-api)
-- [Learning new tools](#learning-new-tools)
-- [Versioned Cursor configuration](#versioned-cursor-configuration)
-- [Use Voice2Text](#use-voice2text)
+- [Lessons learned](#lessons-learned)
+  - [Table of contents](#table-of-contents)
+  - [Infrastructure deployment](#infrastructure-deployment)
+  - [Keep Gen AI under control](#keep-gen-ai-under-control)
+  - [Data Solution Automation metadata](#data-solution-automation-metadata)
+  - [Agnostic Data Labs](#agnostic-data-labs)
+  - [Data extraction via API](#data-extraction-via-api)
+  - [Learning new tools](#learning-new-tools)
+  - [Versioned Cursor configuration](#versioned-cursor-configuration)
+  - [Use Voice2Text](#use-voice2text)
+  - [Project structure](#project-structure)
 <!-- markdown-toc:end -->
 
 ## Infrastructure deployment
@@ -54,9 +57,9 @@ In this PoC, working with DSA also surfaced practical gaps:
 [Agnostic Data Labs](https://docs.agnosticdatalabs.com/docs/) (ADL) is a free companion to visualize [DSA metadata](https://data-solution-automation-engine.github.io/data-warehouse-automation-metadata-schema/). The UI and feature set are impressive, but two issues blocked deeper use in this PoC:
 
 1. **Validation feedback** — JSON that matched the published automation schema did not always load in ADL, with little feedback on *why*. After reporting this, the developer fixed it quickly.
-2. **On-disk shape** — ADL decomposes JSON into elemental components, which changes the on-disk representation. For round-tripping and GenAI workflows, a model centred on those components may be clearer than top-level `dataObjectMappings` alone.
+2. **On-disk shape** — When importing Data Object Mappings as defined by DSA, ADL decomposes the JSON into elemental components, which changes the on-disk representation. For round-tripping and GenAI workflows, a model centred on those elemental components may be clearer. 
 
-**Takeaway:** ADL is a nice-to-have for this PoC; I kept it out of the critical path until validation and file layout align with the Git-first metadata model.
+**Takeaway:** ADL is a nice-to-have for this PoC; I kept it out of the critical path for now. Perhaps I will get back to it at a later stage. 
 
 ## Data extraction via API
 
