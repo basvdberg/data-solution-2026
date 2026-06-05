@@ -1,5 +1,7 @@
 -- Runtime metadata for data-solution-2026 (BasNAS PoC).
--- Applied automatically by the poller on first connect; kept in Git as reference.
+-- Applied by infra/postgres on first container init and by the poller on first connect.
+-- Canonical copy for the application: code/postgres/schema.sql (also embedded in
+-- extractor_and_poller.common.postgres_schema for PYTHONPATH-only runs).
 
 create table if not exists poller (
     id bigserial primary key,

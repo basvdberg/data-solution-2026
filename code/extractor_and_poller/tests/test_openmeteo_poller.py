@@ -86,7 +86,12 @@ class TestOpenMeteoPoller(unittest.TestCase):
         cursor = MagicMock()
         mock_connect.return_value = conn
         conn.cursor.return_value.__enter__.return_value = cursor
-        cursor.fetchone.return_value = ("2026-05-21",)
+        cursor.fetchone.side_effect = [
+            (1,),  # table exists
+            (True,),  # INSERT privilege
+            ("2026-05-21",),  # last_marker
+            (42,),  # append returning id
+        ]
 
         store = PostgresStateStore("postgresql://example")
         self.assertEqual(
@@ -105,13 +110,36 @@ class TestOpenMeteoPoller(unittest.TestCase):
             event_time_utc=datetime(2026, 5, 26, tzinfo=timezone.utc),
             event_type="data_object_change",
         )
-        store.append(result)
+        row_id = store.append(result)
+        self.assertEqual(row_id, 42)
 
         insert_sql = cursor.execute.call_args_list[-1][0][0]
         self.assertIn("insert into poller", insert_sql.lower())
+        self.assertIn("returning id", insert_sql.lower())
         insert_args = cursor.execute.call_args_list[-1][0][1]
         self.assertEqual(insert_args[2], "source/openmeteo/daily-temperature")
         self.assertEqual(insert_args[8], "2026-05-26")
+
+    @patch("extractor_and_poller.poller.state.PostgresStateStore._connect")
+    def test_poller_initializes_schema_when_table_missing(self, mock_connect) -> None:
+        conn = MagicMock()
+        cursor = MagicMock()
+        mock_connect.return_value = conn
+        conn.cursor.return_value.__enter__.return_value = cursor
+        cursor.fetchone.side_effect = [
+            None,  # table missing
+            (1,),  # table exists after init
+            (True,),  # INSERT privilege
+        ]
+
+        PostgresStateStore("postgresql://example")
+
+        executed_sql = " ".join(
+            call.args[0].lower() for call in cursor.execute.call_args_list
+        )
+        self.assertIn("create table if not exists poller", executed_sql)
+        self.assertIn("create index if not exists poller_data_object_polled_idx", executed_sql)
+        conn.commit.assert_called()
 
     @patch("extractor_and_poller.openmeteo.extractor.client.requests.get")
     def test_event_payload_contract_fields(self, mock_get) -> None:

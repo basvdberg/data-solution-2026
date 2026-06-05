@@ -19,6 +19,9 @@ try:
 except ImportError:  # pragma: no cover - Airflow 2.x
     from airflow.models import Variable  # type: ignore[no-redef]
 
+from dag_run_guard import assert_manual_trigger_allowed_from_context
+from extractor_and_poller.common.heartbeat import log_early_progress
+
 DAG_ID = "openmeteo_data_object_poller"
 DEFAULT_DATA_OBJECT_ID = "source/openmeteo/daily-temperature"
 DEFAULT_PUBLISH = "none"
@@ -47,8 +50,7 @@ def _log_postgres_env() -> None:
 
 def run_openmeteo_poller() -> None:
     """Thin wrapper: delegate to the poller CLI ``main()`` (no duplicated logic)."""
-    log.info("Starting Open-Meteo data object poller task")
-    _log_postgres_env()
+    assert_manual_trigger_allowed_from_context()
 
     from extractor_and_poller.poller.__main__ import main
 
@@ -59,7 +61,15 @@ def run_openmeteo_poller() -> None:
         _variable("poller_publish", DEFAULT_PUBLISH),
     ]
     try:
-        exit_code = main(argv)
+        with log_early_progress(
+            log,
+            "Open-Meteo poller task invoked",
+            pending_message="Open-Meteo poller task still running",
+        ):
+            _log_postgres_env()
+            exit_code = main(argv)
+    except RuntimeError as exc:
+        raise AirflowException(str(exc)) from exc
     except Exception as exc:
         if exc.__class__.__name__ == "OperationalError":
             raise AirflowException(
@@ -72,6 +82,10 @@ def run_openmeteo_poller() -> None:
 
     if exit_code == 2:
         raise AirflowException("poller exited with code 2 (configuration or validation error)")
+    if exit_code == 3:
+        raise AirflowException(
+            "poller exited with code 3 (probe ran but no rows were persisted to Postgres)"
+        )
     if exit_code == 1:
         log.info("Poller finished: data object change detected")
     else:

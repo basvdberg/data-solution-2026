@@ -6,36 +6,19 @@ import logging
 import os
 from typing import TYPE_CHECKING, Protocol
 
+from extractor_and_poller.common.postgres_schema import load_schema_sql, schema_statements
+
 if TYPE_CHECKING:
     from extractor_and_poller.poller.change_probe import PollResult
 
 log = logging.getLogger(__name__)
 
-_POLLER_DDL = """
-create table if not exists poller (
-    id bigserial primary key,
-    event_id text not null,
-    run_id text not null,
-    data_object_id text not null,
-    source_data_object_id text not null,
-    target_data_object_id text not null,
-    event_type text not null,
-    polled_at_utc timestamptz not null,
-    old_marker text,
-    new_marker text not null,
-    inserted_at_utc timestamptz not null default now()
-)
-"""
-
-_POLLER_INDEX_DDL = """
-create index if not exists poller_data_object_polled_idx
-    on poller (data_object_id, polled_at_utc desc, id desc)
-"""
+_POLLER_TABLE = "public.poller"
 
 
 class StateStore(Protocol):
     def last_marker(self, data_object_id: str) -> str | None: ...
-    def append(self, result: "PollResult") -> None: ...
+    def append(self, result: "PollResult") -> int: ...
 
 
 def default_postgres_dsn() -> str:
@@ -51,6 +34,14 @@ def default_postgres_dsn() -> str:
     return f"postgresql://{user}:{password}@{host}/{database}"
 
 
+def _is_insufficient_privilege(exc: BaseException) -> bool:
+    try:
+        from psycopg import errors as pg_errors  # type: ignore
+    except Exception:
+        return exc.__class__.__name__ == "InsufficientPrivilege"
+    return isinstance(exc, pg_errors.InsufficientPrivilege)
+
+
 class PostgresStateStore:
     """Append poll results to Postgres table ``poller``."""
 
@@ -59,7 +50,7 @@ class PostgresStateStore:
         log.info("Connecting to Postgres metadata store")
         self._conn = self._connect(dsn)
         self._ensure_schema()
-        log.info("Postgres metadata store ready (table poller)")
+        log.info("Postgres metadata store ready (table public.poller)")
 
     @staticmethod
     def _connect(dsn: str):
@@ -72,11 +63,62 @@ class PostgresStateStore:
             ) from exc
         return psycopg.connect(dsn)
 
-    def _ensure_schema(self) -> None:
+    def _poller_table_exists(self) -> bool:
         with self._conn.cursor() as cur:
-            cur.execute(_POLLER_DDL)
-            cur.execute(_POLLER_INDEX_DDL)
-        self._conn.commit()
+            cur.execute(
+                """
+                select 1
+                from information_schema.tables
+                where table_schema = 'public' and table_name = 'poller'
+                """
+            )
+            return cur.fetchone() is not None
+
+    def _ensure_schema(self) -> None:
+        if self._poller_table_exists():
+            log.info("Postgres poller schema present (table public.poller)")
+            self._verify_table_writable()
+            return
+
+        log.info("Postgres poller schema missing; applying metadata schema")
+        try:
+            with self._conn.cursor() as cur:
+                for statement in schema_statements(load_schema_sql()):
+                    cur.execute(statement)
+            self._conn.commit()
+        except Exception as exc:
+            self._conn.rollback()
+            if _is_insufficient_privilege(exc):
+                raise RuntimeError(
+                    "Cannot initialize poller metadata schema (permission denied on public). "
+                    "Run infra/postgres/create-app-user.sh (grants CREATE on schema public) "
+                    "or apply code/postgres/schema.sql as postgres."
+                ) from exc
+            raise RuntimeError(
+                f"Failed to initialize Postgres poller schema: {exc}"
+            ) from exc
+
+        if not self._poller_table_exists():
+            raise RuntimeError(
+                "Postgres poller schema was applied but table public.poller is still missing"
+            )
+        log.info("Initialized Postgres poller schema (table public.poller)")
+        self._verify_table_writable()
+
+    def _verify_table_writable(self) -> None:
+        with self._conn.cursor() as cur:
+            cur.execute(
+                """
+                select has_table_privilege(current_user, %s, 'INSERT')
+                """,
+                (_POLLER_TABLE,),
+            )
+            row = cur.fetchone()
+        if not row or not row[0]:
+            raise RuntimeError(
+                f"Current Postgres user cannot INSERT into {_POLLER_TABLE}. "
+                "Run infra/postgres/create-app-user.sh to apply grants."
+            )
 
     def last_marker(self, data_object_id: str) -> str | None:
         with self._conn.cursor() as cur:
@@ -93,7 +135,7 @@ class PostgresStateStore:
             row = cur.fetchone()
         return str(row[0]) if row else None
 
-    def append(self, result: "PollResult") -> None:
+    def append(self, result: "PollResult") -> int:
         polled_at = result.event_time_utc
         with self._conn.cursor() as cur:
             cur.execute(
@@ -110,6 +152,7 @@ class PostgresStateStore:
                     new_marker
                 )
                 values (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                returning id
                 """,
                 (
                     result.event_id,
@@ -123,4 +166,9 @@ class PostgresStateStore:
                     result.current_marker,
                 ),
             )
+            row = cur.fetchone()
+        if not row:
+            self._conn.rollback()
+            raise RuntimeError("Insert into public.poller returned no row id")
         self._conn.commit()
+        return int(row[0])

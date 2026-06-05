@@ -19,6 +19,7 @@ from extractor_and_poller.common.paths import PROJECT_ROOT, ensure_project_root_
 
 ensure_project_root_on_path()
 
+from extractor_and_poller.common.heartbeat import log_early_progress
 from extractor_and_poller.common.logging_setup import configure_logging
 
 DEFAULT_CONFIG = (
@@ -119,68 +120,93 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{m.id}\t{iface}\t{m.name}")
         return 0
 
-    store = PostgresStateStore(args.postgres_dsn)
-    publisher: EventPublisher | None = None
-    previous: dict[str, str | None] = {}
+    with log_early_progress(
+        log,
+        None,
+        pending_message="Poller run still in progress",
+    ):
+        store = PostgresStateStore(args.postgres_dsn)
+        publisher: EventPublisher | None = None
+        previous: dict[str, str | None] = {}
 
-    if args.publish == "stdout":
-        publisher = StdoutPublisher()
-    elif args.publish == "kafka":
-        log.info("Kafka publisher bootstrap=%s", args.kafka_bootstrap_servers)
-        publisher = KafkaPublisher(args.kafka_bootstrap_servers)
+        if args.publish == "stdout":
+            publisher = StdoutPublisher()
+        elif args.publish == "kafka":
+            log.info("Kafka publisher bootstrap=%s", args.kafka_bootstrap_servers)
+            publisher = KafkaPublisher(args.kafka_bootstrap_servers)
 
-    mappings = config.enabled_mappings()
-    if args.mapping:
-        m = config.get_mapping(args.mapping)
-        mappings = [m] if m else []
-    if selected_data_object_id:
-        mappings = [
-            m for m in mappings if m and m.primary_source_data_object_id() == selected_data_object_id
-        ]
-    for m in mappings:
-        if m and m.enabled:
-            data_object_id = m.primary_source_data_object_id()
-            log.info("Loading previous marker for %s", data_object_id)
-            previous[data_object_id] = store.last_marker(data_object_id)
-            log.info(
-                "Previous marker for %s: %s",
-                data_object_id,
-                previous[data_object_id] if previous[data_object_id] is not None else "(none)",
-            )
-
-    any_changed = False
-    try:
-        if selected_data_object_id and not mappings:
-            raise KeyError(f"Data object '{selected_data_object_id}' not found in {config.path}")
+        mappings = config.enabled_mappings()
         if args.mapping:
             m = config.get_mapping(args.mapping)
-            if m is None:
-                raise KeyError(f"Mapping '{args.mapping}' not found in {config.path}")
-            if not m.enabled:
-                raise ValueError(f"Mapping '{args.mapping}' is disabled")
+            mappings = [m] if m else []
+        if selected_data_object_id:
+            mappings = [
+                m
+                for m in mappings
+                if m and m.primary_source_data_object_id() == selected_data_object_id
+            ]
+        for m in mappings:
+            if m and m.enabled:
+                data_object_id = m.primary_source_data_object_id()
+                log.info("Loading previous marker for %s", data_object_id)
+                previous[data_object_id] = store.last_marker(data_object_id)
+                log.info(
+                    "Previous marker for %s: %s",
+                    data_object_id,
+                    previous[data_object_id] if previous[data_object_id] is not None else "(none)",
+                )
 
-        log.info("Starting change probe run")
-        for result in change_probe.iter_poll_results(
-            config,
-            data_object_id=selected_data_object_id,
-            previous_markers=previous,
-        ):
-            log.info(_format_result(result))
-            if result.changed:
-                any_changed = True
-            store.append(result)
-            if publisher is not None:
-                publisher.publish(result)
-    except (KeyError, ValueError) as exc:
-        print(str(exc), file=sys.stderr)
-        return 2
+        any_changed = False
+        rows_persisted = 0
+        probes_expected = sum(1 for m in mappings if m and m.enabled)
+        try:
+            if selected_data_object_id and not mappings:
+                raise KeyError(f"Data object '{selected_data_object_id}' not found in {config.path}")
+            if args.mapping:
+                m = config.get_mapping(args.mapping)
+                if m is None:
+                    raise KeyError(f"Mapping '{args.mapping}' not found in {config.path}")
+                if not m.enabled:
+                    raise ValueError(f"Mapping '{args.mapping}' is disabled")
 
-    log.info("Persisted poller rows to Postgres table poller")
-    if isinstance(publisher, KafkaPublisher):
-        publisher.close()
-        log.info("Closed Kafka publisher")
+            log.info("Starting change probe run")
+            for result in change_probe.iter_poll_results(
+                config,
+                data_object_id=selected_data_object_id,
+                previous_markers=previous,
+            ):
+                log.info(_format_result(result))
+                if result.changed:
+                    any_changed = True
+                row_id = store.append(result)
+                rows_persisted += 1
+                log.info(
+                    "Persisted poller row id=%s for data_object=%s",
+                    row_id,
+                    result.data_object_id,
+                )
+                if publisher is not None:
+                    publisher.publish(result)
+        except (KeyError, ValueError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
 
-    return 1 if any_changed else 0
+        if probes_expected > 0 and rows_persisted == 0:
+            print(
+                "Poller probe completed but no rows were persisted to Postgres",
+                file=sys.stderr,
+            )
+            return 3
+        if rows_persisted > 0:
+            log.info(
+                "Persisted %d poller row(s) to Postgres table public.poller",
+                rows_persisted,
+            )
+        if isinstance(publisher, KafkaPublisher):
+            publisher.close()
+            log.info("Closed Kafka publisher")
+
+        return 1 if any_changed else 0
 
 
 if __name__ == "__main__":
