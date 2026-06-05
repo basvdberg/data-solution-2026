@@ -94,6 +94,7 @@ Full automated CI/CD cycle test with deploy exit-code checking in the watcher.
       - V2026.06.05.1
       - V2026.06.05.2
       - V2026.06.05.3
+      - V2026.06.05.4
       - ﻿V2026.06.04.1
       - ﻿V2026.06.04.2
       - ﻿V2026.06.04.3
@@ -105,6 +106,8 @@ Full automated CI/CD cycle test with deploy exit-code checking in the watcher.
       - ﻿V2026.06.04.9
       - ﻿V2026.06.05.1
       - ﻿V2026.06.05.2
+      - ﻿V2026.06.05.3
+      - ﻿V2026.06.05.4
     - Notes
       - [Release v2026.06.02.1](../../notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../../notes/v2026.06.02.2.md)
@@ -124,6 +127,7 @@ Full automated CI/CD cycle test with deploy exit-code checking in the watcher.
       - [V2026.06.05.1](../../notes/v2026.06.05.1.md)
       - [V2026.06.05.2](../../notes/v2026.06.05.2.md)
       - [V2026.06.05.3](../../notes/v2026.06.05.3.md)
+      - [V2026.06.05.4](../../notes/v2026.06.05.4.md)
     - [Release <version>](../../release-notes-template.md)
   - Setting
   - Template

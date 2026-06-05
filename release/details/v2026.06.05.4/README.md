@@ -6,29 +6,26 @@
 - [Linked files](#linked-files)
 <!-- markdown-toc:end -->
 
-## Table of contents
-
-
 ﻿## Table of contents
 
 
-﻿# Release v2026.06.05.1 - Details
+﻿# Release v2026.06.05.4 - Details
 
 ## Release metadata
 
-- Version: `v2026.06.05.1`
-- Development start: `2026-06-05T09:57:48+02:00`
-- Development end: `2026-06-05T09:58:08+02:00`
+- Version: `v2026.06.05.4`
+- Development start: `2026-06-05T10:18:06+02:00`
+- Development end: `2026-06-05T10:18:23+02:00`
 - Release branch: `main`
-- Release commit: `c805db94c400bbe92e0b57df2560cd652332aa35`
+- Release commit: `870ac794d700c44916736875f9d211bd9c3ce97a`
 
 ## Summary
 
-- Update scope and changes in `release/notes/v2026.06.05.1.md`.
+- Update scope and changes in `release/notes/v2026.06.05.4.md`.
 
 ## Linked files
 
-- Release note: [`release/notes/v2026.06.05.1.md`](../../notes/v2026.06.05.1.md)
+- Release note: [`release/notes/v2026.06.05.4.md`](../../notes/v2026.06.05.4.md)
 
 ## Project structure
 
