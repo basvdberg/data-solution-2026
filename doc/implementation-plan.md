@@ -414,6 +414,7 @@ For schema-level acceptance criteria, use [Definition of done](design/event-base
   - Code
     - Airflow
       - Dags
+      - Plugins
     - Extractor_And_Poller
       - Common
       - Openmeteo
@@ -465,6 +466,9 @@ For schema-level acceptance criteria, use [Definition of done](design/event-base
       - V2026.06.04.6
       - V2026.06.04.7
       - V2026.06.04.8
+      - V2026.06.04.9
+      - V2026.06.05.1
+      - V2026.06.05.2
       - ﻿V2026.06.04.1
       - ﻿V2026.06.04.2
       - ﻿V2026.06.04.3
@@ -472,6 +476,9 @@ For schema-level acceptance criteria, use [Definition of done](design/event-base
       - ﻿V2026.06.04.5
       - ﻿V2026.06.04.6
       - ﻿V2026.06.04.7
+      - ﻿V2026.06.04.8
+      - ﻿V2026.06.04.9
+      - ﻿V2026.06.05.1
     - Notes
       - [Release v2026.06.02.1](../release/notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../release/notes/v2026.06.02.2.md)
@@ -487,6 +494,9 @@ For schema-level acceptance criteria, use [Definition of done](design/event-base
       - [V2026.06.04.6](../release/notes/v2026.06.04.6.md)
       - [V2026.06.04.7](../release/notes/v2026.06.04.7.md)
       - [V2026.06.04.8](../release/notes/v2026.06.04.8.md)
+      - [V2026.06.04.9](../release/notes/v2026.06.04.9.md)
+      - [V2026.06.05.1](../release/notes/v2026.06.05.1.md)
+      - [V2026.06.05.2](../release/notes/v2026.06.05.2.md)
     - [Release <version>](../release/release-notes-template.md)
   - Setting
   - Template

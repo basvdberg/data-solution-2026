@@ -17,6 +17,7 @@ CONTAINER="${POSTGRES_CONTAINER:-data-solution-postgres}"
 APP_USER="${DATA_SOLUTION_APP_USER:-data-solution-2026_app}"
 APP_DB="${DATA_SOLUTION_DB:-${POSTGRES_DB:-data-solution-2026}}"
 GRANT_SQL="${GRANT_SQL:-${REPO_ROOT}/code/postgres/grant-app-user.sql}"
+SCHEMA_SQL="${SCHEMA_SQL:-${REPO_ROOT}/code/postgres/schema.sql}"
 
 if [ -f "$ENV_FILE" ]; then
   set -a
@@ -45,6 +46,11 @@ fi
 
 if [ ! -f "$GRANT_SQL" ]; then
   echo "ERROR: missing grant SQL at ${GRANT_SQL}" >&2
+  exit 1
+fi
+
+if [ ! -f "$SCHEMA_SQL" ]; then
+  echo "ERROR: missing schema SQL at ${SCHEMA_SQL}" >&2
   exit 1
 fi
 
@@ -82,6 +88,9 @@ else
   psql_admin -c "create role ${APP_USER_IDENT} with login password '${APP_PASSWORD_SQL}';"
 fi
 
+echo "Ensuring poller schema (${SCHEMA_SQL})"
+psql_admin <"$SCHEMA_SQL"
+echo "Applying application grants (${GRANT_SQL})"
 psql_admin <"$GRANT_SQL"
 
 update_env_var() {

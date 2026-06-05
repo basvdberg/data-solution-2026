@@ -73,6 +73,12 @@ This folder stores detailed, audit-friendly release content per version.
 
 - [$version](v2026.06.04.7/README.md)
 
+- [$version](v2026.06.04.8/README.md)
+
+- [$version](v2026.06.04.9/README.md)
+
+- [$version](v2026.06.05.1/README.md)
+
 ## Project structure
 
 <!-- markdown-project-structure:start -->
@@ -80,6 +86,7 @@ This folder stores detailed, audit-friendly release content per version.
   - Code
     - Airflow
       - Dags
+      - Plugins
     - Extractor_And_Poller
       - Common
       - Openmeteo
@@ -131,6 +138,9 @@ This folder stores detailed, audit-friendly release content per version.
       - V2026.06.04.6
       - V2026.06.04.7
       - V2026.06.04.8
+      - V2026.06.04.9
+      - V2026.06.05.1
+      - V2026.06.05.2
       - ﻿V2026.06.04.1
       - ﻿V2026.06.04.2
       - ﻿V2026.06.04.3
@@ -138,6 +148,9 @@ This folder stores detailed, audit-friendly release content per version.
       - ﻿V2026.06.04.5
       - ﻿V2026.06.04.6
       - ﻿V2026.06.04.7
+      - ﻿V2026.06.04.8
+      - ﻿V2026.06.04.9
+      - ﻿V2026.06.05.1
     - Notes
       - [Release v2026.06.02.1](../notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../notes/v2026.06.02.2.md)
@@ -153,6 +166,9 @@ This folder stores detailed, audit-friendly release content per version.
       - [V2026.06.04.6](../notes/v2026.06.04.6.md)
       - [V2026.06.04.7](../notes/v2026.06.04.7.md)
       - [V2026.06.04.8](../notes/v2026.06.04.8.md)
+      - [V2026.06.04.9](../notes/v2026.06.04.9.md)
+      - [V2026.06.05.1](../notes/v2026.06.05.1.md)
+      - [V2026.06.05.2](../notes/v2026.06.05.2.md)
     - [Release <version>](../release-notes-template.md)
   - Setting
   - Template
@@ -164,4 +180,4 @@ This folder stores detailed, audit-friendly release content per version.
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns) — Design pattern catalogue
 <!-- markdown-project-structure:end -->
 
-- [$version](v2026.06.04.8/README.md)
+- [$version](v2026.06.05.2/README.md)

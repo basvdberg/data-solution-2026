@@ -5,6 +5,7 @@
 <!-- markdown-toc:start -->
 - [Purpose](#purpose)
 - [Working with agents](#working-with-agents)
+- [Junior-programmer mistakes](#junior-programmer-mistakes)
 - [Infrastructure deployment](#infrastructure-deployment)
 - [Remote SSH troubleshooting](#remote-ssh-troubleshooting)
 - [Agent troubleshooting efficiency](#agent-troubleshooting-efficiency)
@@ -24,6 +25,16 @@ Working with agents requires a high level of discipline. It is very tempting to 
 You cannot expect an agent to automatically follow industry best practices or apply every architectural design principle. It optimises for “works now” in the current session unless you steer it. Best practices and platform decisions must be **enforced by documentation** — architecture notes, CI/CD design, infra checklists, Cursor skills and rules — and by human review before changes land. Part 1’s [Keep Gen AI under control](lessons-learned-part1.md#keep-gen-ai-under-control) is the same idea at artifact scope; part 2 is the same idea at **platform and infra** scope.
 
 **Takeaway:** Treat the agent as a fast implementer, not the architect. Document decisions and constraints first; review diffs; require reboot/restart tests for infra. Discipline is on you, not on the model.
+
+## Junior-programmer mistakes
+
+I use Cursor with **Auto** model selection — not the most capable (or expensive) model on every turn. That is fine for speed and cost, but it showed up clearly in application code: the agent often behaves like a **junior programmer** — fast, plausible, and easy to trust until you check the database.
+
+A concrete example came from getting an Airflow DAG to “work.” After several troubleshooting sessions the task ran green and the logs reported that data had been **successfully written to Postgres**. Only when I queried Postgres did I find **no rows**. The failure was not exotic: the code followed the **happy path** — it logged success as if the write had completed — without checking that the database call actually succeeded (return value, row count, commit, or an error from the driver).
+
+That mistake is basic engineering hygiene. A human reviewer would ask “how do you know it wrote?” The agent optimised for a green task and reassuring log lines, not for **verifiable side effects**. The same pattern appears elsewhere: assume the connection string is right because the client object was created; log “done” at the end of a `try` block without confirming persistence; treat “no exception” as “data landed.”
+
+**Takeaway:** Do not trust success logs from agent-generated code until you **verify the outcome** (query Postgres, inspect the file, check row counts). In prompts and review, require explicit validation — check return codes, assert affected rows, fail the task on mismatch — and treat “DAG succeeded” as unrelated to “data is there” until you have proof.
 
 ## Infrastructure deployment
 
@@ -122,6 +133,7 @@ flowchart LR
   - Code
     - Airflow
       - Dags
+      - Plugins
     - Extractor_And_Poller
       - Common
       - Openmeteo
@@ -173,6 +185,9 @@ flowchart LR
       - V2026.06.04.6
       - V2026.06.04.7
       - V2026.06.04.8
+      - V2026.06.04.9
+      - V2026.06.05.1
+      - V2026.06.05.2
       - ﻿V2026.06.04.1
       - ﻿V2026.06.04.2
       - ﻿V2026.06.04.3
@@ -180,6 +195,9 @@ flowchart LR
       - ﻿V2026.06.04.5
       - ﻿V2026.06.04.6
       - ﻿V2026.06.04.7
+      - ﻿V2026.06.04.8
+      - ﻿V2026.06.04.9
+      - ﻿V2026.06.05.1
     - Notes
       - [Release v2026.06.02.1](release/notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](release/notes/v2026.06.02.2.md)
@@ -195,6 +213,9 @@ flowchart LR
       - [V2026.06.04.6](release/notes/v2026.06.04.6.md)
       - [V2026.06.04.7](release/notes/v2026.06.04.7.md)
       - [V2026.06.04.8](release/notes/v2026.06.04.8.md)
+      - [V2026.06.04.9](release/notes/v2026.06.04.9.md)
+      - [V2026.06.05.1](release/notes/v2026.06.05.1.md)
+      - [V2026.06.05.2](release/notes/v2026.06.05.2.md)
     - [Release <version>](release/release-notes-template.md)
   - Setting
   - Template

@@ -41,9 +41,13 @@ python -m extractor_and_poller.poller \
   --publish none
 ```
 
-`PYTHONPATH` is set in the Airflow container (`/opt/data-solution/code:/opt/data-solution`).
+`PYTHONPATH` is set in the Airflow container (`/opt/data-solution/code:/opt/data-solution:/opt/data-solution/code/airflow`).
 
 The task runs as `PythonOperator` so it **inherits** container env vars (`POSTGRES_HOST`, `POSTGRES_USER`, etc.). Do not use a custom operator `env` dict that only sets `PYTHONPATH`—that replaces the whole environment and breaks Postgres (defaults to `localhost:5432`).
+
+**Manual trigger while a run is active:** plugin `plugins/manual_run_guard_plugin.py` (mounted from `code/airflow/plugins/`) marks the new manual DAG run **failed** with an explanatory note. The task also calls `assert_manual_trigger_allowed_from_context()` before work starts.
+
+**Early progress logs:** the DAG logs **immediately** on task start and once more only if work is still running after **2 seconds** (`extractor_and_poller.common.heartbeat.log_early_progress`).
 
 Confirm `~/apache-airflow/.env` on BasNAS includes `POSTGRES_HOST=postgres:5432` and `DATA_SOLUTION_DB=data-solution-2026` (see `infra/airflow/.env.example`). After changing `.env`, restart Airflow: `docker compose -f docker-compose.standalone.yaml up -d` in `~/apache-airflow`.
 
@@ -56,6 +60,7 @@ Confirm `~/apache-airflow/.env` on BasNAS includes `POSTGRES_HOST=postgres:5432`
   - Code
     - Airflow
       - Dags
+      - Plugins
     - Extractor_And_Poller
       - Common
       - Openmeteo
@@ -107,6 +112,9 @@ Confirm `~/apache-airflow/.env` on BasNAS includes `POSTGRES_HOST=postgres:5432`
       - V2026.06.04.6
       - V2026.06.04.7
       - V2026.06.04.8
+      - V2026.06.04.9
+      - V2026.06.05.1
+      - V2026.06.05.2
       - ﻿V2026.06.04.1
       - ﻿V2026.06.04.2
       - ﻿V2026.06.04.3
@@ -114,6 +122,9 @@ Confirm `~/apache-airflow/.env` on BasNAS includes `POSTGRES_HOST=postgres:5432`
       - ﻿V2026.06.04.5
       - ﻿V2026.06.04.6
       - ﻿V2026.06.04.7
+      - ﻿V2026.06.04.8
+      - ﻿V2026.06.04.9
+      - ﻿V2026.06.05.1
     - Notes
       - [Release v2026.06.02.1](../../release/notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../../release/notes/v2026.06.02.2.md)
@@ -129,6 +140,9 @@ Confirm `~/apache-airflow/.env` on BasNAS includes `POSTGRES_HOST=postgres:5432`
       - [V2026.06.04.6](../../release/notes/v2026.06.04.6.md)
       - [V2026.06.04.7](../../release/notes/v2026.06.04.7.md)
       - [V2026.06.04.8](../../release/notes/v2026.06.04.8.md)
+      - [V2026.06.04.9](../../release/notes/v2026.06.04.9.md)
+      - [V2026.06.05.1](../../release/notes/v2026.06.05.1.md)
+      - [V2026.06.05.2](../../release/notes/v2026.06.05.2.md)
     - [Release <version>](../../release/release-notes-template.md)
   - Setting
   - Template

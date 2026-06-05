@@ -3,7 +3,7 @@
 
 grant connect on database "data-solution-2026" to "data-solution-2026_app";
 
-grant usage on schema public to "data-solution-2026_app";
+grant usage, create on schema public to "data-solution-2026_app";
 
 grant select, insert on table public.poller to "data-solution-2026_app";
 grant usage, select on sequence public.poller_id_seq to "data-solution-2026_app";

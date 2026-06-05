@@ -6,6 +6,9 @@
 - [Linked files](#linked-files)
 <!-- markdown-toc:end -->
 
+## Table of contents
+
+
 ﻿## Table of contents
 
 
@@ -49,6 +52,7 @@
   - Code
     - Airflow
       - Dags
+      - Plugins
     - Extractor_And_Poller
       - Common
       - Openmeteo
@@ -100,6 +104,9 @@
       - V2026.06.04.6
       - V2026.06.04.7
       - V2026.06.04.8
+      - V2026.06.04.9
+      - V2026.06.05.1
+      - V2026.06.05.2
       - ﻿V2026.06.04.1
       - ﻿V2026.06.04.2
       - ﻿V2026.06.04.3
@@ -107,6 +114,9 @@
       - ﻿V2026.06.04.5
       - ﻿V2026.06.04.6
       - ﻿V2026.06.04.7
+      - ﻿V2026.06.04.8
+      - ﻿V2026.06.04.9
+      - ﻿V2026.06.05.1
     - Notes
       - [Release v2026.06.02.1](../../notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](../../notes/v2026.06.02.2.md)
@@ -122,6 +132,9 @@
       - [V2026.06.04.6](../../notes/v2026.06.04.6.md)
       - [V2026.06.04.7](../../notes/v2026.06.04.7.md)
       - [V2026.06.04.8](../../notes/v2026.06.04.8.md)
+      - [V2026.06.04.9](../../notes/v2026.06.04.9.md)
+      - [V2026.06.05.1](../../notes/v2026.06.05.1.md)
+      - [V2026.06.05.2](../../notes/v2026.06.05.2.md)
     - [Release <version>](../../release-notes-template.md)
   - Setting
   - Template
