@@ -6,30 +6,26 @@
 - [Linked files](#linked-files)
 <!-- markdown-toc:end -->
 
-## Table of contents
-
-
 ﻿## Table of contents
 
 
-﻿# Release v2026.06.03.2 - Details
+﻿# Release v2026.06.05.6 - Details
 
 ## Release metadata
 
-
-- Development end: `2026-06-03T11:38:14+02:00`
-- Development start: `2026-06-03T11:36:46+02:00`
-- Version: `v2026.06.03.2`
+- Version: `v2026.06.05.6`
+- Development start: `2026-06-05T12:54:40+02:00`
+- Development end: `2026-06-05T12:55:04+02:00`
 - Release branch: `main`
-- Release commit: `ee5ba9a73a861fee8cb2b07502c5cf0e63847145`
+- Release commit: `286f47118d67e249392a8a37603ad9fdaabead59`
 
 ## Summary
 
-Full automated CI/CD cycle test with deploy exit-code checking in the watcher.
+- Update scope and changes in `release/notes/v2026.06.05.6.md`.
 
 ## Linked files
 
-- Release note: [`release/notes/v2026.06.03.2.md`](../../notes/v2026.06.03.2.md)
+- Release note: [`release/notes/v2026.06.05.6.md`](../../notes/v2026.06.05.6.md)
 
 ## Project structure
 

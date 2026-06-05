@@ -108,6 +108,7 @@ python -m extractor_and_poller.openmeteo.extractor --mapping daily-temperature
       - V2026.06.05.3
       - V2026.06.05.4
       - V2026.06.05.5
+      - V2026.06.05.6
     - Notes
       - [Release v2026.06.02.1](release/notes/v2026.06.02.1.md)
       - [Release v2026.06.02.2](release/notes/v2026.06.02.2.md)
@@ -129,6 +130,7 @@ python -m extractor_and_poller.openmeteo.extractor --mapping daily-temperature
       - [V2026.06.05.3](release/notes/v2026.06.05.3.md)
       - [V2026.06.05.4](release/notes/v2026.06.05.4.md)
       - [V2026.06.05.5](release/notes/v2026.06.05.5.md)
+      - [V2026.06.05.6](release/notes/v2026.06.05.6.md)
     - [Release <version>](release/release-notes-template.md)
   - Setting
   - Template
