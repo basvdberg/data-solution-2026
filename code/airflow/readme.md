@@ -47,7 +47,7 @@ The task runs as `PythonOperator` so it **inherits** container env vars (`POSTGR
 
 **Manual trigger while a run is active:** plugin `plugins/manual_run_guard_plugin.py` (mounted from `code/airflow/plugins/`) marks the new manual DAG run **failed** with an explanatory note. The task also calls `assert_manual_trigger_allowed_from_context()` before work starts.
 
-**Early progress logs:** the DAG logs **immediately** on task start and once more only if work is still running after **2 seconds** (`extractor_and_poller.common.heartbeat.log_early_progress`).
+**Early progress logs:** the DAG uses the task-instance logger (`ti.log`) for the first line on task start, then `extractor_and_poller.common.heartbeat.log_early_progress` for a follow-up only if work is still running after **2 seconds**. When the poller CLI runs under Airflow, `configure_logging()` does **not** replace Airflow's task log handlers (see `extractor_and_poller.common.logging_setup.running_in_airflow_task`).
 
 Confirm `~/apache-airflow/.env` on the local server includes `POSTGRES_HOST=postgres:5432` and `DATA_SOLUTION_DB=data-solution-2026` (see `infra/airflow/.env.example`). After changing `.env`, restart Airflow: `docker compose -f docker-compose.standalone.yaml up -d` in `~/apache-airflow`.
 

@@ -38,9 +38,10 @@ def _variable(name: str, default: str) -> str:
         return default
 
 
-def _log_postgres_env() -> None:
+def _log_postgres_env(task_log: logging.Logger | None = None) -> None:
     """Log non-secret Postgres settings (inherits Airflow container env)."""
-    log.info(
+    sink = task_log or log
+    sink.info(
         "Postgres env for poller: POSTGRES_HOST=%s POSTGRES_USER=%s db=%s",
         os.getenv("POSTGRES_HOST") or "<unset>",
         os.getenv("POSTGRES_USER") or "<unset>",
@@ -48,8 +49,21 @@ def _log_postgres_env() -> None:
     )
 
 
+def _task_logger() -> logging.Logger:
+    """Task-scoped logger so the first line appears in the Airflow UI immediately."""
+    try:
+        from airflow.sdk import get_current_context
+    except ImportError:  # pragma: no cover - Airflow 2.x
+        from airflow.operators.python import get_current_context  # type: ignore[no-redef]
+
+    return get_current_context()["ti"].log
+
+
 def run_openmeteo_poller() -> None:
     """Thin wrapper: delegate to the poller CLI ``main()`` (no duplicated logic)."""
+    task_log = _task_logger()
+    task_log.info("Open-Meteo poller task started (pid=%s)", os.getpid())
+
     assert_manual_trigger_allowed_from_context()
 
     from extractor_and_poller.poller.__main__ import main
@@ -62,11 +76,11 @@ def run_openmeteo_poller() -> None:
     ]
     try:
         with log_early_progress(
-            log,
+            task_log,
             "Open-Meteo poller task invoked",
             pending_message="Open-Meteo poller task still running",
         ):
-            _log_postgres_env()
+            _log_postgres_env(task_log)
             exit_code = main(argv)
     except RuntimeError as exc:
         raise AirflowException(str(exc)) from exc
@@ -87,9 +101,9 @@ def run_openmeteo_poller() -> None:
             "poller exited with code 3 (probe ran but no rows were persisted to Postgres)"
         )
     if exit_code == 1:
-        log.info("Poller finished: data object change detected")
+        task_log.info("Poller finished: data object change detected")
     else:
-        log.info("Poller finished: no change")
+        task_log.info("Poller finished: no change")
 
 
 default_args = {

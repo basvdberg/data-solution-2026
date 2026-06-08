@@ -28,6 +28,8 @@ services:
       - ${DATA_SOLUTION_ROOT:-../../}/data:/opt/data-solution/data
       - ${DATA_SOLUTION_ROOT:-../../}/code/airflow/dags:/opt/airflow/dags:ro
     environment:
+      PYTHONUNBUFFERED: "1"
+      AIRFLOW__LOGGING__TASK_LOG_TO_STDOUT: "true"
       AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: "admin:admin"
       AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_PASSWORDS_FILE: "/opt/airflow/config/simple_auth_manager_passwords.json"
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
@@ -35,7 +37,7 @@ services:
       AIRFLOW__CORE__HOSTNAME_CALLABLE: airflow.utils.net.get_host_ip_address
       AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "true"
       PYTHONPATH: /opt/data-solution/code:/opt/data-solution:/opt/data-solution/code/airflow
-      POSTGRES_HOST: ${POSTGRES_HOST:-postgres:5432}
+      POSTGRES_HOST: ${POSTGRES_HOST:-basnas_postgress:5432}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       DATA_SOLUTION_DB: ${DATA_SOLUTION_DB:-${POSTGRES_DB:-data-solution-2026}}
@@ -50,4 +52,4 @@ networks:
     name: apache-airflow_default
   postgres:
     external: true
-    name: data-solution-postgres_default
+    name: ${POSTGRES_DOCKER_NETWORK:-immich_default}

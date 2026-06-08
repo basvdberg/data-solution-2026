@@ -10,6 +10,7 @@ Provides a compact, colorized formatter with clear separation of:
 from __future__ import annotations
 
 import logging
+import os
 import sys
 from datetime import datetime
 
@@ -72,15 +73,28 @@ class FlushingStreamHandler(logging.StreamHandler):
         self.flush()
 
 
-def configure_logging(*, verbose: bool = False) -> None:
-    """Configure root logger with a single stream handler."""
-    level = logging.DEBUG if verbose else logging.INFO
-    use_color = sys.stderr.isatty()
+def running_in_airflow_task() -> bool:
+    """True when code runs inside an Airflow task subprocess."""
+    return bool(os.environ.get("AIRFLOW_CTX_DAG_ID"))
 
+
+def configure_logging(*, verbose: bool = False) -> None:
+    """Configure root logger with a single stream handler.
+
+    When invoked from an Airflow task, keep Airflow's task log handlers intact.
+    Clearing the root logger there sends output only to stderr and delays or
+    hides lines in the Airflow UI.
+    """
+    level = logging.DEBUG if verbose else logging.INFO
+    root = logging.getLogger()
+    root.setLevel(level)
+
+    if running_in_airflow_task():
+        return
+
+    use_color = sys.stderr.isatty()
     handler = FlushingStreamHandler()
     handler.setFormatter(PrettyColorFormatter(use_color=use_color))
 
-    root = logging.getLogger()
     root.handlers.clear()
-    root.setLevel(level)
     root.addHandler(handler)
