@@ -156,6 +156,9 @@ docker compose up -d
           - V2026.06.08.1
             - [Notes](../../08/v2026.06.08.1/notes.md)
             - [Retrospective](../../08/v2026.06.08.1/retrospective.md)
+          - V2026.06.08.2
+            - [Notes](../../08/v2026.06.08.2/notes.md)
+            - [Retrospective](../../08/v2026.06.08.2/retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

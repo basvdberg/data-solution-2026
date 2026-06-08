@@ -1,92 +1,33 @@
 ## Table of contents
 
 <!-- markdown-toc:start -->
-- [Metadata](#metadata)
-- [Scope](#scope)
-- [Changes](#changes)
-- [Poller and Airflow impact](#poller-and-airflow-impact)
-- [Deployment steps](#deployment-steps)
-- [Validation](#validation)
-- [Rollback plan](#rollback-plan)
-- [Related artifacts](#related-artifacts)
-- [Notes](#notes)
+- [Release metadata](#release-metadata)
+- [Summary](#summary)
+- [Linked files](#linked-files)
 <!-- markdown-toc:end -->
-
-## Table of contents
-
 
 ﻿## Table of contents
 
 
-﻿# Release v2026.06.05.6
+﻿# Release v2026.06.08.2 - Details
 
-## Metadata
+## Release metadata
 
-- Version: `v2026.06.05.6`
-- Date: `2026-06-05`
-- Branch: `main`
-- Commit: `4322ead3138c1373874c532e4174f8eb7bea4867`
+- Version: `v2026.06.08.2`
+- Development start: `2026-06-08T22:01:50+02:00`
+- Development end: `2026-06-08T22:02:07+02:00`
+- Release branch: `main`
+- Release commit: `0867aeaf14571f6533949740da29371a976efe76`
 
-## Scope
+## Summary
 
-- Documentation: align infra and CI/CD docs with *local server* terminology; add `infra/local-server.env.example`.
-- Release metadata and project-structure TOC sync (no application code changes).
+- Update scope and changes in `notes.md` in this folder.
 
-## Changes
+## Linked files
 
-- Added:
-  - `infra/local-server.env.example`
-- Changed:
-  - Infra readme, CI/CD doc, implementation plan — local-server naming
-  - `deploy-on-nas.sh`, post-push hook install script — terminology
-- Fixed:
-  - (none)
-
-## Poller and Airflow impact
-
-- Poller mapping:
-- Airflow DAG (`code/airflow/dags/`):
-- Runtime variables changed:
-
-## Deployment steps
-
-- Auto deployment trigger: push to `main`
-- NAS actions required after deploy:
-  - [ ] Dependencies updated
-  - [ ] Services restarted
-  - [ ] Airflow DAGs available
-
-## Validation
-
-- [ ] Unit tests passed
-- [ ] Integration checks passed
-- [ ] Airflow `dags list-import-errors` empty on NAS (failed 2026-06-05 — [INC-004](../doc/operation/incident/inc-004-airflow-pythonpath-drift.md); fixed via infra sync)
-- [ ] Airflow poller manual run passed
-- [ ] Kafka publish verified (or stdout in smoke mode)
-- [ ] Postgres state persistence verified
-
-## Rollback plan
-
-- Previous stable tag: `v2026.06.04.1`
-- Rollback command:
-
-```bash
-cd ~/apps/data-solution-2026
-git fetch --all --tags
-git checkout v2026.06.04.1
-docker compose up -d
-```
-
-## Related artifacts
-
-- Release details: [`readme.md`](readme.md)
+- Release note: [`notes.md`](notes.md)
 - Retrospective: [`retrospective.md`](retrospective.md)
-- Incidents: [INC-004](../doc/operation/incident/inc-004-airflow-pythonpath-drift.md) (Airflow PYTHONPATH / dag_run_guard)
-- Incident register: [`doc/operation/incident/`](../doc/operation/incident/readme.md)
-
-## Notes
-
-- Retrospective (2026-06-08): INC-004 backfilled from Cursor chat; see [retrospective](retrospective.md).
+- Incident register: [`doc/operation/incident/`](../../../doc/operation/incident/readme.md)
 
 ## Project structure
 
@@ -162,15 +103,15 @@ docker compose up -d
             - [Notes](../../04/v2026.06.04.1/notes.md)
         - 05
           - V2026.06.05.6
-            - [Notes](notes.md)
-            - [Retrospective](retrospective.md)
+            - [Notes](../../05/v2026.06.05.6/notes.md)
+            - [Retrospective](../../05/v2026.06.05.6/retrospective.md)
         - 08
           - V2026.06.08.1
-            - [Notes](../../08/v2026.06.08.1/notes.md)
-            - [Retrospective](../../08/v2026.06.08.1/retrospective.md)
+            - [Notes](../v2026.06.08.1/notes.md)
+            - [Retrospective](../v2026.06.08.1/retrospective.md)
           - V2026.06.08.2
-            - [Notes](../../08/v2026.06.08.2/notes.md)
-            - [Retrospective](../../08/v2026.06.08.2/retrospective.md)
+            - [Notes](notes.md)
+            - [Retrospective](retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

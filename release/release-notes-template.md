@@ -185,6 +185,9 @@ Additional operational notes.
           - V2026.06.08.1
             - [Notes](2026/06/08/v2026.06.08.1/notes.md)
             - [Retrospective](2026/06/08/v2026.06.08.1/retrospective.md)
+          - V2026.06.08.2
+            - [Notes](2026/06/08/v2026.06.08.2/notes.md)
+            - [Retrospective](2026/06/08/v2026.06.08.2/retrospective.md)
     - [Release <version>](release-notes-template.md)
     - [Retrospective — <version>](retrospective-template.md)
   - Setting

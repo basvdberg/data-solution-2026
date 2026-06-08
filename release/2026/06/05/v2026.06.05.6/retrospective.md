@@ -14,6 +14,9 @@
 - [Related artifacts](#related-artifacts)
 <!-- markdown-toc:end -->
 
+## Table of contents
+
+
 ﻿# Retrospective — v2026.06.05.6
 
 Per-release sprint retrospective. Updated after backfill of chat-session issue (INC-004 / ERR-013).
@@ -188,6 +191,9 @@ Prior incidents (INC-001–003) are from the 2026-06-03 infra PoC.
           - V2026.06.08.1
             - [Notes](../../08/v2026.06.08.1/notes.md)
             - [Retrospective](../../08/v2026.06.08.1/retrospective.md)
+          - V2026.06.08.2
+            - [Notes](../../08/v2026.06.08.2/notes.md)
+            - [Retrospective](../../08/v2026.06.08.2/retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

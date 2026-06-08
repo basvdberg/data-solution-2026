@@ -13,6 +13,9 @@
 - [Related artifacts](#related-artifacts)
 <!-- markdown-toc:end -->
 
+## Table of contents
+
+
 ﻿# Retrospective — v2026.06.03.4
 
 Backfilled retrospective for the NAS/Airflow infra PoC session (2026-06-03). Agent-drafted from ERR-001–012 and promoted incidents.
@@ -172,6 +175,9 @@ Backfilled retrospective for the NAS/Airflow infra PoC session (2026-06-03). Age
           - V2026.06.08.1
             - [Notes](../../08/v2026.06.08.1/notes.md)
             - [Retrospective](../../08/v2026.06.08.1/retrospective.md)
+          - V2026.06.08.2
+            - [Notes](../../08/v2026.06.08.2/notes.md)
+            - [Retrospective](../../08/v2026.06.08.2/retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

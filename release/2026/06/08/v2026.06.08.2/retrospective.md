@@ -1,92 +1,92 @@
 ## Table of contents
 
 <!-- markdown-toc:start -->
-- [Metadata](#metadata)
-- [Scope](#scope)
-- [Changes](#changes)
-- [Poller and Airflow impact](#poller-and-airflow-impact)
-- [Deployment steps](#deployment-steps)
-- [Validation](#validation)
-- [Rollback plan](#rollback-plan)
+- [Release context](#release-context)
+- [What went well](#what-went-well)
+- [What did not go well](#what-did-not-go-well)
+- [Incidents this release](#incidents-this-release)
+- [Patterns (by category)](#patterns-by-category)
+- [Root causes (generalized)](#root-causes-generalized)
+- [Metrics](#metrics)
+- [Action items](#action-items)
+- [Promotions (approval gate)](#promotions-approval-gate)
+- [Lessons promoted](#lessons-promoted)
 - [Related artifacts](#related-artifacts)
-- [Notes](#notes)
 <!-- markdown-toc:end -->
 
 ## Table of contents
 
 
-﻿## Table of contents
+﻿# Retrospective — v2026.06.08.2
 
+Per-release sprint retrospective. Agent drafts; user approves promotions and action items.
 
-﻿# Release v2026.06.05.6
+## Release context
 
-## Metadata
+| Field | Value |
+|-------|-------|
+| **Version** | v2026.06.08.2 |
+| **Date** | 2026-06-08 |
+| **Commit** | `<fill-after-commit>` |
+| **Validation** | pass / fail / partial — brief outcome |
 
-- Version: `v2026.06.05.6`
-- Date: `2026-06-05`
-- Branch: `main`
-- Commit: `4322ead3138c1373874c532e4174f8eb7bea4867`
+## What went well
 
-## Scope
+-
 
-- Documentation: align infra and CI/CD docs with *local server* terminology; add `infra/local-server.env.example`.
-- Release metadata and project-structure TOC sync (no application code changes).
+## What did not go well
 
-## Changes
+-
 
-- Added:
-  - `infra/local-server.env.example`
-- Changed:
-  - Infra readme, CI/CD doc, implementation plan — local-server naming
-  - `deploy-on-nas.sh`, post-push hook install script — terminology
-- Fixed:
-  - (none)
+## Incidents this release
 
-## Poller and Airflow impact
+| ID | Title | Severity |
+|----|-------|----------|
+| | | |
 
-- Poller mapping:
-- Airflow DAG (`code/airflow/dags/`):
-- Runtime variables changed:
+## Patterns (by category)
 
-## Deployment steps
+| Category | Count | Example IDs | Theme |
+|----------|-------|-------------|-------|
+| | | | |
 
-- Auto deployment trigger: push to `main`
-- NAS actions required after deploy:
-  - [ ] Dependencies updated
-  - [ ] Services restarted
-  - [ ] Airflow DAGs available
+## Root causes (generalized)
 
-## Validation
+1.
 
-- [ ] Unit tests passed
-- [ ] Integration checks passed
-- [ ] Airflow `dags list-import-errors` empty on NAS (failed 2026-06-05 — [INC-004](../doc/operation/incident/inc-004-airflow-pythonpath-drift.md); fixed via infra sync)
-- [ ] Airflow poller manual run passed
-- [ ] Kafka publish verified (or stdout in smoke mode)
-- [ ] Postgres state persistence verified
+## Metrics
 
-## Rollback plan
+| Metric | Value |
+|--------|-------|
+| ERR entries | |
+| Repeat ERR (Count > 1) | |
+| Incidents (INC) | |
+| Validation checklist | |
 
-- Previous stable tag: `v2026.06.04.1`
-- Rollback command:
+## Action items
 
-```bash
-cd ~/apps/data-solution-2026
-git fetch --all --tags
-git checkout v2026.06.04.1
-docker compose up -d
-```
+| Item | Owner | Destination |
+|------|-------|-------------|
+| | | skill / rule / checklist / runbook / lessons-learned |
+
+## Promotions (approval gate)
+
+- [ ] Skill or rule update
+- [ ] Release notes template / validation step
+- [ ] Infra or deploy runbook
+- [ ] Lessons learned / issue category heat map
+
+## Lessons promoted
+
+| Category | Theme | lessons-learned anchor |
+|----------|-------|------------------------|
+| | | |
 
 ## Related artifacts
 
+- Release notes: [`notes.md`](notes.md)
 - Release details: [`readme.md`](readme.md)
-- Retrospective: [`retrospective.md`](retrospective.md)
-- Incidents: [INC-004](../doc/operation/incident/inc-004-airflow-pythonpath-drift.md) (Airflow PYTHONPATH / dag_run_guard)
-- Incident register: [`doc/operation/incident/`](../doc/operation/incident/readme.md)
-
-## Notes
-
-- Retrospective (2026-06-08): INC-004 backfilled from Cursor chat; see [retrospective](retrospective.md).
+- Incident register: [`doc/operation/incident/`](../../doc/operation/incident/readme.md)
 
 ## Project structure
 
@@ -162,15 +162,15 @@ docker compose up -d
             - [Notes](../../04/v2026.06.04.1/notes.md)
         - 05
           - V2026.06.05.6
-            - [Notes](notes.md)
-            - [Retrospective](retrospective.md)
+            - [Notes](../../05/v2026.06.05.6/notes.md)
+            - [Retrospective](../../05/v2026.06.05.6/retrospective.md)
         - 08
           - V2026.06.08.1
-            - [Notes](../../08/v2026.06.08.1/notes.md)
-            - [Retrospective](../../08/v2026.06.08.1/retrospective.md)
+            - [Notes](../v2026.06.08.1/notes.md)
+            - [Retrospective](../v2026.06.08.1/retrospective.md)
           - V2026.06.08.2
-            - [Notes](../../08/v2026.06.08.2/notes.md)
-            - [Retrospective](../../08/v2026.06.08.2/retrospective.md)
+            - [Notes](notes.md)
+            - [Retrospective](retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting
