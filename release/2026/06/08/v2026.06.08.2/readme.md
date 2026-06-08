@@ -9,15 +9,18 @@
 ﻿## Table of contents
 
 
+﻿## Table of contents
+
+
 ﻿# Release v2026.06.08.2 - Details
 
 ## Release metadata
 
 - Version: `v2026.06.08.2`
 - Development start: `2026-06-08T22:01:50+02:00`
-- Development end: `2026-06-08T22:02:07+02:00`
+- Development end: `2026-06-08T22:02:33+02:00`
 - Release branch: `main`
-- Release commit: `0867aeaf14571f6533949740da29371a976efe76`
+- Release commit: `f3c06f1b0e82d35a9b333532c3f10ebbd4e81924`
 
 ## Summary
 
