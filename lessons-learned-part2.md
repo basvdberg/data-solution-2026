@@ -12,6 +12,9 @@
 - [Learning new tools](#learning-new-tools)
 - [Design the platform before application code](#design-the-platform-before-application-code)
 - [CI/CD process](#cicd-process)
+- [Issue inventory and retrospectives](#issue-inventory-and-retrospectives)
+- [App deploy versus infra deploy](#app-deploy-versus-infra-deploy)
+- [From chat fix to pipeline design](#from-chat-fix-to-pipeline-design)
 <!-- markdown-toc:end -->
 
 ## Purpose
@@ -126,6 +129,59 @@ flowchart LR
 
 **Takeaway:** Pull-based deploy from a public repo avoids inbound GitHub access to a private NAS; pair it with versioned release notes, automated prompt capture, and lightweight notifications so every release is traceable and hands-off after push.
 
+Release notes are not hook scaffolding — they are the operator-facing record published to GitHub Releases. Leaving scope, changes, or validation blank (as in [v2026.06.05.6](release/notes/v2026.06.05.6.md) initially) hides failures such as [INC-004](doc/operation/incident/inc-004-airflow-pythonpath-drift.md) from anyone reading the release history.
+
+**Takeaway (release discipline):** Fill release notes before push; run the validation checklist or mark each item N/A with a reason; link incidents and the [retrospective](release/retrospective/v2026.06.05.6.md) under **Related artifacts**.
+
+## Issue inventory and retrospectives
+
+Failures used to disappear into Cursor chat. A fix in one session did not appear in git, release notes, or the next agent context — which is why [INC-004](doc/operation/incident/inc-004-airflow-pythonpath-drift.md) was missing from the first draft of the [v2026.06.05.6 retrospective](release/retrospective/v2026.06.05.6.md) until I pointed at the chat.
+
+I introduced a layered inventory (see [operations hub](doc/operation/readme.md)):
+
+| Layer | Where | Role |
+|-------|-------|------|
+| ERR | `.cursor/troubleshooting-errors.md` | Tactical log during debugging |
+| INC | `doc/operation/incident/` | Blameless postmortem when impact is real |
+| Retro | `release/retrospective/<version>.md` | Per-release roll-up and action items |
+| Categories | [issue-category.md](doc/operation/issue-category.md) | Generalized themes across releases |
+| Lessons | This document | Durable narrative for humans |
+
+**Ceremony:** after each release, run a retrospective (agent drafts, I approve). Promote recurring patterns from retros into lessons-learned and into skills, rules, or checklists. Do not treat “no ERR entries” as “no incidents” without checking chat transcripts when something failed in another session.
+
+**Takeaway:** Capture → classify → retro → lessons → guardrails. A fix that lives only in chat is not organizational learning.
+
+## App deploy versus infra deploy
+
+[INC-004](doc/operation/incident/inc-004-airflow-pythonpath-drift.md) showed a split I had not made explicit: **app deploy** (`deploy-on-nas.sh`, `git pull`) updates code under `~/apps/data-solution-2026`; **infra deploy** (`deploy-infra-on-nas.sh` or `RUN_INFRA_SYNC=1`) syncs compose files under `~/apache-airflow/` and recreates containers.
+
+The repo already had the correct `PYTHONPATH` in [`infra/airflow/docker-compose.standalone.yaml`](infra/airflow/docker-compose.standalone.yaml). The running stack did not, because only the app had been pulled. The DAG imported `dag_run_guard` from `code/airflow/`, which is on the filesystem but was not on `PYTHONPATH` in the container.
+
+**Takeaway:** When DAGs import modules outside `dags/`, or when `infra/` compose env vars change, run **infra sync** — not app-only pull. Add `airflow dags list-import-errors` to release validation (now in the [release template](release/release-notes-template.md)).
+
+This is the same category family as [Infrastructure deployment](#infrastructure-deployment) (pin identity, verify after restart) and [Design the platform before application code](#design-the-platform-before-application-code) (platform contract before app code): the **platform** (compose, env, paths) and the **application** (Git tree) deploy on different paths.
+
+## From chat fix to pipeline design
+
+[INC-004](doc/operation/incident/inc-004-airflow-pythonpath-drift.md) is a good example of a failure that spans **application and infrastructure**. A path moved in the repo and `PYTHONPATH` was updated in [`infra/airflow/docker-compose.standalone.yaml`](infra/airflow/docker-compose.standalone.yaml), but the running Airflow stack on the NAS still had the old compose file. The DAG then failed to import `dag_run_guard` from `code/airflow/`.
+
+In a Cursor chat session this is easy to unblock: SSH to the NAS, run `deploy-infra-on-nas.sh`, confirm `airflow dags list-import-errors` is empty. The symptom goes away quickly. That tactical fix is fine for a one-off, but it does not answer whether the **system** caused the problem.
+
+The design gap was in CI/CD, not in the compose file itself. The pipeline always ran **app deploy** (`git pull` under `~/apps/data-solution-2026`) after green CI; it did **not** run **infra deploy** when only `infra/` runtime files changed. So a correct change in Git could still leave the live stack behind — exactly what happened when app code and infra paths moved together.
+
+The more robust fix is to make the pipeline **infra-aware**: run an infra sync only when infrastructure meaningfully changes, not on every release. Pre-commit now updates [`release/deploy-config.json`](release/deploy-config.json) via `update-deploy-config.ps1` (diff since the latest `v*` tag against compose, `.env.example`, and deploy scripts under `infra/`). [`deploy-on-nas.sh`](release/scripts/deploy-on-nas.sh) reads `sync_infra` and calls [`deploy-infra-on-nas.sh`](infra/scripts/deploy-infra-on-nas.sh) when the flag is true; `RUN_INFRA_SYNC=1` remains a manual override. Documented in [CI/CD workflow](doc/design/ci-cd.md#server-side-deploy-script).
+
+That closes the loop for this class of drift. It does not replace recording what went wrong during the PoC.
+
+Failures in a proof of concept are **data**: they show where design, automation, or agent workflow is weak. If they stay only in chat, you fix the same gap again in the next session. Record them per sprint or per release — ERR during debugging, INC when impact is real, [retrospective](release/retrospective/v2026.06.05.6.md) roll-up after each version — then ask in retro whether the fix should be:
+
+- a **generic design change** (e.g. conditional infra sync in CI/CD, validation checklist items), or
+- a **change in how we work with Cursor** (log ERR before closing the chat, scan transcripts in retro, promote skills/rules).
+
+See [Issue inventory and retrospectives](#issue-inventory-and-retrospectives) for the ceremony; INC-004 promoted both pipeline design and process guardrails.
+
+**Takeaway:** A green chat session after redeploying infra is not the end state. Ask whether CI/CD should have prevented the drift; automate that path when it should. Capture PoC issues per release so retrospectives can turn one-off fixes into durable design or workflow changes.
+
 ## Project structure
 
 <!-- markdown-project-structure:start -->
@@ -163,6 +219,14 @@ flowchart LR
       - [CI/CD workflow (main only + server pull deploy)](doc/design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](doc/design/event-based-orchestration-plan.md)
       - [Meta data design](doc/design/meta-data-design.md)
+    - Operation
+      - Incident
+        - [INC-001 — NAS non-interactive SSH environment](doc/operation/incident/inc-001-nas-ssh-environment.md)
+        - [INC-002 — Airflow standalone infra instability](doc/operation/incident/inc-002-airflow-infra-stability.md)
+        - [INC-003 — Agent rediscovery and false-done verification](doc/operation/incident/inc-003-agent-process-gaps.md)
+        - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](doc/operation/incident/inc-004-airflow-pythonpath-drift.md)
+        - [INC-<NNN> — <short title>](doc/operation/incident/incident-template.md)
+      - [Issue categories](doc/operation/issue-category.md)
     - [Implementation plan (Open-Meteo → event orchestration)](doc/implementation-plan.md)
   - Infra
     - Airflow
@@ -170,51 +234,36 @@ flowchart LR
     - Kafka
     - Postgres
   - Release
-    - Details
-      - V2026.06.02.1
-      - V2026.06.02.2
-      - V2026.06.03.1
-      - V2026.06.03.2
-      - V2026.06.03.3
-      - V2026.06.03.4
-      - V2026.06.04.1
-      - V2026.06.04.2
-      - V2026.06.04.3
-      - V2026.06.04.4
-      - V2026.06.04.5
-      - V2026.06.04.6
-      - V2026.06.04.7
-      - V2026.06.04.8
-      - V2026.06.04.9
-      - V2026.06.05.1
-      - V2026.06.05.2
-      - V2026.06.05.3
-      - V2026.06.05.4
-      - V2026.06.05.5
-      - V2026.06.05.6
-    - Notes
-      - [Release v2026.06.02.1](release/notes/v2026.06.02.1.md)
-      - [Release v2026.06.02.2](release/notes/v2026.06.02.2.md)
-      - [Release v2026.06.03.1](release/notes/v2026.06.03.1.md)
-      - [Release v2026.06.03.2](release/notes/v2026.06.03.2.md)
-      - [Release v2026.06.03.3](release/notes/v2026.06.03.3.md)
-      - [Release v2026.06.03.4](release/notes/v2026.06.03.4.md)
-      - [V2026.06.04.1](release/notes/v2026.06.04.1.md)
-      - [V2026.06.04.2](release/notes/v2026.06.04.2.md)
-      - [V2026.06.04.3](release/notes/v2026.06.04.3.md)
-      - [V2026.06.04.4](release/notes/v2026.06.04.4.md)
-      - [V2026.06.04.5](release/notes/v2026.06.04.5.md)
-      - [V2026.06.04.6](release/notes/v2026.06.04.6.md)
-      - [V2026.06.04.7](release/notes/v2026.06.04.7.md)
-      - [V2026.06.04.8](release/notes/v2026.06.04.8.md)
-      - [V2026.06.04.9](release/notes/v2026.06.04.9.md)
-      - [V2026.06.05.1](release/notes/v2026.06.05.1.md)
-      - [V2026.06.05.2](release/notes/v2026.06.05.2.md)
-      - [V2026.06.05.3](release/notes/v2026.06.05.3.md)
-      - [V2026.06.05.4](release/notes/v2026.06.05.4.md)
-      - [V2026.06.05.5](release/notes/v2026.06.05.5.md)
-      - [V2026.06.05.6](release/notes/v2026.06.05.6.md)
+    - 2026
+      - 06
+        - 02
+          - V2026.06.02.1
+            - [Notes](release/2026/06/02/v2026.06.02.1/notes.md)
+          - V2026.06.02.2
+            - [Release v2026.06.02.2](release/2026/06/02/v2026.06.02.2/notes.md)
+        - 03
+          - V2026.06.03.1
+            - [Release v2026.06.03.1](release/2026/06/03/v2026.06.03.1/notes.md)
+          - V2026.06.03.2
+            - [Release v2026.06.03.2](release/2026/06/03/v2026.06.03.2/notes.md)
+          - V2026.06.03.3
+            - [Release v2026.06.03.3](release/2026/06/03/v2026.06.03.3/notes.md)
+          - V2026.06.03.4
+            - [Release v2026.06.03.4](release/2026/06/03/v2026.06.03.4/notes.md)
+            - [Retrospective](release/2026/06/03/v2026.06.03.4/retrospective.md)
+        - 04
+          - V2026.06.04.1
+            - [Notes](release/2026/06/04/v2026.06.04.1/notes.md)
+        - 05
+          - V2026.06.05.6
+            - [Notes](release/2026/06/05/v2026.06.05.6/notes.md)
+            - [Retrospective](release/2026/06/05/v2026.06.05.6/retrospective.md)
+        - 08
+          - V2026.06.08.1
+            - [Notes](release/2026/06/08/v2026.06.08.1/notes.md)
+            - [Retrospective](release/2026/06/08/v2026.06.08.1/retrospective.md)
     - [Release <version>](release/release-notes-template.md)
+    - [Retrospective — <version>](release/retrospective-template.md)
   - Setting
   - Template
   - [Getting started](getting-started.md)

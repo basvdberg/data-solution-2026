@@ -28,7 +28,7 @@ Source of truth on NAS today:
 |---------|----------------------|---------------------------|
 | Airflow | `~/apache-airflow/` | [airflow/docker-compose.standalone.yaml](airflow/docker-compose.standalone.yaml) |
 | Kafka | `~/kafka/` | [kafka/docker-compose.yml](kafka/docker-compose.yml) |
-| Postgres | `~/data-solution-postgres/` | [postgres/docker-compose.yml](postgres/docker-compose.yml) |
+| Postgres (shared) | `basnas_postgress` on host **5432** | [postgres/](postgres/) (setup scripts only) |
 
 ## Layout
 
@@ -43,7 +43,7 @@ infra/
   kafka/
     docker-compose.yml               # Kafka + Kafka UI
   postgres/
-    docker-compose.yml               # metadata Postgres (table poller)
+    create-app-user.sh               # schema + app role on basnas_postgress
 
 code/                                # generated runtime (not under infra/)
   airflow/dags/                      # DAG files → /opt/airflow/dags
@@ -57,7 +57,9 @@ The large upstream multi-service Airflow template (`docker-compose.yaml` with Ce
 
 ### Sync script (recommended)
 
-Copies compose files from `infra/` into legacy NAS folders (`~/apache-airflow`, `~/kafka`), keeps existing `.env` / `logs` / Kafka data, sets `DATA_SOLUTION_ROOT`, and restarts stacks:
+Copies compose files from `infra/` into legacy NAS folders (`~/apache-airflow`, `~/kafka`), keeps existing `.env` / `logs` / Kafka data, sets `DATA_SOLUTION_ROOT`, and restarts stacks.
+
+Routine pushes to `main` run infra sync automatically when [release/deploy-config.json](../release/deploy-config.json) has `sync_infra: true` (pre-commit sets this when meaningful files under `infra/` change since the last release tag). Force sync manually:
 
 ```bash
 RUN_INFRA_SYNC=1 bash ~/apps/data-solution-2026/release/scripts/deploy-on-nas.sh
@@ -70,7 +72,7 @@ Options:
 | `APP_ROOT` | `~/apps/data-solution-2026` | Repo clone |
 | `AIRFLOW_DEST` | `~/apache-airflow` | Airflow compose target |
 | `KAFKA_DEST` | `~/kafka` | Kafka compose target |
-| `POSTGRES_DEST` | `~/data-solution-postgres` | Postgres compose target |
+| `POSTGRES_DEST` | `~/data-solution-postgres` | Postgres config + setup scripts (no compose) |
 | `RUN_COMPOSE` | `1` | Run `docker compose up -d` after sync |
 | `DRY_RUN` | `0` | Print actions only |
 
@@ -84,8 +86,9 @@ RUN_INFRA_SYNC=1 bash release/scripts/deploy-on-nas.sh
 
 ```bash
 cd ~/apps/data-solution-2026/infra/postgres
-cp -n .env.example .env
-docker compose up -d
+cp -n .env.example ~/data-solution-postgres/.env
+# Edit .env: POSTGRES_PASSWORD = basnas_postgress admin password
+bash create-app-user.sh
 
 cd ~/apps/data-solution-2026/infra/kafka
 cp -n .env.example .env 2>/dev/null || true
@@ -106,19 +109,29 @@ HTTPS UI: `${LOCAL_SERVER_URL_AIRFLOW}` and `${LOCAL_SERVER_URL_KAFKA}` (values 
 - Mounts application repo at `/opt/data-solution` (read-only) and `${DATA_SOLUTION_ROOT}/data` (read-write for Parquet).
 - `PYTHONPATH=/opt/data-solution/code:/opt/data-solution` so DAG tasks run `python -m extractor_and_poller...`.
 - Mounts `${DATA_SOLUTION_ROOT}/code/airflow/dags` at `/opt/airflow/dags` (see [code/airflow](../code/airflow/readme.md)).
-- Joins external network `data-solution-postgres_default` so tasks reach `postgres:5432` (table `poller`).
+- Joins external network `immich_default` so tasks reach `basnas_postgress:5432` (table `poller`).
 - Install runtime deps via `_PIP_ADDITIONAL_REQUIREMENTS` in `.env` (includes `psycopg[binary]`).
+- `PYTHONUNBUFFERED=1` and `AIRFLOW__LOGGING__TASK_LOG_TO_STDOUT=true` in compose so task subprocess logs reach the UI without buffering delay.
 
 Optional: uncomment the `kafka` external network in [docker-compose.standalone.yaml](airflow/docker-compose.standalone.yaml) after Kafka is up so tasks can reach `kafka:9092`.
 
 ## Postgres
 
-- Image: `postgres:16-alpine`, container `data-solution-postgres`, hostname `postgres`.
+- **Shared instance:** existing container `basnas_postgress` on host port **5432** (Docker network `immich_default`). Airflow connects as `basnas_postgress:5432`; SQL clients use `basnas:5432`.
 - Database: `data-solution-2026` (see [postgres/.env.example](postgres/.env.example)).
-- Init DDL: [code/postgres/schema.sql](../code/postgres/schema.sql) mounted into `docker-entrypoint-initdb.d` on first start.
-- Application role: `data-solution-2026_app` (login, `SELECT`/`INSERT` on `poller` only). Create or rotate with [postgres/create-app-user.sh](postgres/create-app-user.sh); set `POSTGRES_USER` / `POSTGRES_PASSWORD` in Airflow `.env` to that role (see [airflow/.env.example](airflow/.env.example)).
+- Schema DDL: [code/postgres/schema.sql](../code/postgres/schema.sql), applied by [postgres/create-app-user.sh](postgres/create-app-user.sh).
+- Application role: `data-solution-2026_app` (login, `SELECT`/`INSERT` on `poller` only). Create or rotate with `create-app-user.sh`; set `POSTGRES_USER` / `POSTGRES_PASSWORD` in Airflow `.env` to that role (see [airflow/.env.example](airflow/.env.example)).
 - Upgrading from `data_solution`: run [postgres/migrate-database-name.sh](postgres/migrate-database-name.sh) once, update `.env`, then `create-app-user.sh`.
 - Poller appends one row per probe to table `poller` (`data_object_id`, `polled_at_utc`, `old_marker`, `new_marker`, event envelope fields).
+
+**Migrating from the legacy dedicated Postgres (`data-solution-postgres` on port 5433):**
+
+```bash
+bash infra/postgres/migrate-poller-from-dedicated-postgres.sh
+bash infra/postgres/remove-dedicated-postgres.sh
+```
+
+Then redeploy Airflow so it joins `immich_default` instead of `data-solution-postgres_default`.
 
 ### UI shows Bad Gateway or Missing Meta Database / Scheduler / Triggerer
 
@@ -239,6 +252,14 @@ docker exec airflow-standalone cat '/opt/airflow/logs/dag_id=openmeteo_data_obje
       - [CI/CD workflow (main only + server pull deploy)](../doc/design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](../doc/design/event-based-orchestration-plan.md)
       - [Meta data design](../doc/design/meta-data-design.md)
+    - Operation
+      - Incident
+        - [INC-001 — NAS non-interactive SSH environment](../doc/operation/incident/inc-001-nas-ssh-environment.md)
+        - [INC-002 — Airflow standalone infra instability](../doc/operation/incident/inc-002-airflow-infra-stability.md)
+        - [INC-003 — Agent rediscovery and false-done verification](../doc/operation/incident/inc-003-agent-process-gaps.md)
+        - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](../doc/operation/incident/inc-004-airflow-pythonpath-drift.md)
+        - [INC-<NNN> — <short title>](../doc/operation/incident/incident-template.md)
+      - [Issue categories](../doc/operation/issue-category.md)
     - [Implementation plan (Open-Meteo → event orchestration)](../doc/implementation-plan.md)
   - Infra
     - Airflow
@@ -246,51 +267,36 @@ docker exec airflow-standalone cat '/opt/airflow/logs/dag_id=openmeteo_data_obje
     - Kafka
     - Postgres
   - Release
-    - Details
-      - V2026.06.02.1
-      - V2026.06.02.2
-      - V2026.06.03.1
-      - V2026.06.03.2
-      - V2026.06.03.3
-      - V2026.06.03.4
-      - V2026.06.04.1
-      - V2026.06.04.2
-      - V2026.06.04.3
-      - V2026.06.04.4
-      - V2026.06.04.5
-      - V2026.06.04.6
-      - V2026.06.04.7
-      - V2026.06.04.8
-      - V2026.06.04.9
-      - V2026.06.05.1
-      - V2026.06.05.2
-      - V2026.06.05.3
-      - V2026.06.05.4
-      - V2026.06.05.5
-      - V2026.06.05.6
-    - Notes
-      - [Release v2026.06.02.1](../release/notes/v2026.06.02.1.md)
-      - [Release v2026.06.02.2](../release/notes/v2026.06.02.2.md)
-      - [Release v2026.06.03.1](../release/notes/v2026.06.03.1.md)
-      - [Release v2026.06.03.2](../release/notes/v2026.06.03.2.md)
-      - [Release v2026.06.03.3](../release/notes/v2026.06.03.3.md)
-      - [Release v2026.06.03.4](../release/notes/v2026.06.03.4.md)
-      - [V2026.06.04.1](../release/notes/v2026.06.04.1.md)
-      - [V2026.06.04.2](../release/notes/v2026.06.04.2.md)
-      - [V2026.06.04.3](../release/notes/v2026.06.04.3.md)
-      - [V2026.06.04.4](../release/notes/v2026.06.04.4.md)
-      - [V2026.06.04.5](../release/notes/v2026.06.04.5.md)
-      - [V2026.06.04.6](../release/notes/v2026.06.04.6.md)
-      - [V2026.06.04.7](../release/notes/v2026.06.04.7.md)
-      - [V2026.06.04.8](../release/notes/v2026.06.04.8.md)
-      - [V2026.06.04.9](../release/notes/v2026.06.04.9.md)
-      - [V2026.06.05.1](../release/notes/v2026.06.05.1.md)
-      - [V2026.06.05.2](../release/notes/v2026.06.05.2.md)
-      - [V2026.06.05.3](../release/notes/v2026.06.05.3.md)
-      - [V2026.06.05.4](../release/notes/v2026.06.05.4.md)
-      - [V2026.06.05.5](../release/notes/v2026.06.05.5.md)
-      - [V2026.06.05.6](../release/notes/v2026.06.05.6.md)
+    - 2026
+      - 06
+        - 02
+          - V2026.06.02.1
+            - [Notes](../release/2026/06/02/v2026.06.02.1/notes.md)
+          - V2026.06.02.2
+            - [Release v2026.06.02.2](../release/2026/06/02/v2026.06.02.2/notes.md)
+        - 03
+          - V2026.06.03.1
+            - [Release v2026.06.03.1](../release/2026/06/03/v2026.06.03.1/notes.md)
+          - V2026.06.03.2
+            - [Release v2026.06.03.2](../release/2026/06/03/v2026.06.03.2/notes.md)
+          - V2026.06.03.3
+            - [Release v2026.06.03.3](../release/2026/06/03/v2026.06.03.3/notes.md)
+          - V2026.06.03.4
+            - [Release v2026.06.03.4](../release/2026/06/03/v2026.06.03.4/notes.md)
+            - [Retrospective](../release/2026/06/03/v2026.06.03.4/retrospective.md)
+        - 04
+          - V2026.06.04.1
+            - [Notes](../release/2026/06/04/v2026.06.04.1/notes.md)
+        - 05
+          - V2026.06.05.6
+            - [Notes](../release/2026/06/05/v2026.06.05.6/notes.md)
+            - [Retrospective](../release/2026/06/05/v2026.06.05.6/retrospective.md)
+        - 08
+          - V2026.06.08.1
+            - [Notes](../release/2026/06/08/v2026.06.08.1/notes.md)
+            - [Retrospective](../release/2026/06/08/v2026.06.08.1/retrospective.md)
     - [Release <version>](../release/release-notes-template.md)
+    - [Retrospective — <version>](../release/retrospective-template.md)
   - Setting
   - Template
   - [Getting started](../getting-started.md)

@@ -9,7 +9,7 @@ set -euo pipefail
 
 POSTGRES_DEST="${POSTGRES_DEST:-$HOME/data-solution-postgres}"
 ENV_FILE="${ENV_FILE:-${POSTGRES_DEST}/.env}"
-CONTAINER="${POSTGRES_CONTAINER:-data-solution-postgres}"
+CONTAINER="${POSTGRES_CONTAINER:-basnas_postgress}"
 OLD_DB="data_solution"
 NEW_DB="data-solution-2026"
 OLD_USER="data_solution_app"

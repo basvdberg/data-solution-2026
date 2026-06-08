@@ -5,6 +5,8 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
+. (Join-Path $PSScriptRoot "release-paths.ps1")
+
 function Format-MetadataValue {
     param([string]$Value)
     if ($Value -match '^`.*`$') {
@@ -87,35 +89,22 @@ function Update-ReleaseReadmeMetadata {
 
 $repoRoot = (git rev-parse --show-toplevel).Trim()
 $versionFile = Join-Path $repoRoot "release\VERSION"
-$detailsRoot = Join-Path $repoRoot "release\details"
 
 if (-not (Test-Path $versionFile)) {
     throw "Missing version file: $versionFile"
 }
 
-$version = (Get-Content -Path $versionFile -Raw).Trim()
-if ([string]::IsNullOrWhiteSpace($version)) {
-    throw "release/VERSION is empty."
-}
+$version = Normalize-ReleaseVersion (Get-Content -Path $versionFile -Raw).Trim()
 
-$releaseDir = Join-Path $detailsRoot $version
+$releaseDir = Get-ReleaseVersionDir -Version $version -RepoRoot $repoRoot
 New-Item -ItemType Directory -Path $releaseDir -Force | Out-Null
 
-$readmePath = Join-Path $releaseDir "README.md"
+$readmePath = Get-ReleaseDetailsReadmePath -Version $version -RepoRoot $repoRoot
 
 if ($Refresh) {
     Update-ReleaseReadmeMetadata -ReadmePath $readmePath -Version $version
 } elseif (-not (Test-Path $readmePath)) {
     Update-ReleaseReadmeMetadata -ReadmePath $readmePath -Version $version
-}
-
-$rootReadme = Join-Path $detailsRoot "README.md"
-if (Test-Path $rootReadme) {
-    $content = Get-Content -Path $rootReadme -Raw
-    $link = "- [`$version`]($version/README.md)"
-    if (-not $content.Contains($link)) {
-        Add-Content -Path $rootReadme -Value "`r`n$link"
-    }
 }
 
 if ($Refresh) {

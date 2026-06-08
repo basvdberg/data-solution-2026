@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Create (or update) the application Postgres role for data-solution-2026.
+# Create (or update) the application Postgres role and poller schema on basnas_postgress.
 #
 # Usage (on host with Docker, e.g. BasNAS):
 #   bash infra/postgres/create-app-user.sh
@@ -13,7 +13,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 POSTGRES_DEST="${POSTGRES_DEST:-$HOME/data-solution-postgres}"
 ENV_FILE="${ENV_FILE:-${POSTGRES_DEST}/.env}"
-CONTAINER="${POSTGRES_CONTAINER:-data-solution-postgres}"
+CONTAINER="${POSTGRES_CONTAINER:-basnas_postgress}"
 APP_USER="${DATA_SOLUTION_APP_USER:-data-solution-2026_app}"
 APP_DB="${DATA_SOLUTION_DB:-${POSTGRES_DB:-data-solution-2026}}"
 GRANT_SQL="${GRANT_SQL:-${REPO_ROOT}/code/postgres/grant-app-user.sql}"
@@ -40,7 +40,7 @@ if [ -z "$APP_PASSWORD" ]; then
 fi
 
 if ! docker inspect "$CONTAINER" >/dev/null 2>&1; then
-  echo "ERROR: container '${CONTAINER}' not found. Start Postgres first." >&2
+  echo "ERROR: container '${CONTAINER}' not found. Start basnas_postgress first." >&2
   exit 1
 fi
 
@@ -57,11 +57,15 @@ fi
 psql_admin() {
   if [ -n "$ADMIN_PASSWORD" ]; then
     docker exec -i -e PGPASSWORD="$ADMIN_PASSWORD" "$CONTAINER" \
-      psql -v ON_ERROR_STOP=1 -U "$ADMIN_USER" -d "$APP_DB" "$@"
+      psql -v ON_ERROR_STOP=1 -U "$ADMIN_USER" "$@"
   else
     docker exec -i "$CONTAINER" \
-      psql -v ON_ERROR_STOP=1 -U "$ADMIN_USER" -d "$APP_DB" "$@"
+      psql -v ON_ERROR_STOP=1 -U "$ADMIN_USER" "$@"
   fi
+}
+
+db_exists() {
+  psql_admin -d postgres -tAc "select 1 from pg_database where datname = '$1'" | tr -d '[:space:]'
 }
 
 escape_sql_literal() {
@@ -72,9 +76,14 @@ sql_quote_ident() {
   printf '"%s"' "${1//\"/\"\"}"
 }
 
+if [ "$(db_exists "$APP_DB")" != "1" ]; then
+  echo "Creating database ${APP_DB}"
+  psql_admin -d postgres -c "create database $(sql_quote_ident "$APP_DB");"
+fi
+
 APP_USER_LITERAL="$(escape_sql_literal "$APP_USER")"
 role_exists="$(
-  psql_admin -tAc "select 1 from pg_roles where rolname = '${APP_USER_LITERAL}'" | tr -d '[:space:]'
+  psql_admin -d "$APP_DB" -tAc "select 1 from pg_roles where rolname = '${APP_USER_LITERAL}'" | tr -d '[:space:]'
 )"
 
 APP_PASSWORD_SQL="$(escape_sql_literal "$APP_PASSWORD")"
@@ -82,16 +91,16 @@ APP_USER_IDENT="$(sql_quote_ident "$APP_USER")"
 
 if [ "$role_exists" = "1" ]; then
   echo "Role ${APP_USER} exists; updating password and grants."
-  psql_admin -c "alter role ${APP_USER_IDENT} with login password '${APP_PASSWORD_SQL}';"
+  psql_admin -d "$APP_DB" -c "alter role ${APP_USER_IDENT} with login password '${APP_PASSWORD_SQL}';"
 else
   echo "Creating role ${APP_USER}."
-  psql_admin -c "create role ${APP_USER_IDENT} with login password '${APP_PASSWORD_SQL}';"
+  psql_admin -d "$APP_DB" -c "create role ${APP_USER_IDENT} with login password '${APP_PASSWORD_SQL}';"
 fi
 
 echo "Ensuring poller schema (${SCHEMA_SQL})"
-psql_admin <"$SCHEMA_SQL"
+psql_admin -d "$APP_DB" <"$SCHEMA_SQL"
 echo "Applying application grants (${GRANT_SQL})"
-psql_admin <"$GRANT_SQL"
+psql_admin -d "$APP_DB" <"$GRANT_SQL"
 
 update_env_var() {
   local file=$1 key=$2 value=$3
@@ -114,11 +123,12 @@ update_env_var "$ENV_FILE" "DATA_SOLUTION_APP_PASSWORD" "$APP_PASSWORD"
 
 AIRFLOW_ENV="${AIRFLOW_ENV:-$HOME/apache-airflow/.env}"
 update_env_var "$AIRFLOW_ENV" "POSTGRES_USER" "$APP_USER"
+update_env_var "$AIRFLOW_ENV" "POSTGRES_HOST" "basnas_postgress:5432"
 if [ "${UPDATE_ENV:-0}" = "1" ]; then
   update_env_var "$AIRFLOW_ENV" "POSTGRES_PASSWORD" "$APP_PASSWORD"
 else
   update_env_var "$AIRFLOW_ENV" "DATA_SOLUTION_APP_PASSWORD" "$APP_PASSWORD"
 fi
 
-echo "Application user ready: ${APP_USER} on database ${APP_DB}"
+echo "Application user ready: ${APP_USER} on database ${APP_DB} (container ${CONTAINER})"
 echo "Set POSTGRES_USER=${APP_USER} and POSTGRES_PASSWORD in Airflow .env if not already."

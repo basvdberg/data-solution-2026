@@ -9,7 +9,7 @@
 #   APP_ROOT          Repo clone (default: ~/apps/data-solution-2026)
 #   AIRFLOW_DEST      Legacy Airflow folder (default: ~/apache-airflow)
 #   KAFKA_DEST        Legacy Kafka folder (default: ~/kafka)
-#   POSTGRES_DEST     Legacy Postgres folder (default: ~/data-solution-postgres)
+#   POSTGRES_DEST     Legacy Postgres config folder (default: ~/data-solution-postgres)
 #   RUN_COMPOSE       1 = docker compose up -d after sync (default: 1)
 #   DRY_RUN           1 = print actions only (default: 0)
 
@@ -74,7 +74,7 @@ ensure_airflow_env() {
       printf '\nAIRFLOW_ADMIN_PASSWORD=changeme\n' >>"$env_file"
     fi
   fi
-  for key in POSTGRES_HOST DATA_SOLUTION_DB; do
+  for key in POSTGRES_HOST POSTGRES_DOCKER_NETWORK DATA_SOLUTION_DB; do
     if ! grep -q "^${key}=" "$env_file" 2>/dev/null; then
       value="$(grep -E "^${key}=" "${INFRA}/airflow/.env.example" | tail -1 | cut -d= -f2- || true)"
       if [ -n "$value" ]; then
@@ -114,6 +114,12 @@ ensure_postgres_env() {
     echo "Appending DATA_SOLUTION_ROOT to ${env_file}"
     if [ "$DRY_RUN" != "1" ]; then
       printf '\nDATA_SOLUTION_ROOT=%s\n' "$APP_ABS" >>"$env_file"
+    fi
+  fi
+  if ! grep -q '^POSTGRES_CONTAINER=' "$env_file" 2>/dev/null; then
+    echo "Appending POSTGRES_CONTAINER to ${env_file}"
+    if [ "$DRY_RUN" != "1" ]; then
+      printf '\nPOSTGRES_CONTAINER=basnas_postgress\n' >>"$env_file"
     fi
   fi
 }
@@ -169,22 +175,28 @@ main() {
     exit 1
   fi
 
-  echo "App root:     ${APP_ABS}"
-  echo "Airflow dest: ${AIRFLOW_DEST}"
-  echo "Kafka dest:     ${KAFKA_DEST}"
-  echo "Postgres dest:  ${POSTGRES_DEST}"
+  echo "App root:      ${APP_ABS}"
+  echo "Airflow dest:  ${AIRFLOW_DEST}"
+  echo "Kafka dest:    ${KAFKA_DEST}"
+  echo "Postgres cfg:  ${POSTGRES_DEST} (shared basnas_postgress; no compose stack)"
 
   if [ -x "${SCRIPT_DIR}/setup-nas-ssh-env.sh" ]; then
     bash "${SCRIPT_DIR}/setup-nas-ssh-env.sh"
   fi
 
   run mkdir -p "${AIRFLOW_DEST}/logs" "${AIRFLOW_DEST}/plugins"
-  run mkdir -p "${KAFKA_DEST}" "${POSTGRES_DEST}/data"
+  run mkdir -p "${KAFKA_DEST}" "${POSTGRES_DEST}"
 
   copy_file "${INFRA}/kafka/docker-compose.yml" "${KAFKA_DEST}/docker-compose.yml"
   copy_file "${INFRA}/kafka/.env.example" "${KAFKA_DEST}/.env.example"
-  copy_file "${INFRA}/postgres/docker-compose.yml" "${POSTGRES_DEST}/docker-compose.yml"
   copy_file "${INFRA}/postgres/.env.example" "${POSTGRES_DEST}/.env.example"
+  copy_file "${INFRA}/postgres/create-app-user.sh" "${POSTGRES_DEST}/create-app-user.sh"
+  copy_file "${INFRA}/postgres/migrate-poller-from-dedicated-postgres.sh" \
+    "${POSTGRES_DEST}/migrate-poller-from-dedicated-postgres.sh"
+  copy_file "${INFRA}/postgres/remove-dedicated-postgres.sh" \
+    "${POSTGRES_DEST}/remove-dedicated-postgres.sh"
+  copy_file "${INFRA}/postgres/apply-shared-postgres-on-nas.sh" \
+    "${POSTGRES_DEST}/apply-shared-postgres-on-nas.sh"
   copy_file "${INFRA}/airflow/docker-compose.standalone.yaml" "${AIRFLOW_DEST}/docker-compose.standalone.yaml"
   copy_file "${INFRA}/airflow/.env.example" "${AIRFLOW_DEST}/.env.example"
 
@@ -194,7 +206,6 @@ main() {
   ensure_data_dirs
 
   if [ "$RUN_COMPOSE" = "1" ]; then
-    compose_up "$POSTGRES_DEST"
     compose_up "$KAFKA_DEST"
     compose_up "$AIRFLOW_DEST" -f docker-compose.standalone.yaml
   else
@@ -202,6 +213,7 @@ main() {
   fi
 
   echo "Infra deploy completed."
+  echo "Postgres: run bash infra/postgres/create-app-user.sh once if schema or app role is missing."
 }
 
 main "$@"

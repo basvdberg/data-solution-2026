@@ -112,18 +112,12 @@ RUN_COMPOSE=0 bash infra/scripts/deploy-infra-on-nas.sh
 | `POSTGRES_USER` | `postgres` | Bootstrap superuser inside the container |
 | `POSTGRES_PASSWORD` | Strong secret | Superuser password |
 | `DATA_SOLUTION_DB` | `data-solution-2026` | Database name |
-| `POSTGRES_HOST_PORT` | e.g. `5433` | Host port if `5432` is taken on QNAP |
+| `POSTGRES_CONTAINER` | `basnas_postgress` | Shared Postgres container on host port `5432` |
 | `DATA_SOLUTION_APP_USER` | `data-solution-2026_app` | Poller / Airflow application role |
 | `DATA_SOLUTION_APP_PASSWORD` | Strong secret | Must match Airflow `.env` after step 5 |
 | `DATA_SOLUTION_ROOT` | Absolute path to clone | e.g. `/share/.../apps/data-solution-2026` |
 
-- [ ] **Start Postgres** (first in stack order):
-
-```bash
-cd ~/apps/data-solution-2026
-bash infra/scripts/deploy-infra-on-nas.sh
-# Or Postgres only: RUN_COMPOSE=0 … then cd ~/data-solution-postgres && docker compose up -d
-```
+- [ ] **Ensure shared Postgres** (`basnas_postgress`) is running on host port `5432` (no dedicated compose stack in this repo).
 
 - [ ] **Create the application role** (reads `~/data-solution-postgres/.env`; prints password if generated):
 
@@ -132,7 +126,7 @@ cd ~/apps/data-solution-2026
 bash infra/postgres/create-app-user.sh
 ```
 
-- [ ] **Verify**: container `data-solution-postgres` is up; init applied [code/postgres/schema.sql](../code/postgres/schema.sql) on first start.
+- [ ] **Verify**: `create-app-user.sh` applied [code/postgres/schema.sql](../code/postgres/schema.sql) on database `data-solution-2026`.
 
 #### 4 — Kafka stack (needed before Step 2; optional for Step 1)
 
@@ -150,7 +144,7 @@ bash infra/postgres/create-app-user.sh
 | `AIRFLOW_UID` | `id -u` on NAS | Writable `logs/` and `plugins/` on host |
 | `DATA_SOLUTION_ROOT` | Same absolute path as Postgres | Mounts repo at `/opt/data-solution` |
 | `AIRFLOW_HOST_PORT` | e.g. `8081` | Host → container `8080` |
-| `POSTGRES_HOST` | `postgres:5432` | Docker service name on shared network |
+| `POSTGRES_HOST` | `basnas_postgress:5432` | Shared Postgres on Docker network `immich_default` |
 | `POSTGRES_USER` | `data-solution-2026_app` | From `create-app-user.sh` |
 | `POSTGRES_PASSWORD` | Same as `DATA_SOLUTION_APP_PASSWORD` | Must match Postgres `.env` |
 | `DATA_SOLUTION_DB` | `data-solution-2026` | |
@@ -165,7 +159,7 @@ curl -s http://127.0.0.1:8081/api/v2/monitor/health
 
 - [ ] **Verify mounts**: DAG folder `${DATA_SOLUTION_ROOT}/code/airflow/dags` → `/opt/airflow/dags`; app code at `/opt/data-solution`; `PYTHONPATH` includes `/opt/data-solution/code`.
 
-- [ ] **Verify network**: Airflow container joins external network `data-solution-postgres_default` so tasks reach `postgres:5432`.
+- [ ] **Verify network**: Airflow container joins external network `immich_default` so tasks reach `basnas_postgress:5432`.
 
 - [ ] **Optional (Step 2+)**: Uncomment the `kafka` external network in [docker-compose.standalone.yaml](../infra/airflow/docker-compose.standalone.yaml) and set `KAFKA_HOST=kafka:9092` when enabling Kafka publish.
 
@@ -177,7 +171,7 @@ After pushing `infra/` changes to `main`, run on the local server (app pull is a
 RUN_INFRA_SYNC=1 bash ~/apps/data-solution-2026/release/scripts/deploy-on-nas.sh
 ```
 
-That runs `infra/scripts/deploy-infra-on-nas.sh`: copies compose to `~/apache-airflow`, `~/kafka`, and `~/data-solution-postgres`, preserves `.env`, sets `DATA_SOLUTION_ROOT` when missing, ensures `data/staging/...` dirs exist, and runs `docker compose up -d` in order. Options: `RUN_COMPOSE=0` (sync only), `DRY_RUN=1` (print actions). See [infra/readme.md](../infra/readme.md).
+That runs `infra/scripts/deploy-infra-on-nas.sh`: copies compose to `~/apache-airflow` and `~/kafka`, syncs Postgres setup scripts to `~/data-solution-postgres`, preserves `.env`, sets `DATA_SOLUTION_ROOT` when missing, ensures `data/staging/...` dirs exist, and runs `docker compose up -d` for Kafka and Airflow. Options: `RUN_COMPOSE=0` (sync only), `DRY_RUN=1` (print actions). See [infra/readme.md](../infra/readme.md).
 
 #### 7 — Airflow Variables (before first poller DAG run)
 
@@ -192,7 +186,7 @@ Postgres connection for the poller uses `POSTGRES_HOST`, `POSTGRES_USER`, `POSTG
 
 #### 8 — Service readiness checklist
 
-- [ ] Postgres: `docker ps` shows `data-solution-postgres`; poller can connect as `data-solution-2026_app`.
+- [ ] Postgres: `basnas_postgress` is up on host port `5432`; poller can connect as `data-solution-2026_app`.
 - [ ] Airflow: UI loads at `${LOCAL_SERVER_URL_AIRFLOW}` (or `http://<local-server>:8081`; URLs in [local-server.env.example](../infra/local-server.env.example)); login `admin` + `AIRFLOW_ADMIN_PASSWORD`.
 - [ ] DAG `openmeteo_data_object_poller` appears without import errors (paused by default).
 - [ ] HTTPS reverse proxy: NGINX shares the Airflow Docker network with `airflow-standalone` (see local server deploy skill if 502 persists after health is green).
@@ -283,7 +277,7 @@ Set **Airflow Variables** (Admin → Variables) or export env vars in compose fo
 |----------------|---------|---------|
 | `poller_data_object_id` | `source/openmeteo/daily-temperature` | Selects mapping via source id |
 | `poller_publish` | `none` → `stdout` → `kafka` | Event transport (ramp gradually) |
-| `POSTGRES_HOST` | `postgres:5432` on Docker network | Poller metadata (`poller` table) |
+| `POSTGRES_HOST` | `basnas_postgress:5432` on Docker network | Poller metadata (`poller` table) |
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `DATA_SOLUTION_DB` | `data-solution-2026` on NAS | DSN pieces for poller |
 | `KAFKA_HOST` | `kafka:9092` on shared Docker network | When `poller_publish=kafka` |
 
@@ -293,7 +287,7 @@ Optional: uncomment the `kafka` external network in [docker-compose.standalone.y
 
 #### 1.4 Wire Postgres metadata (before schedule)
 
-1. Start Postgres: `bash infra/scripts/deploy-infra-on-nas.sh` (starts `~/data-solution-postgres` before Airflow).
+1. Run `bash infra/postgres/create-app-user.sh` on `basnas_postgress` (shared Postgres on host port `5432`).
 2. Run one manual poller execution; the poller creates table `poller` if missing (see [code/postgres/schema.sql](../code/postgres/schema.sql)).
 3. Re-run the poller; confirm second run emits `data_object_unchanged` when the Open-Meteo marker did not advance.
 
@@ -444,6 +438,14 @@ For schema-level acceptance criteria, use [Definition of done](design/event-base
       - [CI/CD workflow (main only + server pull deploy)](design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](design/event-based-orchestration-plan.md)
       - [Meta data design](design/meta-data-design.md)
+    - Operation
+      - Incident
+        - [INC-001 — NAS non-interactive SSH environment](operation/incident/inc-001-nas-ssh-environment.md)
+        - [INC-002 — Airflow standalone infra instability](operation/incident/inc-002-airflow-infra-stability.md)
+        - [INC-003 — Agent rediscovery and false-done verification](operation/incident/inc-003-agent-process-gaps.md)
+        - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](operation/incident/inc-004-airflow-pythonpath-drift.md)
+        - [INC-<NNN> — <short title>](operation/incident/incident-template.md)
+      - [Issue categories](operation/issue-category.md)
     - [Implementation plan (Open-Meteo → event orchestration)](implementation-plan.md)
   - Infra
     - Airflow
@@ -451,51 +453,36 @@ For schema-level acceptance criteria, use [Definition of done](design/event-base
     - Kafka
     - Postgres
   - Release
-    - Details
-      - V2026.06.02.1
-      - V2026.06.02.2
-      - V2026.06.03.1
-      - V2026.06.03.2
-      - V2026.06.03.3
-      - V2026.06.03.4
-      - V2026.06.04.1
-      - V2026.06.04.2
-      - V2026.06.04.3
-      - V2026.06.04.4
-      - V2026.06.04.5
-      - V2026.06.04.6
-      - V2026.06.04.7
-      - V2026.06.04.8
-      - V2026.06.04.9
-      - V2026.06.05.1
-      - V2026.06.05.2
-      - V2026.06.05.3
-      - V2026.06.05.4
-      - V2026.06.05.5
-      - V2026.06.05.6
-    - Notes
-      - [Release v2026.06.02.1](../release/notes/v2026.06.02.1.md)
-      - [Release v2026.06.02.2](../release/notes/v2026.06.02.2.md)
-      - [Release v2026.06.03.1](../release/notes/v2026.06.03.1.md)
-      - [Release v2026.06.03.2](../release/notes/v2026.06.03.2.md)
-      - [Release v2026.06.03.3](../release/notes/v2026.06.03.3.md)
-      - [Release v2026.06.03.4](../release/notes/v2026.06.03.4.md)
-      - [V2026.06.04.1](../release/notes/v2026.06.04.1.md)
-      - [V2026.06.04.2](../release/notes/v2026.06.04.2.md)
-      - [V2026.06.04.3](../release/notes/v2026.06.04.3.md)
-      - [V2026.06.04.4](../release/notes/v2026.06.04.4.md)
-      - [V2026.06.04.5](../release/notes/v2026.06.04.5.md)
-      - [V2026.06.04.6](../release/notes/v2026.06.04.6.md)
-      - [V2026.06.04.7](../release/notes/v2026.06.04.7.md)
-      - [V2026.06.04.8](../release/notes/v2026.06.04.8.md)
-      - [V2026.06.04.9](../release/notes/v2026.06.04.9.md)
-      - [V2026.06.05.1](../release/notes/v2026.06.05.1.md)
-      - [V2026.06.05.2](../release/notes/v2026.06.05.2.md)
-      - [V2026.06.05.3](../release/notes/v2026.06.05.3.md)
-      - [V2026.06.05.4](../release/notes/v2026.06.05.4.md)
-      - [V2026.06.05.5](../release/notes/v2026.06.05.5.md)
-      - [V2026.06.05.6](../release/notes/v2026.06.05.6.md)
+    - 2026
+      - 06
+        - 02
+          - V2026.06.02.1
+            - [Notes](../release/2026/06/02/v2026.06.02.1/notes.md)
+          - V2026.06.02.2
+            - [Release v2026.06.02.2](../release/2026/06/02/v2026.06.02.2/notes.md)
+        - 03
+          - V2026.06.03.1
+            - [Release v2026.06.03.1](../release/2026/06/03/v2026.06.03.1/notes.md)
+          - V2026.06.03.2
+            - [Release v2026.06.03.2](../release/2026/06/03/v2026.06.03.2/notes.md)
+          - V2026.06.03.3
+            - [Release v2026.06.03.3](../release/2026/06/03/v2026.06.03.3/notes.md)
+          - V2026.06.03.4
+            - [Release v2026.06.03.4](../release/2026/06/03/v2026.06.03.4/notes.md)
+            - [Retrospective](../release/2026/06/03/v2026.06.03.4/retrospective.md)
+        - 04
+          - V2026.06.04.1
+            - [Notes](../release/2026/06/04/v2026.06.04.1/notes.md)
+        - 05
+          - V2026.06.05.6
+            - [Notes](../release/2026/06/05/v2026.06.05.6/notes.md)
+            - [Retrospective](../release/2026/06/05/v2026.06.05.6/retrospective.md)
+        - 08
+          - V2026.06.08.1
+            - [Notes](../release/2026/06/08/v2026.06.08.1/notes.md)
+            - [Retrospective](../release/2026/06/08/v2026.06.08.1/retrospective.md)
     - [Release <version>](../release/release-notes-template.md)
+    - [Retrospective — <version>](../release/retrospective-template.md)
   - Setting
   - Template
   - [Getting started](../getting-started.md)

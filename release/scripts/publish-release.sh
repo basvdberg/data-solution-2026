@@ -19,7 +19,13 @@ if [[ "$version" != v* ]]; then
   version="v${version}"
 fi
 
-notes_path="release/notes/${version}.md"
+if [[ "$version" =~ ^v([0-9]{4})\.([0-9]{2})\.([0-9]{2})\.[0-9]+$ ]]; then
+  notes_path="release/${BASH_REMATCH[1]}/${BASH_REMATCH[2]}/${BASH_REMATCH[3]}/${version}/notes.md"
+else
+  echo "publish-release: invalid version format ${version}; skipping."
+  exit 0
+fi
+
 if [[ ! -f "$notes_path" ]]; then
   echo "publish-release: missing ${notes_path}; skipping GitHub release."
   exit 0

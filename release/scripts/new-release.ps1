@@ -5,6 +5,8 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
+. (Join-Path $PSScriptRoot "release-paths.ps1")
+
 function Get-NextVersion {
     param([string]$Current)
     if ($Current -notmatch '^v?(\d{4})\.(\d{2})\.(\d{2})\.(\d+)$') {
@@ -57,18 +59,18 @@ $current = (Get-Content -Path $versionFile -Raw).Trim()
 if ([string]::IsNullOrWhiteSpace($current)) {
     throw "release/VERSION is empty."
 }
-if ($current -notmatch '^v') {
-    $current = "v$current"
-}
+$current = Normalize-ReleaseVersion $current
 
 $next = Get-NextVersion -Current $current
 $previous = Get-PreviousVersionLabel -Current $current
 $date = (Get-Date).ToString("yyyy-MM-dd")
 
-$notesPath = Join-Path $repoRoot "release\notes\$next.md"
-$detailsDir = Join-Path $repoRoot "release\details\$next"
-$detailsReadme = Join-Path $detailsDir "README.md"
-$detailsPrompts = Join-Path $detailsDir "prompts.md"
+$releaseDir = Get-ReleaseVersionDir -Version $next -RepoRoot $repoRoot
+$notesPath = Get-ReleaseNotesPath -Version $next -RepoRoot $repoRoot
+$detailsReadme = Get-ReleaseDetailsReadmePath -Version $next -RepoRoot $repoRoot
+$detailsPrompts = Get-ReleasePromptsPath -Version $next -RepoRoot $repoRoot
+$retroTemplate = Join-Path $repoRoot "release\retrospective-template.md"
+$retroPath = Get-ReleaseRetrospectivePath -Version $next -RepoRoot $repoRoot
 
 if (Test-Path $notesPath) {
     Write-Host "new-release: $next already has release notes; skipping bump."
@@ -88,7 +90,7 @@ $notes = $template `
     -replace '<sha>', '<fill-after-commit>' `
     -replace '<tag>', $previous
 
-New-Item -ItemType Directory -Path $detailsDir -Force | Out-Null
+New-Item -ItemType Directory -Path $releaseDir -Force | Out-Null
 Set-Content -Path $versionFile -Value "$next`n" -Encoding UTF8
 Set-Content -Path $notesPath -Value $notes.TrimEnd() -Encoding UTF8
 
@@ -106,11 +108,13 @@ if (-not (Test-Path $detailsReadme)) {
 
 ## Summary
 
-- Update scope and changes in ``release/notes/$next.md``.
+- Update scope and changes in ``notes.md`` in this folder.
 
 ## Linked files
 
-- Release note: [``release/notes/$next.md``](../../notes/$next.md)
+- Release note: [``notes.md``](notes.md)
+- Retrospective: [``retrospective.md``](retrospective.md)
+- Incident register: [``doc/operation/incident/``](../../../doc/operation/incident/readme.md)
 
 "@
     Set-Content -Path $detailsReadme -Value $readme.TrimEnd() -Encoding UTF8
@@ -120,16 +124,32 @@ if (-not (Test-Path $detailsPrompts)) {
     Set-Content -Path $detailsPrompts -Value "# Prompts for $next`r`n" -Encoding UTF8
 }
 
-git -C $repoRoot add "release/VERSION" "release/notes/$next.md" "release/details/$next/README.md" "release/details/$next/prompts.md" 2>$null | Out-Null
-
-$detailsIndex = Join-Path $repoRoot "release\details\README.md"
-if (Test-Path $detailsIndex) {
-    $link = "- [`$next`]($next/README.md)"
-    $indexContent = Get-Content -Path $detailsIndex -Raw
-    if (-not $indexContent.Contains($link)) {
-        Add-Content -Path $detailsIndex -Value "`r`n$link"
-        git -C $repoRoot add "release/details/README.md" 2>$null | Out-Null
+if (-not (Test-Path $retroPath)) {
+    if (Test-Path $retroTemplate) {
+        $retro = (Get-Content -Path $retroTemplate -Raw) `
+            -replace '<version>', $next `
+            -replace '<YYYY-MM-DD>', $date `
+            -replace '<sha>', '<fill-after-commit>'
+        Set-Content -Path $retroPath -Value $retro.TrimEnd() -Encoding UTF8
+    } else {
+        Set-Content -Path $retroPath -Value "# Retrospective — $next`r`n" -Encoding UTF8
     }
 }
 
-Write-Host "new-release: prepared $next (edit release/notes/$next.md before push)."
+function Get-RepoRelativePath {
+    param([string]$AbsolutePath, [string]$Root)
+    return $AbsolutePath.Substring($Root.Length + 1) -replace '\\', '/'
+}
+
+$gitAddPaths = @(
+    "release/VERSION",
+    (Get-RepoRelativePath (Get-ReleaseNotesPath -Version $next -RepoRoot $repoRoot) $repoRoot),
+    (Get-RepoRelativePath (Get-ReleaseDetailsReadmePath -Version $next -RepoRoot $repoRoot) $repoRoot),
+    (Get-RepoRelativePath (Get-ReleasePromptsPath -Version $next -RepoRoot $repoRoot) $repoRoot),
+    (Get-RepoRelativePath (Get-ReleaseRetrospectivePath -Version $next -RepoRoot $repoRoot) $repoRoot)
+)
+foreach ($path in $gitAddPaths) {
+    git -C $repoRoot add $path 2>$null | Out-Null
+}
+
+Write-Host "new-release: prepared $next (edit notes.md under $releaseDir before push)."

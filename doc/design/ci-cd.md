@@ -45,7 +45,7 @@ Keep CI/CD simple: commit to `main`, run checks in GitHub Actions, then deploy f
 - Secrets are stored on NAS in `.env` (or secret manager), never in Git.
 - NAS can pull from Git remote (HTTPS token or SSH deploy key).
 - Airflow/Kafka/Postgres are reachable from NAS runtime.
-- Docker stacks are defined under `infra/` ([infra/readme.md](../../infra/readme.md)). Sync to legacy NAS paths with `infra/scripts/deploy-infra-on-nas.sh` or `RUN_INFRA_SYNC=1` on [deploy-on-nas.sh](../../release/scripts/deploy-on-nas.sh).
+- Docker stacks are defined under `infra/` ([infra/readme.md](../../infra/readme.md)). [release/deploy-config.json](../../release/deploy-config.json) sets `sync_infra` automatically when meaningful `infra/` runtime files change; [deploy-on-nas.sh](../../release/scripts/deploy-on-nas.sh) runs [deploy-infra-on-nas.sh](../../infra/scripts/deploy-infra-on-nas.sh) when that flag is true (or when `RUN_INFRA_SYNC=1`).
 
 ## Versioning and release notes
 
@@ -63,11 +63,13 @@ Rules:
 
 ### Release folder
 
-Use files under `release/`:
+Use files under `release/` (see [release/readme.md](../../release/readme.md)):
 
 - `release/VERSION`: next or current release version.
-- `release/release-notes-template.md`: template for every release note.
-- `release/notes/`: one file per release, for example `v2026.06.02.1.md`.
+- `release/release-notes-template.md`: operator-facing template ([Keep a Changelog](https://keepachangelog.com/) sections).
+- `release/YYYY/MM/DD/<version>/`: one folder per release — `notes.md` (published to GitHub Releases), `readme.md` (details), `prompts.md`, `retrospective.md`.
+- `release/scripts/`: deploy, publish, and version-bump automation.
+- `doc/operation/incident/`: blameless postmortems (INC-NNN) for significant failures.
 
 ### Simple release flow on main
 
@@ -75,7 +77,7 @@ Releases are automated when you commit and push on `main`:
 
 1. **Pre-commit** (`cursor-config` → `pre_commit.py` → `release/scripts/new-release.ps1`):
    - Bumps `release/VERSION` (`vYYYY.MM.DD.N`, same-day `N` increments).
-   - Scaffolds `release/notes/<version>.md` and `release/details/<version>/`.
+   - Scaffolds `release/YYYY/MM/DD/<version>/` (`notes.md`, `readme.md`, `prompts.md`, `retrospective.md`).
    - Skipped when only release-metadata files are staged, on non-`main` branches, or when `SKIP_RELEASE=1`.
 2. **Commit**: edit the new release note scope/changes if needed; hooks refresh TOC, prompts, and release details.
 3. **Push to `main`**: starts the CI/CD cycle:
@@ -103,7 +105,7 @@ Legacy manual tagging (only if automation is disabled):
 ```bash
 git tag -a vYYYY.MM.DD.N -m "Release vYYYY.MM.DD.N"
 git push origin --tags
-gh release create vYYYY.MM.DD.N --notes-file release/notes/vYYYY.MM.DD.N.md
+gh release create vYYYY.MM.DD.N --notes-file release/YYYY/MM/DD/vYYYY.MM.DD.N/notes.md
 ```
 
 ## Deploy model without GitHub to NAS access
@@ -112,7 +114,7 @@ GitHub-hosted runners usually cannot reach a LAN-only NAS. Deployment stays **pu
 
 1. Push commit to `main` → GitHub Actions notifies via **ntfy**, runs tests, publishes release.
 2. **pre-push deploy hook** (from your dev machine on the LAN) waits for CI green, then SSH-runs `deploy-on-nas.sh`.
-3. NAS updates to latest `origin/main` and applies runtime actions (Airflow DAG refresh, optional `RUN_INFRA_SYNC=1`).
+3. NAS updates to latest `origin/main` and applies runtime actions (Airflow DAG refresh; infra sync when `release/deploy-config.json` has `sync_infra: true`).
 
 Workflow: `.github/workflows/deploy-main.yml` (notify → test → release).
 
@@ -128,7 +130,10 @@ git checkout main
 git reset --hard origin/main   # discard any local edits; deploy folder mirrors remote
 # Optional poller smoke check only if Python is available:
 # RUN_POLLER_CHECK=1 bash release/scripts/deploy-on-nas.sh
+# Infra sync runs automatically when release/deploy-config.json has sync_infra: true
 ```
+
+`release/deploy-config.json` is updated on each pre-commit by `release/scripts/update-deploy-config.ps1`. Meaningful changes include compose files, `.env.example`, and deploy scripts under `infra/` (not readme-only edits). Detection uses `git diff` since the latest `v*` tag plus staged files.
 
 The deploy script always **discards local changes** in the NAS clone before updating. Treat `~/apps/data-solution-2026` as read-only at runtime; never edit application code there—commit on your dev machine and push to `main` instead.
 
@@ -272,6 +277,14 @@ git checkout <previous-tag>
       - [CI/CD workflow (main only + server pull deploy)](ci-cd.md)
       - [Event-based orchestration plan (single data object)](event-based-orchestration-plan.md)
       - [Meta data design](meta-data-design.md)
+    - Operation
+      - Incident
+        - [INC-001 — NAS non-interactive SSH environment](../operation/incident/inc-001-nas-ssh-environment.md)
+        - [INC-002 — Airflow standalone infra instability](../operation/incident/inc-002-airflow-infra-stability.md)
+        - [INC-003 — Agent rediscovery and false-done verification](../operation/incident/inc-003-agent-process-gaps.md)
+        - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](../operation/incident/inc-004-airflow-pythonpath-drift.md)
+        - [INC-<NNN> — <short title>](../operation/incident/incident-template.md)
+      - [Issue categories](../operation/issue-category.md)
     - [Implementation plan (Open-Meteo → event orchestration)](../implementation-plan.md)
   - Infra
     - Airflow
@@ -279,51 +292,36 @@ git checkout <previous-tag>
     - Kafka
     - Postgres
   - Release
-    - Details
-      - V2026.06.02.1
-      - V2026.06.02.2
-      - V2026.06.03.1
-      - V2026.06.03.2
-      - V2026.06.03.3
-      - V2026.06.03.4
-      - V2026.06.04.1
-      - V2026.06.04.2
-      - V2026.06.04.3
-      - V2026.06.04.4
-      - V2026.06.04.5
-      - V2026.06.04.6
-      - V2026.06.04.7
-      - V2026.06.04.8
-      - V2026.06.04.9
-      - V2026.06.05.1
-      - V2026.06.05.2
-      - V2026.06.05.3
-      - V2026.06.05.4
-      - V2026.06.05.5
-      - V2026.06.05.6
-    - Notes
-      - [Release v2026.06.02.1](../../release/notes/v2026.06.02.1.md)
-      - [Release v2026.06.02.2](../../release/notes/v2026.06.02.2.md)
-      - [Release v2026.06.03.1](../../release/notes/v2026.06.03.1.md)
-      - [Release v2026.06.03.2](../../release/notes/v2026.06.03.2.md)
-      - [Release v2026.06.03.3](../../release/notes/v2026.06.03.3.md)
-      - [Release v2026.06.03.4](../../release/notes/v2026.06.03.4.md)
-      - [V2026.06.04.1](../../release/notes/v2026.06.04.1.md)
-      - [V2026.06.04.2](../../release/notes/v2026.06.04.2.md)
-      - [V2026.06.04.3](../../release/notes/v2026.06.04.3.md)
-      - [V2026.06.04.4](../../release/notes/v2026.06.04.4.md)
-      - [V2026.06.04.5](../../release/notes/v2026.06.04.5.md)
-      - [V2026.06.04.6](../../release/notes/v2026.06.04.6.md)
-      - [V2026.06.04.7](../../release/notes/v2026.06.04.7.md)
-      - [V2026.06.04.8](../../release/notes/v2026.06.04.8.md)
-      - [V2026.06.04.9](../../release/notes/v2026.06.04.9.md)
-      - [V2026.06.05.1](../../release/notes/v2026.06.05.1.md)
-      - [V2026.06.05.2](../../release/notes/v2026.06.05.2.md)
-      - [V2026.06.05.3](../../release/notes/v2026.06.05.3.md)
-      - [V2026.06.05.4](../../release/notes/v2026.06.05.4.md)
-      - [V2026.06.05.5](../../release/notes/v2026.06.05.5.md)
-      - [V2026.06.05.6](../../release/notes/v2026.06.05.6.md)
+    - 2026
+      - 06
+        - 02
+          - V2026.06.02.1
+            - [Notes](../../release/2026/06/02/v2026.06.02.1/notes.md)
+          - V2026.06.02.2
+            - [Release v2026.06.02.2](../../release/2026/06/02/v2026.06.02.2/notes.md)
+        - 03
+          - V2026.06.03.1
+            - [Release v2026.06.03.1](../../release/2026/06/03/v2026.06.03.1/notes.md)
+          - V2026.06.03.2
+            - [Release v2026.06.03.2](../../release/2026/06/03/v2026.06.03.2/notes.md)
+          - V2026.06.03.3
+            - [Release v2026.06.03.3](../../release/2026/06/03/v2026.06.03.3/notes.md)
+          - V2026.06.03.4
+            - [Release v2026.06.03.4](../../release/2026/06/03/v2026.06.03.4/notes.md)
+            - [Retrospective](../../release/2026/06/03/v2026.06.03.4/retrospective.md)
+        - 04
+          - V2026.06.04.1
+            - [Notes](../../release/2026/06/04/v2026.06.04.1/notes.md)
+        - 05
+          - V2026.06.05.6
+            - [Notes](../../release/2026/06/05/v2026.06.05.6/notes.md)
+            - [Retrospective](../../release/2026/06/05/v2026.06.05.6/retrospective.md)
+        - 08
+          - V2026.06.08.1
+            - [Notes](../../release/2026/06/08/v2026.06.08.1/notes.md)
+            - [Retrospective](../../release/2026/06/08/v2026.06.08.1/retrospective.md)
     - [Release <version>](../../release/release-notes-template.md)
+    - [Retrospective — <version>](../../release/retrospective-template.md)
   - Setting
   - Template
   - [Getting started](../../getting-started.md)

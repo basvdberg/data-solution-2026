@@ -7,6 +7,8 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
+. (Join-Path $PSScriptRoot "release-paths.ps1")
+
 function Test-CommandExists {
     param([string]$Name)
     return [bool](Get-Command $Name -ErrorAction SilentlyContinue)
@@ -26,10 +28,7 @@ function Get-VersionAtCommit {
     if ([string]::IsNullOrWhiteSpace($version)) {
         return $null
     }
-    if ($version -notmatch '^v') {
-        $version = "v$version"
-    }
-    return $version
+    return (Normalize-ReleaseVersion $version)
 }
 
 function Test-TagExists {
@@ -61,7 +60,7 @@ if (-not $version) {
     exit 0
 }
 
-$notesPath = Join-Path $repoRoot "release\notes\$version.md"
+$notesPath = Get-ReleaseNotesPath -Version $version -RepoRoot $repoRoot
 if (-not (Test-Path $notesPath)) {
     Write-Host "publish-release: missing $notesPath; skipping GitHub release."
     exit 0

@@ -2,6 +2,8 @@
 
 Agent-maintained log of failures during debugging. Backfilled from lessons learned, infra readme, and session review (2026-06-03). Do not edit by hand unless correcting facts.
 
+Promote significant entries to postmortems in [`doc/operation/incident/`](../doc/operation/incident/readme.md) (INC-NNN). Per-release roll-up: [`release/retrospective/`](../release/retrospective/). See `troubleshooting-error-log` and `release-retrospective` skills.
+
 ## Session: 2026-06-03 (backfill)
 
 ### ERR-001 — docker: command not found (SSH)
@@ -158,4 +160,19 @@ Agent-maintained log of failures during debugging. Backfilled from lessons learn
 | **Description** | Agent treated single successful browser check as complete fix; no `compose down` / host reboot / browse cycle. |
 | **Solution** | Add explicit verification step to infra tasks; re-open ERR-005 if reboot test fails. |
 | **Prevention** | Infra checklist: health curl → HTTPS UI → **host reboot or full down/up** → UI + one new DAG log. Document in release notes when verified. |
+| **Count** | 1 |
+
+## Session: 2026-06-05
+
+### ERR-013 — Airflow DAG import: No module named dag_run_guard
+
+| Field | Value |
+|-------|-------|
+| **When** | 2026-06-05 |
+| **Context** | NAS Airflow, after app deploy; DAG parse in UI |
+| **Command** | Trigger / view `openmeteo_data_object_poller` DAG |
+| **Error** | `ModuleNotFoundError: No module named 'dag_run_guard'` |
+| **Description** | `dag_run_guard.py` lives under `code/airflow/` but deployed `~/apache-airflow/docker-compose.standalone.yaml` had old two-path `PYTHONPATH` (missing `/opt/data-solution/code/airflow`). App-only `git pull` deploy does not sync infra compose. |
+| **Solution** | `bash ~/apps/data-solution-2026/infra/scripts/deploy-infra-on-nas.sh` (or `RUN_INFRA_SYNC=1` on deploy script); verify `airflow dags list-import-errors` is empty. |
+| **Prevention** | After DAG changes or poller imports: run `airflow dags list-import-errors` on NAS. `release/deploy-config.json` sets `sync_infra` on pre-commit when meaningful `infra/` files change; `deploy-on-nas.sh` runs infra sync automatically. Promoted to [INC-004](../doc/operation/incident/inc-004-airflow-pythonpath-drift.md). |
 | **Count** | 1 |

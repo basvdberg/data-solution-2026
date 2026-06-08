@@ -126,6 +126,14 @@ Since the [May 19 LinkedIn post](https://github.com/basvdberg/data-engineering-2
       - [CI/CD workflow (main only + server pull deploy)](doc/design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](doc/design/event-based-orchestration-plan.md)
       - [Meta data design](doc/design/meta-data-design.md)
+    - Operation
+      - Incident
+        - [INC-001 — NAS non-interactive SSH environment](doc/operation/incident/inc-001-nas-ssh-environment.md)
+        - [INC-002 — Airflow standalone infra instability](doc/operation/incident/inc-002-airflow-infra-stability.md)
+        - [INC-003 — Agent rediscovery and false-done verification](doc/operation/incident/inc-003-agent-process-gaps.md)
+        - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](doc/operation/incident/inc-004-airflow-pythonpath-drift.md)
+        - [INC-<NNN> — <short title>](doc/operation/incident/incident-template.md)
+      - [Issue categories](doc/operation/issue-category.md)
     - [Implementation plan (Open-Meteo → event orchestration)](doc/implementation-plan.md)
   - Infra
     - Airflow
@@ -133,51 +141,36 @@ Since the [May 19 LinkedIn post](https://github.com/basvdberg/data-engineering-2
     - Kafka
     - Postgres
   - Release
-    - Details
-      - V2026.06.02.1
-      - V2026.06.02.2
-      - V2026.06.03.1
-      - V2026.06.03.2
-      - V2026.06.03.3
-      - V2026.06.03.4
-      - V2026.06.04.1
-      - V2026.06.04.2
-      - V2026.06.04.3
-      - V2026.06.04.4
-      - V2026.06.04.5
-      - V2026.06.04.6
-      - V2026.06.04.7
-      - V2026.06.04.8
-      - V2026.06.04.9
-      - V2026.06.05.1
-      - V2026.06.05.2
-      - V2026.06.05.3
-      - V2026.06.05.4
-      - V2026.06.05.5
-      - V2026.06.05.6
-    - Notes
-      - [Release v2026.06.02.1](release/notes/v2026.06.02.1.md)
-      - [Release v2026.06.02.2](release/notes/v2026.06.02.2.md)
-      - [Release v2026.06.03.1](release/notes/v2026.06.03.1.md)
-      - [Release v2026.06.03.2](release/notes/v2026.06.03.2.md)
-      - [Release v2026.06.03.3](release/notes/v2026.06.03.3.md)
-      - [Release v2026.06.03.4](release/notes/v2026.06.03.4.md)
-      - [V2026.06.04.1](release/notes/v2026.06.04.1.md)
-      - [V2026.06.04.2](release/notes/v2026.06.04.2.md)
-      - [V2026.06.04.3](release/notes/v2026.06.04.3.md)
-      - [V2026.06.04.4](release/notes/v2026.06.04.4.md)
-      - [V2026.06.04.5](release/notes/v2026.06.04.5.md)
-      - [V2026.06.04.6](release/notes/v2026.06.04.6.md)
-      - [V2026.06.04.7](release/notes/v2026.06.04.7.md)
-      - [V2026.06.04.8](release/notes/v2026.06.04.8.md)
-      - [V2026.06.04.9](release/notes/v2026.06.04.9.md)
-      - [V2026.06.05.1](release/notes/v2026.06.05.1.md)
-      - [V2026.06.05.2](release/notes/v2026.06.05.2.md)
-      - [V2026.06.05.3](release/notes/v2026.06.05.3.md)
-      - [V2026.06.05.4](release/notes/v2026.06.05.4.md)
-      - [V2026.06.05.5](release/notes/v2026.06.05.5.md)
-      - [V2026.06.05.6](release/notes/v2026.06.05.6.md)
+    - 2026
+      - 06
+        - 02
+          - V2026.06.02.1
+            - [Notes](release/2026/06/02/v2026.06.02.1/notes.md)
+          - V2026.06.02.2
+            - [Release v2026.06.02.2](release/2026/06/02/v2026.06.02.2/notes.md)
+        - 03
+          - V2026.06.03.1
+            - [Release v2026.06.03.1](release/2026/06/03/v2026.06.03.1/notes.md)
+          - V2026.06.03.2
+            - [Release v2026.06.03.2](release/2026/06/03/v2026.06.03.2/notes.md)
+          - V2026.06.03.3
+            - [Release v2026.06.03.3](release/2026/06/03/v2026.06.03.3/notes.md)
+          - V2026.06.03.4
+            - [Release v2026.06.03.4](release/2026/06/03/v2026.06.03.4/notes.md)
+            - [Retrospective](release/2026/06/03/v2026.06.03.4/retrospective.md)
+        - 04
+          - V2026.06.04.1
+            - [Notes](release/2026/06/04/v2026.06.04.1/notes.md)
+        - 05
+          - V2026.06.05.6
+            - [Notes](release/2026/06/05/v2026.06.05.6/notes.md)
+            - [Retrospective](release/2026/06/05/v2026.06.05.6/retrospective.md)
+        - 08
+          - V2026.06.08.1
+            - [Notes](release/2026/06/08/v2026.06.08.1/notes.md)
+            - [Retrospective](release/2026/06/08/v2026.06.08.1/retrospective.md)
     - [Release <version>](release/release-notes-template.md)
+    - [Retrospective — <version>](release/retrospective-template.md)
   - Setting
   - Template
   - [Getting started](getting-started.md)
