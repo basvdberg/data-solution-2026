@@ -18,6 +18,9 @@
 - [Notes](#notes)
 <!-- markdown-toc:end -->
 
+## Table of contents
+
+
 ﻿# Release v2026.06.09.13
 
 Operator-facing release notes. Published to GitHub Releases via `publish-release.ps1`. Format follows [Keep a Changelog](https://keepachangelog.com/).
@@ -208,6 +211,9 @@ Additional operational notes.
           - V2026.06.09.13
             - [Notes](notes.md)
             - [Retrospective](retrospective.md)
+          - V2026.06.09.14
+            - [Notes](../v2026.06.09.14/notes.md)
+            - [Retrospective](../v2026.06.09.14/retrospective.md)
           - V2026.06.09.2
             - [Notes](../v2026.06.09.2/notes.md)
             - [Retrospective](../v2026.06.09.2/retrospective.md)
