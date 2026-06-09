@@ -143,6 +143,9 @@ Full automated CI/CD cycle test with deploy exit-code checking in the watcher.
           - V2026.06.09.15
             - [Notes](../../09/v2026.06.09.15/notes.md)
             - [Retrospective](../../09/v2026.06.09.15/retrospective.md)
+          - V2026.06.09.16
+            - [Notes](../../09/v2026.06.09.16/notes.md)
+            - [Retrospective](../../09/v2026.06.09.16/retrospective.md)
           - V2026.06.09.2
             - [Notes](../../09/v2026.06.09.2/notes.md)
             - [Retrospective](../../09/v2026.06.09.2/retrospective.md)
