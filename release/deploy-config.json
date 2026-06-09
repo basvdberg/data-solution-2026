@@ -23,5 +23,5 @@
     "reason":  "Meaningful infra runtime file(s) changed since tag v2026.06.03.4: infra/airflow/.env.example, infra/airflow/docker-compose.standalone.yaml, infra/postgres/.env.example, infra/postgres/apply-shared-postgres-on-nas.sh, infra/postgres/create-app-user.sh, infra/postgres/migrate-database-name.sh, infra/postgres/migrate-poller-from-dedicated-postgres.sh, infra/postgres/remove-dedicated-postgres.sh, infra/postgres/run-applicable-migrations.sh, infra/scripts/deploy-infra-on-nas.sh, infra/scripts/nas-remote-env.sh",
     "version":  "v2026.06.09.5",
     "since_tag":  "v2026.06.03.4",
-    "updated_at":  "2026-06-09T11:39:49Z"
+    "updated_at":  "2026-06-09T11:40:22Z"
 }
