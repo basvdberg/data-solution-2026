@@ -6,48 +6,31 @@
 - [Linked files](#linked-files)
 <!-- markdown-toc:end -->
 
-## Table of contents
-
-
 ﻿## Table of contents
 
 
 ﻿## Table of contents
 
 
-﻿## Table of contents
-
-
-﻿## Table of contents
-
-
-﻿## Table of contents
-
-
-﻿## Table of contents
-
-
-﻿## Table of contents
-
-
-﻿# Release v2026.06.03.4 - Details
+﻿# Release v2026.06.09.2 - Details
 
 ## Release metadata
 
-
-- Development end: `2026-06-03T17:05:13+02:00`
-- Development start: `2026-06-03T11:47:34+02:00`
-- Version: `v2026.06.03.4`
+- Version: `v2026.06.09.2`
+- Development start: `2026-06-09T09:47:12+02:00`
+- Development end: `2026-06-09T09:48:05+02:00`
 - Release branch: `main`
-- Release commit: `5f31ade208538f81348ef10058792365db9fed64`
+- Release commit: `87314f7d8a8ca170cd2c493721804633a7eb207b`
 
 ## Summary
 
-Deploy success/failure ntfy notifications include release version and GitHub release notes URL.
+- Update scope and changes in `notes.md` in this folder.
 
 ## Linked files
 
 - Release note: [`notes.md`](notes.md)
+- Retrospective: [`retrospective.md`](retrospective.md)
+- Incident register: [`doc/operation/incident/`](../../../doc/operation/incident/readme.md)
 
 ## Project structure
 
@@ -110,14 +93,14 @@ Deploy success/failure ntfy notifications include release version and GitHub rel
             - [Release v2026.06.02.2](../../02/v2026.06.02.2/notes.md)
         - 03
           - V2026.06.03.1
-            - [Release v2026.06.03.1](../v2026.06.03.1/notes.md)
+            - [Release v2026.06.03.1](../../03/v2026.06.03.1/notes.md)
           - V2026.06.03.2
-            - [Release v2026.06.03.2](../v2026.06.03.2/notes.md)
+            - [Release v2026.06.03.2](../../03/v2026.06.03.2/notes.md)
           - V2026.06.03.3
-            - [Release v2026.06.03.3](../v2026.06.03.3/notes.md)
+            - [Release v2026.06.03.3](../../03/v2026.06.03.3/notes.md)
           - V2026.06.03.4
-            - [Release v2026.06.03.4](notes.md)
-            - [Retrospective](retrospective.md)
+            - [Release v2026.06.03.4](../../03/v2026.06.03.4/notes.md)
+            - [Retrospective](../../03/v2026.06.03.4/retrospective.md)
         - 04
           - V2026.06.04.1
             - [Notes](../../04/v2026.06.04.1/notes.md)
@@ -134,11 +117,11 @@ Deploy success/failure ntfy notifications include release version and GitHub rel
             - [Retrospective](../../08/v2026.06.08.2/retrospective.md)
         - 09
           - V2026.06.09.1
-            - [Notes](../../09/v2026.06.09.1/notes.md)
-            - [Retrospective](../../09/v2026.06.09.1/retrospective.md)
+            - [Notes](../v2026.06.09.1/notes.md)
+            - [Retrospective](../v2026.06.09.1/retrospective.md)
           - V2026.06.09.2
-            - [Notes](../../09/v2026.06.09.2/notes.md)
-            - [Retrospective](../../09/v2026.06.09.2/retrospective.md)
+            - [Notes](notes.md)
+            - [Retrospective](retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

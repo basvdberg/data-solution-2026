@@ -8,8 +8,14 @@
 - [Junior-programmer mistakes](#junior-programmer-mistakes)
 - [Infrastructure deployment](#infrastructure-deployment)
 - [Remote SSH troubleshooting](#remote-ssh-troubleshooting)
+- [QNAP SSH: wrong Linux path and the wrong sshd config](#qnap-ssh-wrong-linux-path-and-the-wrong-sshd-config)
+  - [The agent used the wrong remote Linux path](#the-agent-used-the-wrong-remote-linux-path)
+  - [How the agent recovered (and why that misled us)](#how-the-agent-recovered-and-why-that-misled-us)
+  - [How we found the setup was pointed at the wrong file](#how-we-found-the-setup-was-pointed-at-the-wrong-file)
+  - [Relation to the Airflow “no logs” session](#relation-to-the-airflow-no-logs-session)
 - [Agent troubleshooting efficiency](#agent-troubleshooting-efficiency)
 - [Learning new tools](#learning-new-tools)
+- [Airflow version mismatch (agent-generated logging)](#airflow-version-mismatch-agent-generated-logging)
 - [Design the platform before application code](#design-the-platform-before-application-code)
 - [CI/CD process](#cicd-process)
 - [Issue inventory and retrospectives](#issue-inventory-and-retrospectives)
@@ -62,6 +68,66 @@ That pattern suggests the agent does not treat “repeat the same workaround” 
 
 **Takeaway:** After the first `command not found` for a tool you will need again, tell the agent to persist the fix for the rest of the session — export `PATH`, source the env script, or add a small helper — and do not accept repeated `which docker` / `find` lookups.
 
+## QNAP SSH: wrong Linux path and the wrong sshd config
+
+We had already built a one-time NAS fix: [`infra/scripts/setup-nas-ssh-env.sh`](infra/scripts/setup-nas-ssh-env.sh) writes `~/.local/bin/nas-path.sh`, a `docker` symlink, and `~/.ssh/environment`; [`enable-nas-ssh-user-env.sh`](infra/scripts/enable-nas-ssh-user-env.sh) sets `PermitUserEnvironment yes` so non-interactive `ssh bas@basnas 'docker …'` should pick up that PATH without a prefix on every command. Despite that, a Cursor agent session in June 2026 still could not run `docker` from a Windows terminal — and then **codified the wrong workaround** (`bash -lc` + source `nas-path.sh` on every invocation) instead of fixing the platform once.
+
+### The agent used the wrong remote Linux path
+
+From PowerShell the agent ran bare SSH:
+
+```powershell
+ssh bas@basnas 'docker ps'
+```
+
+That lands in QNAP’s **non-interactive** session: user `bas` has login shell `/bin/sh` in `/etc/passwd`, and sshd does **not** load `~/.profile` for a one-shot remote command. The effective `PATH` was only `/usr/bin:/bin:/usr/sbin:/sbin` — Container Station’s `docker` lives under `/share/CACHEDEV*_DATA/.qpkg/container-station/bin`, so the command failed with `sh: docker: command not found`.
+
+That is the “wrong path” environment: not your laptop, but the **minimal remote shell** the agent chose by default. Interactive SSH (`ssh bas@basnas` then typing commands) would have loaded `nas-path.sh` from `~/.profile` and looked fine; automation and agents use `ssh host 'cmd'`, which is a different environment.
+
+### How the agent recovered (and why that misled us)
+
+The agent did not read [`infra/readme.md`](infra/readme.md#ssh-docker-command-not-found) or ERR-001 first. It backtracked:
+
+1. Bare `ssh … 'docker …'` → failed.
+2. `bash -lc '…'` with `source ~/.local/bin/nas-path.sh` → failed (tilde/`source` quoting from PowerShell).
+3. `bash -lc` with the **full path** `. /share/homes/bas/.local/bin/nas-path.sh && docker …` → **worked**.
+
+So the agent proved `docker` exists and PATH can be fixed — but only inside a login-style wrapper. It then ran all NAS diagnostics through that prefix and ended the session with an “SSH reminder” to always use `bash -lc` + `nas-path.sh`, which is exactly what the setup scripts were meant to eliminate.
+
+### How we found the setup was pointed at the wrong file
+
+After `setup-nas-ssh-env.sh` and `enable-nas-ssh-user-env.sh`, bare SSH still failed. The setup script printed `PermitUserEnvironment is enabled` — so it looked done. Comparing **what sshd actually runs** vs **what we patched** exposed the bug:
+
+| Check | Wrong assumption | Actual on BasNAS |
+|-------|------------------|------------------|
+| Config file | `/etc/ssh/sshd_config` has `PermitUserEnvironment yes` | Running process: `/usr/sbin/sshd -f **/etc/config/ssh/sshd_config**` |
+| Active config | Same as above | `/etc/config/ssh/sshd_config` had **no** `PermitUserEnvironment` |
+| `~/.ssh/environment` | Should apply to `ssh 'cmd'` | File correct, but ignored because active sshd config never enabled it |
+| Remote `PATH` on `ssh 'echo $PATH'` | Should include `~/.local/bin` | Still `/usr/bin:/bin:…` only |
+
+Diagnostic commands that made the mismatch obvious:
+
+```bash
+ssh bas@basnas 'echo PATH=$PATH'
+ssh bas@basnas 'grep PermitUserEnvironment /etc/ssh/sshd_config /etc/config/ssh/sshd_config'
+ssh bas@basnas 'ps w | grep sshd'
+```
+
+Restarting SSH from the QNAP Control Panel reloads the **active** config; toggling SSH off/on does **not** add `PermitUserEnvironment` to `/etc/config/ssh/sshd_config` if it was only ever appended to `/etc/ssh/sshd_config`.
+
+**Fix (admin on NAS):** log in as **admin** (not `bas`), append `PermitUserEnvironment yes` to `/etc/config/ssh/sshd_config`, then restart SSH from **Control Panel → Network & File Services → Telnet/SSH** (toggle off/on). QNAP’s user editor does not offer a custom shell field, so changing `bas`’s login shell via the GUI is not an option. Running `setsid /etc/init.d/login.sh restart` as `bas` can segfault and drop SSH. **Code fix:** change `enable-nas-ssh-user-env.sh` to patch `/etc/config/ssh/sshd_config`, not `/etc/ssh/sshd_config`. See [INC-001](doc/operation/incident/inc-001-nas-ssh-environment.md) and the planned `basnas-ssh` Cursor skill.
+
+### Relation to the Airflow “no logs” session
+
+In the same agent session, “No logs available for this task” was traced to Airflow 3 (`ti.log` removed) — not missing `docker`. The PATH confusion still mattered: the agent could not inspect containers until it found the `bash -lc` workaround, which added noise and produced a permanent-looking reminder that future agents would copy. Separate **application** failures from **SSH environment** failures; fix SSH once at the platform layer.
+
+**Takeaways:**
+
+- Bare `ssh bas@basnas 'docker …'` is the contract agents should use after one-time setup; do not accept `bash -lc` + `nas-path.sh` as the documented default.
+- On QNAP, verify the **active** sshd config (`ps` → `-f …`) before trusting “PermitUserEnvironment already enabled.”
+- When a setup script reports success but behavior is unchanged, compare file on disk vs process command line — same pattern as [app deploy vs infra deploy](#app-deploy-versus-infra-deploy) (Git had the fix; the running stack did not).
+- Point agents at [`troubleshooting-error-log`](.cursor/troubleshooting-errors.md) ERR-001 and [`infra/readme.md`](infra/readme.md) before they rediscover PATH in chat.
+
 ## Agent troubleshooting efficiency
 
 While fixing infra on the NAS, the agent’s **backtracking** (try another command, another path, another workaround until something works) often unblocked the task — but it also **repeated the same faults** in one session: rediscovering where `docker` lives, re-running `which` / `find`, or retrying an approach that had already failed. Part 1 noted that Cursor is good at backtracking until an issue is fixed; part 2 showed that “fixed once” does not mean “remembered for the rest of the session.”
@@ -86,6 +152,23 @@ Beyond generating starter code, the agent often acted as a **mentor**: it explai
 - Use the agent as an on-demand tutor for tool behavior and errors; pair that with docs when you need authoritative reference or edge-case depth.
 - For infra, decide early what must survive restarts (passwords, volumes, ports, hostnames) and document it; do not assume the first agent-generated compose file is production-ready.
 - PoC: agent-driven install and fix-on-failure is acceptable. Production: design, document, and review infra before deploy.
+
+## Airflow version mismatch (agent-generated logging)
+
+The Cursor agent generated DAG code for an **older Airflow API** while the NAS runs **Airflow 3.2.0** (`apache/airflow:3.2.0` in [`infra/airflow/docker-compose.standalone.yaml`](infra/airflow/docker-compose.standalone.yaml)). Using the latest Airflow patterns in generated code, or **aligning with the version installed on the local server**, is not done by default — the agent optimises for patterns it has seen in training (often Airflow 2.x examples) unless you pin the version in the prompt, rules, or compose.
+
+The symptom looked like infra slowness or missing logs: after triggering the poller DAG, the schedule grid showed **no status** for a long time and the task log view showed only **“No logs available for this task.”** The UI felt unresponsive when starting a task. In reality the task **did** start, failed on the first line, and retried every five minutes — because the wrong logger API was invoked.
+
+The broken pattern was `get_current_context()["ti"].log` in [`code/airflow/dags/openmeteo_data_object_poller.py`](code/airflow/dags/openmeteo_data_object_poller.py). In Airflow 3, task execution exposes `RuntimeTaskInstance` in context; it has **no `.log` attribute** (unlike Airflow 2’s `TaskInstance`). The callable raised `AttributeError: 'RuntimeTaskInstance' object has no attribute 'log'` before any user-facing log line. Log files on disk contained only JSON error metadata, which the UI did not surface as normal task output.
+
+**Fix:** remove `ti.log` and other DAG-side logging helpers; call the poller CLI from a plain `PythonOperator` and let Airflow 3's default task logging capture CLI output (`configure_logging()` skips replacing handlers when `AIRFLOW_CTX_DAG_ID` is set).
+
+**Takeaways:**
+
+- State the **installed Airflow major version** (from compose image tag or `docker exec airflow-standalone airflow version`) in agent prompts and Cursor rules when editing DAGs.
+- Do not assume `ti.log`, `ti.queue`, or other TaskInstance-only APIs work in Airflow 3 without checking the [task logging docs](https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/logging-tasks.html).
+- When the UI shows “No logs available” for minutes, read the attempt log on disk (`docker exec airflow-standalone cat …/attempt=1.log`) before chasing scheduler delay or pip install time.
+- A stuck DAG run in `running` after repeated crashes can block new triggers when `max_active_runs=1`; clear or fail it before re-testing.
 
 ## Design the platform before application code
 
@@ -265,6 +348,13 @@ See [Issue inventory and retrospectives](#issue-inventory-and-retrospectives) fo
           - V2026.06.08.2
             - [Notes](release/2026/06/08/v2026.06.08.2/notes.md)
             - [Retrospective](release/2026/06/08/v2026.06.08.2/retrospective.md)
+        - 09
+          - V2026.06.09.1
+            - [Notes](release/2026/06/09/v2026.06.09.1/notes.md)
+            - [Retrospective](release/2026/06/09/v2026.06.09.1/retrospective.md)
+          - V2026.06.09.2
+            - [Notes](release/2026/06/09/v2026.06.09.2/notes.md)
+            - [Retrospective](release/2026/06/09/v2026.06.09.2/retrospective.md)
     - [Release <version>](release/release-notes-template.md)
     - [Retrospective — <version>](release/retrospective-template.md)
   - Setting

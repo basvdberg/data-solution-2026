@@ -6,6 +6,12 @@
 - [Linked files](#linked-files)
 <!-- markdown-toc:end -->
 
+## Table of contents
+
+
+﻿## Table of contents
+
+
 ﻿## Table of contents
 
 
@@ -30,9 +36,9 @@
 
 - Version: `v2026.06.08.2`
 - Development start: `2026-06-08T22:01:50+02:00`
-- Development end: `2026-06-08T22:04:32+02:00`
+- Development end: `2026-06-08T22:05:09+02:00`
 - Release branch: `main`
-- Release commit: `d17655c017b2e9215bd3d0f0fb1c0aec62eeeb6c`
+- Release commit: `9bbf7f19a491a7824bb7b2c23c3a22019439eff3`
 
 ## Summary
 
@@ -127,6 +133,13 @@
           - V2026.06.08.2
             - [Notes](notes.md)
             - [Retrospective](retrospective.md)
+        - 09
+          - V2026.06.09.1
+            - [Notes](../../09/v2026.06.09.1/notes.md)
+            - [Retrospective](../../09/v2026.06.09.1/retrospective.md)
+          - V2026.06.09.2
+            - [Notes](../../09/v2026.06.09.2/notes.md)
+            - [Retrospective](../../09/v2026.06.09.2/retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

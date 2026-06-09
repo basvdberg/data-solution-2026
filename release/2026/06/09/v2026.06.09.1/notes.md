@@ -1,53 +1,112 @@
 ## Table of contents
 
 <!-- markdown-toc:start -->
-- [Release metadata](#release-metadata)
-- [Summary](#summary)
-- [Linked files](#linked-files)
+- [Metadata](#metadata)
+- [Scope](#scope)
+- [Changes](#changes)
+  - [Added](#added)
+  - [Changed](#changed)
+  - [Deprecated](#deprecated)
+  - [Removed](#removed)
+  - [Fixed](#fixed)
+  - [Security](#security)
+- [Poller and Airflow impact](#poller-and-airflow-impact)
+- [Deployment](#deployment)
+- [Validation](#validation)
+- [Rollback](#rollback)
+- [Related artifacts](#related-artifacts)
+- [Notes](#notes)
 <!-- markdown-toc:end -->
 
 ## Table of contents
 
 
-﻿## Table of contents
+﻿# Release v2026.06.09.1
 
+Operator-facing release notes. Published to GitHub Releases via `publish-release.ps1`. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-﻿## Table of contents
+## Metadata
 
+- Version: `v2026.06.09.1`
+- Date: `2026-06-09`
+- Branch: `main`
+- Commit: `<fill-after-commit>`
 
-﻿## Table of contents
+## Scope
 
+Brief description of what is included in this release.
 
-﻿## Table of contents
+## Changes
 
+### Added
 
-﻿## Table of contents
+-
 
+### Changed
 
-﻿## Table of contents
+-
 
+### Deprecated
 
-﻿## Table of contents
+-
 
+### Removed
 
-﻿# Release v2026.06.03.4 - Details
+-
 
-## Release metadata
+### Fixed
 
+-
 
-- Development end: `2026-06-03T17:05:13+02:00`
-- Development start: `2026-06-03T11:47:34+02:00`
-- Version: `v2026.06.03.4`
-- Release branch: `main`
-- Release commit: `5f31ade208538f81348ef10058792365db9fed64`
+### Security
 
-## Summary
+-
 
-Deploy success/failure ntfy notifications include release version and GitHub release notes URL.
+## Poller and Airflow impact
 
-## Linked files
+- Poller mapping:
+- Airflow DAG (`code/airflow/dags/`):
+- Runtime variables changed:
 
-- Release note: [`notes.md`](notes.md)
+## Deployment
+
+- Trigger: push to `main` → CI → NAS pull deploy
+- Infra sync: automatic when `release/deploy-config.json` has `sync_infra: true` (set by pre-commit when compose/env under `infra/` changes)
+- NAS actions after deploy:
+  - [ ] Dependencies updated
+  - [ ] Services restarted
+  - [ ] Airflow DAGs parse and appear in UI
+
+## Validation
+
+- [ ] Unit tests passed (CI)
+- [ ] Integration checks passed
+- [ ] Airflow `dags list-import-errors` empty on NAS (`docker exec airflow-standalone airflow dags list-import-errors`)
+- [ ] Airflow poller manual run passed
+- [ ] Kafka publish verified (or stdout in smoke mode)
+- [ ] Postgres state persistence verified
+- [ ] Infra change only: host reboot or full down/up cycle verified (if `infra/` changed)
+
+## Rollback
+
+- Previous stable tag: `v2026.06.08.1`
+
+```bash
+cd ~/apps/data-solution-2026
+git fetch --all --tags
+git checkout v2026.06.08.1
+docker compose up -d
+```
+
+## Related artifacts
+
+- Release details (internal): [`readme.md`](readme.md) *(same folder as this file after scaffold)*
+- Retrospective: [`retrospective.md`](retrospective.md)
+- Incidents: *(link INC-NNN from [incident register](../../doc/operation/incident/readme.md) if any)*
+
+## Notes
+
+Additional operational notes.
 
 ## Project structure
 
@@ -110,14 +169,14 @@ Deploy success/failure ntfy notifications include release version and GitHub rel
             - [Release v2026.06.02.2](../../02/v2026.06.02.2/notes.md)
         - 03
           - V2026.06.03.1
-            - [Release v2026.06.03.1](../v2026.06.03.1/notes.md)
+            - [Release v2026.06.03.1](../../03/v2026.06.03.1/notes.md)
           - V2026.06.03.2
-            - [Release v2026.06.03.2](../v2026.06.03.2/notes.md)
+            - [Release v2026.06.03.2](../../03/v2026.06.03.2/notes.md)
           - V2026.06.03.3
-            - [Release v2026.06.03.3](../v2026.06.03.3/notes.md)
+            - [Release v2026.06.03.3](../../03/v2026.06.03.3/notes.md)
           - V2026.06.03.4
-            - [Release v2026.06.03.4](notes.md)
-            - [Retrospective](retrospective.md)
+            - [Release v2026.06.03.4](../../03/v2026.06.03.4/notes.md)
+            - [Retrospective](../../03/v2026.06.03.4/retrospective.md)
         - 04
           - V2026.06.04.1
             - [Notes](../../04/v2026.06.04.1/notes.md)
@@ -134,11 +193,11 @@ Deploy success/failure ntfy notifications include release version and GitHub rel
             - [Retrospective](../../08/v2026.06.08.2/retrospective.md)
         - 09
           - V2026.06.09.1
-            - [Notes](../../09/v2026.06.09.1/notes.md)
-            - [Retrospective](../../09/v2026.06.09.1/retrospective.md)
+            - [Notes](notes.md)
+            - [Retrospective](retrospective.md)
           - V2026.06.09.2
-            - [Notes](../../09/v2026.06.09.2/notes.md)
-            - [Retrospective](../../09/v2026.06.09.2/retrospective.md)
+            - [Notes](../v2026.06.09.2/notes.md)
+            - [Retrospective](../v2026.06.09.2/retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting
