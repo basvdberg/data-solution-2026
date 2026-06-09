@@ -6,7 +6,7 @@
 - [Linked files](#linked-files)
 <!-- markdown-toc:end -->
 
-## Table of contents
+﻿## Table of contents
 
 
 ﻿## Table of contents
@@ -18,9 +18,9 @@
 
 - Version: `v2026.06.09.11`
 - Development start: `2026-06-09T15:27:36+02:00`
-- Development end: `2026-06-09T15:28:03+02:00`
+- Development end: `2026-06-09T15:29:29+02:00`
 - Release branch: `main`
-- Release commit: `8e51e63beafb629c2e3743de92b0343d0993d90a`
+- Release commit: `a45200088653566ac9250d0d100a2fe08a151644`
 
 ## Summary
 
