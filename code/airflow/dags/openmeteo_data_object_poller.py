@@ -10,21 +10,24 @@ from airflow.sdk import DAG, Variable
 
 DAG_ID = "openmeteo_data_object_poller"
 DEFAULT_DATA_OBJECT_ID = "source/openmeteo/daily-temperature"
-DEFAULT_PUBLISH = "none"
+DEFAULT_PUBLISH = "kafka"
+
+
+def _poller_cli_argv() -> list[str]:
+    """Build poller CLI args; Kafka publish and ``KAFKA_HOST`` env are the production default."""
+    return [
+        "--data-object",
+        Variable.get("data_object_id", default=DEFAULT_DATA_OBJECT_ID),
+        "--publish",
+        DEFAULT_PUBLISH,
+    ]
 
 
 def run_openmeteo_poller() -> None:
     """Delegate to the poller CLI ``main()`` (same args as manual ``python -m``)."""
     from extractor_and_poller.poller.__main__ import main
 
-    exit_code = main(
-        [
-            "--data-object",
-            Variable.get("poller_data_object_id", default=DEFAULT_DATA_OBJECT_ID),
-            "--publish",
-            Variable.get("poller_publish", default=DEFAULT_PUBLISH),
-        ]
-    )
+    exit_code = main(_poller_cli_argv())
 
     if exit_code == 2:
         raise AirflowException("poller exited with code 2 (configuration or validation error)")
@@ -49,7 +52,7 @@ with DAG(
     dag_id=DAG_ID,
     description=(
         "Probe Open-Meteo daily-temperature source marker; persist state in Postgres and "
-        "optionally publish events. Manual triggers while a run is active are queued "
+        "publish events to Kafka. Manual triggers while a run is active are queued "
         "(max_active_runs=1); task logs appear when the run starts."
     ),
     default_args=default_args,

@@ -100,7 +100,7 @@ def poll_mapping(
 ) -> PollResult:
     current = probe_current_value(mapping, config)
     changed = previous_marker != current
-    event_type = "data_object_change" if changed else "data_object_unchanged"
+    event_type = "data_object_change" if changed else "data_object_progress"
     source_id = mapping.primary_source_data_object_id()
     target_id = mapping.target_data_object_id() or mapping.id
     log.info(

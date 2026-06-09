@@ -200,24 +200,14 @@ ntfy sub data-solution-2026-deploy
 
 ## Poller rollout merged into CI/CD
 
-Use this sequence after NAS pull deploy is active:
+After NAS pull deploy:
 
-1. Confirm runtime root is `data-solution-2026/` on NAS.
-2. Configure Airflow variables for poller mode:
-   - `poller_mapping_id=daily-temperature`
-   - `poller_data_object_id=source/openmeteo/daily-temperature`
-   - `poller_publish=stdout` for first smoke run, then `kafka`
-3. Deploy DAG `openmeteo_data_object_poller` from `code/airflow/dags/` (paused on creation):
-   - `catchup=false`
-   - `max_active_runs=1`
-   - retries/timeouts configured
-4. Run command in DAG task:
-   - `python -m extractor_and_poller.poller --data-object source/openmeteo/daily-temperature --publish kafka`
-5. Trigger manual run and verify logs:
-   - marker compare result (`data_object_change` or `data_object_unchanged`)
-   - state persisted
-   - publish status
-6. Unpause schedule only after successful smoke validation.
+1. Infra sync runs when `release/deploy-config.json` has `sync_infra: true` (or `RUN_INFRA_SYNC=1`). That applies Kafka + Airflow compose, sets `KAFKA_HOST` in `~/apache-airflow/.env`, and removes obsolete Airflow Variables.
+2. DAG `openmeteo_data_object_poller` is bind-mounted from `code/airflow/dags/` (paused on creation; `catchup=false`, `max_active_runs=1`).
+3. The DAG task always runs the poller with `--publish kafka`; broker address from `KAFKA_HOST`.
+4. Optional: Airflow Variable `data_object_id` to override the default probe target.
+5. Trigger one manual DAG run; verify Postgres row, `event_published transport=kafka` in logs, and a message in Kafka UI.
+6. Unpause the schedule after smoke validation.
 
 ## Rollback
 
@@ -277,6 +267,7 @@ git checkout <previous-tag>
       - [Architecture](architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](ci-cd.md)
       - [Event-based orchestration plan (single data object)](event-based-orchestration-plan.md)
+      - [Kafka topic naming](kafka-topic-naming.md)
       - [Meta data design](meta-data-design.md)
     - Operation
       - Incident
@@ -340,6 +331,9 @@ git checkout <previous-tag>
           - V2026.06.09.5
             - [Notes](../../release/2026/06/09/v2026.06.09.5/notes.md)
             - [Retrospective](../../release/2026/06/09/v2026.06.09.5/retrospective.md)
+          - V2026.06.09.6
+            - [Notes](../../release/2026/06/09/v2026.06.09.6/notes.md)
+            - [Retrospective](../../release/2026/06/09/v2026.06.09.6/retrospective.md)
     - [Release <version>](../../release/release-notes-template.md)
     - [Retrospective — <version>](../../release/retrospective-template.md)
   - Setting

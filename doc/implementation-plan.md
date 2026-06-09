@@ -14,7 +14,7 @@
     - [4 — Kafka stack (needed before Step 2; optional for Step 1)](#4-kafka-stack-needed-before-step-2-optional-for-step-1)
     - [5 — Airflow standalone stack](#5-airflow-standalone-stack)
     - [6 — Sync compose files and restart stacks](#6-sync-compose-files-and-restart-stacks)
-    - [7 — Airflow Variables (before first poller DAG run)](#7-airflow-variables-before-first-poller-dag-run)
+    - [7 — Poller runtime config (automated)](#7-poller-runtime-config-automated)
     - [8 — Service readiness checklist](#8-service-readiness-checklist)
   - [Application and smoke checks](#application-and-smoke-checks)
 - [Implementation steps](#implementation-steps)
@@ -161,7 +161,7 @@ curl -s http://127.0.0.1:8081/api/v2/monitor/health
 
 - [ ] **Verify network**: Airflow container joins external network `immich_default` so tasks reach `basnas_postgress:5432`.
 
-- [ ] **Optional (Step 2+)**: Uncomment the `kafka` external network in [docker-compose.standalone.yaml](../infra/airflow/docker-compose.standalone.yaml) and set `KAFKA_HOST=kafka:9092` when enabling Kafka publish.
+- [ ] **Step 2+**: Airflow compose joins external network `kafka_default` and sets `KAFKA_HOST=kafka:9092` when enabling Kafka publish (see [docker-compose.standalone.yaml](../infra/airflow/docker-compose.standalone.yaml)).
 
 #### 6 — Sync compose files and restart stacks
 
@@ -173,16 +173,17 @@ RUN_INFRA_SYNC=1 bash ~/apps/data-solution-2026/release/scripts/deploy-on-nas.sh
 
 That runs `infra/scripts/deploy-infra-on-nas.sh`: copies compose to `~/apache-airflow` and `~/kafka`, syncs Postgres setup scripts to `~/data-solution-postgres`, preserves `.env`, sets `DATA_SOLUTION_ROOT` when missing, ensures `data/staging/...` dirs exist, and runs `docker compose up -d` for Kafka and Airflow. Options: `RUN_COMPOSE=0` (sync only), `DRY_RUN=1` (print actions). See [infra/readme.md](../infra/readme.md).
 
-#### 7 — Airflow Variables (before first poller DAG run)
+#### 7 — Poller runtime config (automated)
 
-Set in the UI (**Admin → Variables**) or export the same names in `~/apache-airflow/.env` for the scheduler/worker environment:
+`deploy-infra-on-nas.sh` appends missing keys to `~/apache-airflow/.env` from [`.env.example`](../infra/airflow/.env.example), including `KAFKA_HOST=kafka:9092`. The poller DAG always uses `--publish kafka`; no transport toggle variable.
 
-| Variable / env | Initial value | Purpose |
-|----------------|---------------|---------|
-| `poller_data_object_id` | `source/openmeteo/daily-temperature` | Poller `--data-object` |
-| `poller_publish` | `none` | Ramp: `none` → `stdout` → `kafka` (Step 2) |
+| Setting | Source | Default |
+|---------|--------|---------|
+| Kafka bootstrap | `KAFKA_HOST` in `~/apache-airflow/.env` | `kafka:9092` |
+| Postgres DSN pieces | `POSTGRES_HOST`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `DATA_SOLUTION_DB` in `.env` | see `.env.example` |
+| Data object id | DAG code default; optional Airflow Variable `data_object_id` | `source/openmeteo/daily-temperature` |
 
-Postgres connection for the poller uses `POSTGRES_HOST`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `DATA_SOLUTION_DB` from step 5 (not Airflow Variables).
+Obsolete variables (`publish_transport`, `poller_publish`, `kafka_host`) are removed on infra deploy.
 
 #### 8 — Service readiness checklist
 
@@ -204,7 +205,7 @@ python -m extractor_and_poller.poller --list
 python -m extractor_and_poller.poller --data-object source/openmeteo/daily-temperature --publish stdout
 ```
 
-Expected: log line with `data_object_change` or `data_object_unchanged` and a JSON envelope on stdout. On NAS, the equivalent check is a manual DAG trigger in Step 1.5.
+Expected: log line with `data_object_change` or `data_object_progress` and a JSON envelope on stdout. On NAS, the equivalent check is a manual DAG trigger in Step 1.5.
 
 - [ ] **Optional — poller smoke on NAS** after Postgres is up:
 
@@ -271,17 +272,14 @@ Confirm the DAG appears in the UI (`${LOCAL_SERVER_URL_AIRFLOW}` or host port `8
 
 #### 1.3 Configure Airflow for the poller task
 
-Set **Airflow Variables** (Admin → Variables) or export env vars in compose for the task:
+Infra deploy sets `~/apache-airflow/.env` (Postgres + `KAFKA_HOST`) and restarts stacks. Airflow joins `kafka_default` via [docker-compose.standalone.yaml](../infra/airflow/docker-compose.standalone.yaml).
 
-| Variable / env | Example | Purpose |
-|----------------|---------|---------|
-| `poller_data_object_id` | `source/openmeteo/daily-temperature` | Selects mapping via source id |
-| `poller_publish` | `none` → `stdout` → `kafka` | Event transport (ramp gradually) |
-| `POSTGRES_HOST` | `basnas_postgress:5432` on Docker network | Poller metadata (`poller` table) |
+| Setting | Example | Purpose |
+|---------|---------|---------|
+| `KAFKA_HOST` | `kafka:9092` | Kafka bootstrap (poller publishes every run) |
+| `POSTGRES_HOST` | `basnas_postgress:5432` | Poller metadata (`poller` table) |
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `DATA_SOLUTION_DB` | `data-solution-2026` on NAS | DSN pieces for poller |
-| `KAFKA_HOST` | `kafka:9092` on shared Docker network | When `poller_publish=kafka` |
-
-Optional: uncomment the `kafka` external network in [docker-compose.standalone.yaml](../infra/airflow/docker-compose.standalone.yaml) so the Airflow container can reach the broker.
+| `data_object_id` (optional Variable) | `source/openmeteo/daily-temperature` | Override probed data object |
 
 `psycopg[binary]` is included in default `_PIP_ADDITIONAL_REQUIREMENTS`.
 
@@ -289,7 +287,7 @@ Optional: uncomment the `kafka` external network in [docker-compose.standalone.y
 
 1. Run `bash infra/postgres/create-app-user.sh` on `basnas_postgress` (shared Postgres on host port `5432`).
 2. Run one manual poller execution; the poller creates table `poller` if missing (see [code/postgres/schema.sql](../code/postgres/schema.sql)).
-3. Re-run the poller; confirm second run emits `data_object_unchanged` when the Open-Meteo marker did not advance.
+3. Re-run the poller; confirm second run emits `data_object_progress` when the Open-Meteo marker did not advance.
 
 #### 1.5 Manual DAG run and acceptance
 
@@ -297,10 +295,10 @@ Optional: uncomment the `kafka` external network in [docker-compose.standalone.y
 2. Trigger **DAG → Trigger DAG** once.
 3. Open task logs and verify:
    - [ ] Probe reached Open-Meteo API (no import / network errors).
-   - [ ] Log shows `data_object_change` or `data_object_unchanged` with `new=` / `old=` markers.
+   - [ ] Log shows `data_object_change` or `data_object_progress` with `new=` / `old=` markers.
    - [ ] State persisted (`Persisted poller rows to Postgres table poller`).
-4. Trigger again without source change; expect `data_object_unchanged` only.
-5. When stable, set `poller_publish=stdout` and confirm JSON envelope in logs.
+4. Trigger again without source change; expect `data_object_progress` only.
+5. Confirm Kafka publish in task logs (`event_published transport=kafka`) and a topic in Kafka UI.
 6. **Unpause** the DAG only after the checks above pass.
 
 **Step 1 done when:** scheduled or manual Airflow runs execute the poller reliably and baseline state survives restarts (Postgres backend).
@@ -309,21 +307,15 @@ Optional: uncomment the `kafka` external network in [docker-compose.standalone.y
 
 ### Step 2 — Publish poll events to Kafka
 
-**Objective:** Each poll run publishes `data_object_change` or `data_object_unchanged` to Kafka with the envelope defined in the orchestration plan.
+**Objective:** Each poll run publishes to Kafka (topics per [Kafka topic naming](design/kafka-topic-naming.md); auto-created when the broker allows).
 
-1. Confirm Kafka stack is up ([infra/kafka](../infra/kafka/)).
-2. Create topics (if not auto-created): `data_object_change`, `data_object_unchanged`.
-3. Connect Airflow to the `kafka_default` network (compose change in Step 1.3).
-4. Set `poller_publish=kafka` and `KAFKA_HOST` (e.g. `kafka:9092`).
-5. Update the DAG command to:
+Automated by infra deploy: Kafka stack up, Airflow on `kafka_default`, `KAFKA_HOST` in `.env`, DAG uses `--publish kafka`.
 
-```bash
-python -m extractor_and_poller.poller \
-  --data-object source/openmeteo/daily-temperature \
-  --publish kafka
-```
+**Validate after deploy:**
 
-6. Trigger the poller DAG; consume one message in Kafka UI and validate fields: `event_id`, `event_type`, `data_object_id`, `current_marker`, `previous_marker`, `run_id`.
+1. Trigger the poller DAG once.
+2. Task logs show `event_published transport=kafka`.
+3. Kafka UI lists the poll topic(s) with at least one message (key `data_object_id`).
 
 **Done when:** every poller run produces exactly one message on the correct topic with key `data_object_id`.
 
@@ -331,7 +323,7 @@ python -m extractor_and_poller.poller \
 
 ### Step 3 — React to change events (event controller)
 
-**Objective:** A small consumer service reads `data_object_change` and triggers downstream work (initially log-only, then Airflow API).
+**Objective:** A small consumer service reads `ds.poll.data_object_change` and triggers downstream work (initially log-only, then Airflow API).
 
 Follow [Phase 4 — Event controller](design/event-based-orchestration-plan.md#phase-4---event-controller):
 
@@ -359,7 +351,7 @@ python -m extractor_and_poller.openmeteo.extractor --mapping daily-temperature
 3. Write `extract_run_audit` rows (Postgres) with `event_id`, marker, output path, row count, status.
 4. Enforce idempotency: skip if `event_id` already processed.
 
-**Done when:** one `data_object_change` event → one extract run → file under `data/staging/openmeteo/daily-temperature/`.
+**Done when:** one `ds.poll.data_object_change` event → one extract run → file under `data/staging/openmeteo/daily-temperature/`.
 
 ---
 
@@ -438,6 +430,7 @@ For schema-level acceptance criteria, use [Definition of done](design/event-base
       - [Architecture](design/architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](design/event-based-orchestration-plan.md)
+      - [Kafka topic naming](design/kafka-topic-naming.md)
       - [Meta data design](design/meta-data-design.md)
     - Operation
       - Incident
@@ -501,6 +494,9 @@ For schema-level acceptance criteria, use [Definition of done](design/event-base
           - V2026.06.09.5
             - [Notes](../release/2026/06/09/v2026.06.09.5/notes.md)
             - [Retrospective](../release/2026/06/09/v2026.06.09.5/retrospective.md)
+          - V2026.06.09.6
+            - [Notes](../release/2026/06/09/v2026.06.09.6/notes.md)
+            - [Retrospective](../release/2026/06/09/v2026.06.09.6/retrospective.md)
     - [Release <version>](../release/release-notes-template.md)
     - [Retrospective — <version>](../release/retrospective-template.md)
   - Setting

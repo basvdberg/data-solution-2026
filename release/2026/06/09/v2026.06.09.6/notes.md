@@ -1,36 +1,109 @@
 ## Table of contents
 
 <!-- markdown-toc:start -->
-- [Release metadata](#release-metadata)
-- [Summary](#summary)
-- [Linked files](#linked-files)
+- [Metadata](#metadata)
+- [Scope](#scope)
+- [Changes](#changes)
+  - [Added](#added)
+  - [Changed](#changed)
+  - [Deprecated](#deprecated)
+  - [Removed](#removed)
+  - [Fixed](#fixed)
+  - [Security](#security)
+- [Poller and Airflow impact](#poller-and-airflow-impact)
+- [Deployment](#deployment)
+- [Validation](#validation)
+- [Rollback](#rollback)
+- [Related artifacts](#related-artifacts)
+- [Notes](#notes)
 <!-- markdown-toc:end -->
 
-## Table of contents
+﻿# Release v2026.06.09.6
 
+Operator-facing release notes. Published to GitHub Releases via `publish-release.ps1`. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-﻿## Table of contents
+## Metadata
 
+- Version: `v2026.06.09.6`
+- Date: `2026-06-09`
+- Branch: `main`
+- Commit: `<fill-after-commit>`
 
-﻿# Release v2026.06.09.3 - Details
+## Scope
 
-## Release metadata
+Brief description of what is included in this release.
 
-- Version: `v2026.06.09.3`
-- Development start: `2026-06-09T13:37:41+02:00`
-- Development end: `2026-06-09T13:38:02+02:00`
-- Release branch: `main`
-- Release commit: `3390b7eda2f91bff9f4c744b2466e7963a6d310a`
+## Changes
 
-## Summary
+### Added
 
-- Update scope and changes in `notes.md` in this folder.
+-
 
-## Linked files
+### Changed
 
-- Release note: [`notes.md`](notes.md)
+-
+
+### Deprecated
+
+-
+
+### Removed
+
+-
+
+### Fixed
+
+-
+
+### Security
+
+-
+
+## Poller and Airflow impact
+
+- Poller mapping:
+- Airflow DAG (`code/airflow/dags/`):
+- Runtime variables changed:
+
+## Deployment
+
+- Trigger: push to `main` → CI → NAS pull deploy
+- Infra sync: automatic when `release/deploy-config.json` has `sync_infra: true` (set by pre-commit when compose/env under `infra/` changes)
+- NAS actions after deploy:
+  - [ ] Dependencies updated
+  - [ ] Services restarted
+  - [ ] Airflow DAGs parse and appear in UI
+
+## Validation
+
+- [ ] Unit tests passed (CI)
+- [ ] Integration checks passed
+- [ ] Airflow `dags list-import-errors` empty on NAS (`docker exec airflow-standalone airflow dags list-import-errors`)
+- [ ] Airflow poller manual run passed
+- [ ] Kafka publish verified (or stdout in smoke mode)
+- [ ] Postgres state persistence verified
+- [ ] Infra change only: host reboot or full down/up cycle verified (if `infra/` changed)
+
+## Rollback
+
+- Previous stable tag: `v2026.06.09.4`
+
+```bash
+cd ~/apps/data-solution-2026
+git fetch --all --tags
+git checkout v2026.06.09.4
+docker compose up -d
+```
+
+## Related artifacts
+
+- Release details (internal): [`readme.md`](readme.md) *(same folder as this file after scaffold)*
 - Retrospective: [`retrospective.md`](retrospective.md)
-- Incident register: [`doc/operation/incident/`](../../../doc/operation/incident/readme.md)
+- Incidents: *(link INC-NNN from [incident register](../../doc/operation/incident/readme.md) if any)*
+
+## Notes
+
+Additional operational notes.
 
 ## Project structure
 
@@ -125,8 +198,8 @@
             - [Notes](../v2026.06.09.2/notes.md)
             - [Retrospective](../v2026.06.09.2/retrospective.md)
           - V2026.06.09.3
-            - [Notes](notes.md)
-            - [Retrospective](retrospective.md)
+            - [Notes](../v2026.06.09.3/notes.md)
+            - [Retrospective](../v2026.06.09.3/retrospective.md)
           - V2026.06.09.4
             - [Notes](../v2026.06.09.4/notes.md)
             - [Retrospective](../v2026.06.09.4/retrospective.md)
@@ -134,8 +207,8 @@
             - [Notes](../v2026.06.09.5/notes.md)
             - [Retrospective](../v2026.06.09.5/retrospective.md)
           - V2026.06.09.6
-            - [Notes](../v2026.06.09.6/notes.md)
-            - [Retrospective](../v2026.06.09.6/retrospective.md)
+            - [Notes](notes.md)
+            - [Retrospective](retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

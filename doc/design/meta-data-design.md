@@ -185,6 +185,7 @@ The path IDs in the repo remain the stable names humans use in reviews and logs.
       - [Architecture](architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](ci-cd.md)
       - [Event-based orchestration plan (single data object)](event-based-orchestration-plan.md)
+      - [Kafka topic naming](kafka-topic-naming.md)
       - [Meta data design](meta-data-design.md)
     - Operation
       - Incident
@@ -248,6 +249,9 @@ The path IDs in the repo remain the stable names humans use in reviews and logs.
           - V2026.06.09.5
             - [Notes](../../release/2026/06/09/v2026.06.09.5/notes.md)
             - [Retrospective](../../release/2026/06/09/v2026.06.09.5/retrospective.md)
+          - V2026.06.09.6
+            - [Notes](../../release/2026/06/09/v2026.06.09.6/notes.md)
+            - [Retrospective](../../release/2026/06/09/v2026.06.09.6/retrospective.md)
     - [Release <version>](../../release/release-notes-template.md)
     - [Retrospective — <version>](../../release/retrospective-template.md)
   - Setting

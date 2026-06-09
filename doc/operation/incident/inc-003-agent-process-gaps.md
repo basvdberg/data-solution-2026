@@ -116,6 +116,7 @@ Process rules existed only implicitly in chat, not in agent skills or release va
       - [Architecture](../../design/architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](../../design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](../../design/event-based-orchestration-plan.md)
+      - [Kafka topic naming](../../design/kafka-topic-naming.md)
       - [Meta data design](../../design/meta-data-design.md)
     - Operation
       - Incident
@@ -179,6 +180,9 @@ Process rules existed only implicitly in chat, not in agent skills or release va
           - V2026.06.09.5
             - [Notes](../../../release/2026/06/09/v2026.06.09.5/notes.md)
             - [Retrospective](../../../release/2026/06/09/v2026.06.09.5/retrospective.md)
+          - V2026.06.09.6
+            - [Notes](../../../release/2026/06/09/v2026.06.09.6/notes.md)
+            - [Retrospective](../../../release/2026/06/09/v2026.06.09.6/retrospective.md)
     - [Release <version>](../../../release/release-notes-template.md)
     - [Retrospective — <version>](../../../release/retrospective-template.md)
   - Setting

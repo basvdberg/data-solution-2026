@@ -78,7 +78,7 @@ class TestOpenMeteoPoller(unittest.TestCase):
         )
 
         self.assertFalse(result.changed)
-        self.assertEqual(result.event_type, "data_object_unchanged")
+        self.assertEqual(result.event_type, "data_object_progress")
 
     @patch("extractor_and_poller.poller.state.PostgresStateStore._connect")
     def test_poller_table_append_and_last_marker(self, mock_connect) -> None:

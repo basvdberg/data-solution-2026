@@ -74,7 +74,7 @@ ensure_airflow_env() {
       printf '\nAIRFLOW_ADMIN_PASSWORD=changeme\n' >>"$env_file"
     fi
   fi
-  for key in POSTGRES_HOST POSTGRES_DOCKER_NETWORK DATA_SOLUTION_DB; do
+  for key in POSTGRES_HOST POSTGRES_DOCKER_NETWORK DATA_SOLUTION_DB KAFKA_HOST; do
     if ! grep -q "^${key}=" "$env_file" 2>/dev/null; then
       value="$(grep -E "^${key}=" "${INFRA}/airflow/.env.example" | tail -1 | cut -d= -f2- || true)"
       if [ -n "$value" ]; then
@@ -83,6 +83,23 @@ ensure_airflow_env() {
           printf '%s=%s\n' "$key" "$value" >>"$env_file"
         fi
       fi
+    fi
+  done
+}
+
+prune_obsolete_airflow_variables() {
+  if [ "$DRY_RUN" = "1" ]; then
+    echo "[dry-run] would delete obsolete Airflow Variables: publish_transport poller_publish kafka_host"
+    return
+  fi
+  if ! docker ps --format '{{.Names}}' 2>/dev/null | grep -qx 'airflow-standalone'; then
+    echo "WARN: airflow-standalone not running; skipping Airflow Variable cleanup" >&2
+    return
+  fi
+  for obsolete in publish_transport poller_publish kafka_host; do
+    if docker exec airflow-standalone airflow variables get "$obsolete" >/dev/null 2>&1; then
+      echo "Removing obsolete Airflow Variable: ${obsolete}"
+      docker exec airflow-standalone airflow variables delete "$obsolete" >/dev/null 2>&1 || true
     fi
   done
 }
@@ -210,11 +227,13 @@ main() {
   if [ "$RUN_COMPOSE" = "1" ]; then
     compose_up "$KAFKA_DEST"
     compose_up "$AIRFLOW_DEST" -f docker-compose.standalone.yaml
+    prune_obsolete_airflow_variables
   else
     echo "RUN_COMPOSE=0: files synced; restart stacks manually if needed."
   fi
 
   echo "Infra deploy completed."
+  echo "Poller DAG publishes to Kafka by default; broker address from KAFKA_HOST in ${AIRFLOW_DEST}/.env."
   echo "Postgres: run bash infra/postgres/create-app-user.sh once if schema or app role is missing."
   echo "Postgres: deploy-on-nas.sh runs infra/postgres/run-applicable-migrations.sh when deploy-config run_db_migrations=true."
 }

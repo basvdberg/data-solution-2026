@@ -9,6 +9,7 @@ from dataclasses import asdict
 from typing import Protocol
 
 from extractor_and_poller.poller.change_probe import PollResult
+from extractor_and_poller.poller.kafka_topic import kafka_topic_for_event
 
 log = logging.getLogger(__name__)
 
@@ -35,7 +36,8 @@ class StdoutPublisher:
     def publish(self, result: PollResult) -> None:
         payload = event_payload(result)
         log.info(
-            "event_published transport=stdout topic=%s key=%s idempotency_key=%s",
+            "event_published transport=stdout topic=%s event_type=%s key=%s idempotency_key=%s",
+            kafka_topic_for_event(result.event_type),
             result.event_type,
             result.data_object_id,
             result.idempotency_key,
@@ -67,15 +69,17 @@ class KafkaPublisher:
 
     def publish(self, result: PollResult) -> None:
         value = kafka_message_value(result)
+        topic = kafka_topic_for_event(result.event_type)
         future = self._producer.send(
-            result.event_type,
+            topic,
             key=result.data_object_id,
             value=value,
         )
         future.get(timeout=10)
         log.info(
-            "event_published transport=kafka bootstrap=%s topic=%s data_object_id=%s",
+            "event_published transport=kafka bootstrap=%s topic=%s event_type=%s data_object_id=%s",
             self._bootstrap_servers,
+            topic,
             result.event_type,
             value,
         )

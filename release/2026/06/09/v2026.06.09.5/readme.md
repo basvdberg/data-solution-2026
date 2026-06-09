@@ -15,15 +15,18 @@
 ﻿## Table of contents
 
 
+﻿## Table of contents
+
+
 ﻿# Release v2026.06.09.5 - Details
 
 ## Release metadata
 
 - Version: `v2026.06.09.5`
 - Development start: `2026-06-09T13:39:04+02:00`
-- Development end: `2026-06-09T13:40:43+02:00`
+- Development end: `2026-06-09T13:41:09+02:00`
 - Release branch: `main`
-- Release commit: `418538340aa28b53ce3c4f23af5f001bd9ac7e56`
+- Release commit: `5d4c2576451e217f84d324aed2c897a056e5d020`
 
 ## Summary
 
@@ -72,6 +75,7 @@
       - [Architecture](../../../../../doc/design/architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](../../../../../doc/design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](../../../../../doc/design/event-based-orchestration-plan.md)
+      - [Kafka topic naming](../../../../../doc/design/kafka-topic-naming.md)
       - [Meta data design](../../../../../doc/design/meta-data-design.md)
     - Operation
       - Incident
@@ -135,6 +139,9 @@
           - V2026.06.09.5
             - [Notes](notes.md)
             - [Retrospective](retrospective.md)
+          - V2026.06.09.6
+            - [Notes](../v2026.06.09.6/notes.md)
+            - [Retrospective](../v2026.06.09.6/retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

@@ -1,22 +1,108 @@
-# Architecture
+# Kafka topic naming
 
 ## Table of contents
 
 <!-- markdown-toc:start -->
-- [Flow](#flow)
+- [Pattern](#pattern)
+- [Formatting rules](#formatting-rules)
+- [Poll events (implemented)](#poll-events-implemented)
+- [Extract events (planned)](#extract-events-planned)
+- [Load events (planned)](#load-events-planned)
+- [Ops events (planned)](#ops-events-planned)
+- [Invalid events (planned)](#invalid-events-planned)
+- [Message conventions](#message-conventions)
+- [Code reference](#code-reference)
 <!-- markdown-toc:end -->
 
-## Flow
+## Pattern
 
-![Architecture](architecture-staging.png)
+Topic names use three segments:
 
-The flow, left to right:
+```text
+{scope}.{category}.{event}
+```
 
-1. **Git holds the configuration.** `data-object-mapping/staging/openmeteo/` describes the source; staging targets and loads are defined in the same DSA metadata. Design patterns set the shape of the orchestration.
-2. **Airflow + Kafka run ingestion.** A scheduled **poller** DAG probes the source and publishes only to the event bus: `ds.poll.data_object_change` when the marker moved, `ds.poll.data_object_progress` when it did not. The event controller reacts to **change** events and enqueues **extract** tasks; the extractor writes Parquet under `data/staging/`. The poller never runs the extractor. **PostgreSQL** stores all runtime metadata (poller history in table `poller`, future event and extract audit tables); configuration stays in Git. Topic naming: [Kafka topic naming](kafka-topic-naming.md).
-3. **ADL generates staging artefacts.** Reading the same DSA metadata, ADL renders the Handlebars templates in `template/` into DDL and load SQL under `output/`, which load the Parquet landing files into the **100 Landing Area**.
+| Segment | Purpose | Example |
+|---------|---------|---------|
+| `scope` | Solution boundary on a shared broker | `ds` (data-solution-2026) |
+| `category` | Orchestration stage or concern | `poll`, `extract`, `load` |
+| `event` | Stable business signal; matches `event_type` in Postgres and stdout envelopes | `data_object_change` |
 
-This solution follows the [separate what and how](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/separate-what-and-how.md) design pattern: DSA metadata files specify *what* must happen, while Airflow DAGs and the extractor/poller libraries under `code/`, and ADL-generated load procedures under `output/`, specify *how* it is executed.
+Do **not** embed source paths (`source/openmeteo/...`) in topic names. Use the message **key** (`data_object_id`) for per-object routing.
+
+## Formatting rules
+
+- Segments separated by `.` (Kafka-friendly grouping and ACL prefixes).
+- Event tokens use **snake_case** to match `event_type`, Postgres columns, and Python constants.
+- Category names are **singular nouns** (`poll`, not `polling`).
+- Environment (`prod`, `dev`) is omitted on the dedicated NAS broker; use a separate cluster or scope prefix when environments share Kafka.
+
+## Poll events (implemented)
+
+Signals from the data object poller. See [event-based orchestration plan](event-based-orchestration-plan.md).
+
+| Design pattern term | `event_type` | Kafka topic | Triggers downstream? |
+|---------------------|--------------|-------------|----------------------|
+| Data object change | `data_object_change` | `ds.poll.data_object_change` | Yes → extract |
+| Data object progress | `data_object_progress` | `ds.poll.data_object_progress` | No (liveness / audit) |
+
+`data_object_progress` replaces the earlier working name `data_object_unchanged` to align with the [event-based orchestration](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/event-based-orchestration.md) pattern vocabulary.
+
+## Extract events (planned)
+
+Lifecycle events from the extract DAG after a change event.
+
+| Signal | Kafka topic |
+|--------|-------------|
+| Extract started | `ds.extract.start` |
+| Extract succeeded | `ds.extract.success` |
+| Extract failed | `ds.extract.failed` |
+
+Partition key: target staging `data_object_id` (for example `staging/openmeteo/daily-temperature`).
+
+## Load events (planned)
+
+When Parquet lands and ADL load runs into the 100 Landing Area.
+
+| Signal | Kafka topic |
+|--------|-------------|
+| Load requested | `ds.load.request` |
+| Load succeeded | `ds.load.success` |
+| Load failed | `ds.load.failed` |
+
+## Ops events (planned)
+
+Cross-cutting control-plane signals.
+
+| Signal | Kafka topic |
+|--------|-------------|
+| Controller enqueued task | `ds.ops.task_queued` |
+| Idempotent skip (replay) | `ds.ops.task_skipped` |
+| Health heartbeat | `ds.ops.heartbeat` |
+
+## Invalid events (planned)
+
+Schema violations and poison messages (quarantine and dead-letter).
+
+| Signal | Kafka topic |
+|--------|-------------|
+| Contract violation | `ds.invalid.quarantine` |
+| Exhausted retries | `ds.invalid.dead_letter` |
+
+Route by `source_topic` and `event_id` in the payload rather than multiplying DLQ topic names per upstream category.
+
+## Message conventions
+
+| Concern | Convention |
+|---------|------------|
+| **Key** | `data_object_id` |
+| **Value (poll)** | `data_object_id` only; full envelope in Postgres `poller` / `event_log` |
+| **Retention** | Shorter for `ds.poll.data_object_progress`; longer for change and extract topics (replay) |
+| **ACL / subscribe** | Consumers use category prefix (`ds.poll.*`, `ds.extract.*`) |
+
+## Code reference
+
+Poll topic mapping lives in [`code/extractor_and_poller/poller/kafka_topic.py`](../../code/extractor_and_poller/poller/kafka_topic.py). `KafkaPublisher` resolves `event_type` → topic via `kafka_topic_for_event()`.
 
 ## Project structure
 

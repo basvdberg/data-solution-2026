@@ -80,6 +80,7 @@ python -m extractor_and_poller.openmeteo.extractor --mapping daily-temperature
       - [Architecture](doc/design/architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](doc/design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](doc/design/event-based-orchestration-plan.md)
+      - [Kafka topic naming](doc/design/kafka-topic-naming.md)
       - [Meta data design](doc/design/meta-data-design.md)
     - Operation
       - Incident
@@ -143,6 +144,9 @@ python -m extractor_and_poller.openmeteo.extractor --mapping daily-temperature
           - V2026.06.09.5
             - [Notes](release/2026/06/09/v2026.06.09.5/notes.md)
             - [Retrospective](release/2026/06/09/v2026.06.09.5/retrospective.md)
+          - V2026.06.09.6
+            - [Notes](release/2026/06/09/v2026.06.09.6/notes.md)
+            - [Retrospective](release/2026/06/09/v2026.06.09.6/retrospective.md)
     - [Release <version>](release/release-notes-template.md)
     - [Retrospective — <version>](release/retrospective-template.md)
   - Setting

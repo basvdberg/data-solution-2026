@@ -57,6 +57,7 @@ A **staging layer** for daily mean temperature across the Netherlands.
 | Architecture and flow | [Architecture](doc/design/architecture.md) |
 | DSA layout in Git | [Meta data design](doc/design/meta-data-design.md) |
 | Event orchestration | [Event-based orchestration plan](doc/design/event-based-orchestration-plan.md) |
+| Kafka topics | [Kafka topic naming](doc/design/kafka-topic-naming.md) |
 | Implementation checklist | [Implementation plan](doc/implementation-plan.md) |
 | Observations | [Lessons learned](lessons-learned.md) |
 
@@ -126,6 +127,7 @@ Since the [May 19 LinkedIn post](https://github.com/basvdberg/data-engineering-2
       - [Architecture](doc/design/architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](doc/design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](doc/design/event-based-orchestration-plan.md)
+      - [Kafka topic naming](doc/design/kafka-topic-naming.md)
       - [Meta data design](doc/design/meta-data-design.md)
     - Operation
       - Incident
@@ -189,6 +191,9 @@ Since the [May 19 LinkedIn post](https://github.com/basvdberg/data-engineering-2
           - V2026.06.09.5
             - [Notes](release/2026/06/09/v2026.06.09.5/notes.md)
             - [Retrospective](release/2026/06/09/v2026.06.09.5/retrospective.md)
+          - V2026.06.09.6
+            - [Notes](release/2026/06/09/v2026.06.09.6/notes.md)
+            - [Retrospective](release/2026/06/09/v2026.06.09.6/retrospective.md)
     - [Release <version>](release/release-notes-template.md)
     - [Retrospective — <version>](release/retrospective-template.md)
   - Setting

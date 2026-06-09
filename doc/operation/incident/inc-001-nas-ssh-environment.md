@@ -120,6 +120,7 @@ No pre-flight check in agent workflow to source NAS env before first `docker`/`g
       - [Architecture](../../design/architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](../../design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](../../design/event-based-orchestration-plan.md)
+      - [Kafka topic naming](../../design/kafka-topic-naming.md)
       - [Meta data design](../../design/meta-data-design.md)
     - Operation
       - Incident
@@ -183,6 +184,9 @@ No pre-flight check in agent workflow to source NAS env before first `docker`/`g
           - V2026.06.09.5
             - [Notes](../../../release/2026/06/09/v2026.06.09.5/notes.md)
             - [Retrospective](../../../release/2026/06/09/v2026.06.09.5/retrospective.md)
+          - V2026.06.09.6
+            - [Notes](../../../release/2026/06/09/v2026.06.09.6/notes.md)
+            - [Retrospective](../../../release/2026/06/09/v2026.06.09.6/retrospective.md)
     - [Release <version>](../../../release/release-notes-template.md)
     - [Retrospective — <version>](../../../release/retrospective-template.md)
   - Setting

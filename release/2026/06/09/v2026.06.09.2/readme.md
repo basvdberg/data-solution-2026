@@ -75,6 +75,7 @@
       - [Architecture](../../../../../doc/design/architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](../../../../../doc/design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](../../../../../doc/design/event-based-orchestration-plan.md)
+      - [Kafka topic naming](../../../../../doc/design/kafka-topic-naming.md)
       - [Meta data design](../../../../../doc/design/meta-data-design.md)
     - Operation
       - Incident
@@ -138,6 +139,9 @@
           - V2026.06.09.5
             - [Notes](../v2026.06.09.5/notes.md)
             - [Retrospective](../v2026.06.09.5/retrospective.md)
+          - V2026.06.09.6
+            - [Notes](../v2026.06.09.6/notes.md)
+            - [Retrospective](../v2026.06.09.6/retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

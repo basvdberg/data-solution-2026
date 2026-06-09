@@ -47,7 +47,7 @@ Out of scope:
 Runtime roles:
 
 - **Poller**: periodically probes source marker and emits events
-- **Kafka**: event bus with `data_object_change` and `data_object_unchanged`
+- **Kafka**: event bus with poll topics `ds.poll.data_object_change` and `ds.poll.data_object_progress` (see [Kafka topic naming](kafka-topic-naming.md))
 - **Event controller**: consumes change events and triggers extract orchestration
 - **Airflow**: runs DAGs for polling and extraction
 - **Postgres**: stores poller baseline marker and event history
@@ -59,21 +59,21 @@ Flow:
 2. Poller computes current marker for `daily-temperature`.
 3. Poller compares marker to previous marker in Postgres.
 4. Poller emits:
-   - `data_object_change` if marker changed
-   - `data_object_unchanged` if marker unchanged
-5. Event controller consumes `data_object_change`.
+   - `data_object_change` if marker changed → topic `ds.poll.data_object_change`
+   - `data_object_progress` if marker unchanged → topic `ds.poll.data_object_progress`
+5. Event controller consumes `ds.poll.data_object_change`.
 6. Event controller triggers extract DAG run with mapping id and marker context.
 7. Extract DAG runs extractor and writes landing file(s).
 8. DAG emits success/failure operational event and updates observability metrics.
 
 ## Event contract (minimum)
 
-Kafka message body is the **data object id** string only (topic remains `data_object_change` or `data_object_unchanged`; partition key is `data_object_id`). Full probe details live in Postgres table `poller` (query `poller_latest_first` for newest rows first).
+Kafka message body is the **data object id** string only (topics `ds.poll.data_object_change` and `ds.poll.data_object_progress`; partition key is `data_object_id`). Full probe details live in Postgres table `poller` (query `poller_latest_first` for newest rows first).
 
 Stdout publish (`--publish stdout`) still emits the full envelope for local debugging:
 
 - `event_id` (uuid)
-- `event_type` (`data_object_change` or `data_object_unchanged`)
+- `event_type` (`data_object_change` or `data_object_progress`)
 - `event_time_utc` (ISO-8601)
 - `data_object_id` (`source/openmeteo/daily-temperature`)
 - `source_data_object_id` (`source/openmeteo/daily-temperature`)
@@ -82,10 +82,10 @@ Stdout publish (`--publish stdout`) still emits the full envelope for local debu
 - `previous_marker` (string or null)
 - `run_id` (poller run correlation id)
 
-Kafka topics:
+Kafka topics (see [Kafka topic naming](kafka-topic-naming.md)):
 
-- `data_object_change` (key: `data_object_id`, value: `data_object_id`)
-- `data_object_unchanged` (key: `data_object_id`, value: `data_object_id`)
+- `ds.poll.data_object_change` (key: `data_object_id`, value: `data_object_id`)
+- `ds.poll.data_object_progress` (key: `data_object_id`, value: `data_object_id`)
 
 ## Data poller implementation plan
 
@@ -101,7 +101,7 @@ Deliverables:
 Acceptance:
 
 - Poller returns `data_object_change` exactly once when marker advances.
-- Re-running without marker changes produces only `data_object_unchanged`.
+- Re-running without marker changes produces only `data_object_progress`.
 - Poller can recover from restart without losing baseline marker.
 
 ### Phase 2 - Kafka publisher
@@ -109,7 +109,7 @@ Acceptance:
 Deliverables:
 
 - Add producer module: Kafka message **value** is `data_object_id` only.
-- Publish to `data_object_change` and `data_object_unchanged` topics (key and value: `data_object_id`).
+- Publish to `ds.poll.data_object_change` and `ds.poll.data_object_progress` (key and value: `data_object_id`).
 
 Acceptance:
 
@@ -139,7 +139,7 @@ Acceptance:
 
 Deliverables:
 
-- Add Kafka consumer service for topic `data_object_change`.
+- Add Kafka consumer service for topic `ds.poll.data_object_change`.
 - Validate incoming event schema before triggering DAG.
 - Trigger Airflow extract DAG with event payload (mapping id + marker + event_id).
 
@@ -246,7 +246,7 @@ Runtime rule:
 ## Rollout steps
 
 1. Enable poller DAG in Airflow with unchanged-only observation.
-2. Enable `data_object_change` publication.
+2. Enable `ds.poll.data_object_change` publication.
 3. Deploy event controller in passive logging mode.
 4. Enable active Airflow triggers from controller.
 5. Enable idempotency guard and duplicate-event test.
@@ -297,6 +297,7 @@ Runtime rule:
       - [Architecture](architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](ci-cd.md)
       - [Event-based orchestration plan (single data object)](event-based-orchestration-plan.md)
+      - [Kafka topic naming](kafka-topic-naming.md)
       - [Meta data design](meta-data-design.md)
     - Operation
       - Incident
@@ -360,6 +361,9 @@ Runtime rule:
           - V2026.06.09.5
             - [Notes](../../release/2026/06/09/v2026.06.09.5/notes.md)
             - [Retrospective](../../release/2026/06/09/v2026.06.09.5/retrospective.md)
+          - V2026.06.09.6
+            - [Notes](../../release/2026/06/09/v2026.06.09.6/notes.md)
+            - [Retrospective](../../release/2026/06/09/v2026.06.09.6/retrospective.md)
     - [Release <version>](../../release/release-notes-template.md)
     - [Retrospective — <version>](../../release/retrospective-template.md)
   - Setting

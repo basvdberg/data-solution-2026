@@ -16,14 +16,17 @@ Python files under [dags/](dags/) are loaded by the Airflow scheduler from `/opt
 
 ## Configuration
 
-Set Airflow Variables (Admin → Variables) to override defaults used by the poller DAG:
+The poller DAG always runs with `--publish kafka`. Kafka bootstrap servers come from container env `KAFKA_HOST` (set automatically by [deploy-infra-on-nas.sh](../../infra/scripts/deploy-infra-on-nas.sh) from [`.env.example`](../../infra/airflow/.env.example)).
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `poller_data_object_id` | `source/openmeteo/daily-temperature` | `--data-object` for the poller CLI |
-| `poller_publish` | `none` | `none`, `stdout`, or `kafka` |
+Optional Airflow Variable (override only):
 
-Poller state is always stored in Postgres (table `poller`). Postgres connection settings use container environment variables (`POSTGRES_HOST`, `POSTGRES_USER`, etc.). See [Implementation plan](../../doc/implementation-plan.md).
+| Variable | Default | Value semantics |
+|----------|---------|-----------------|
+| `data_object_id` | `source/openmeteo/daily-temperature` | Source data object id probed by the poller |
+
+Poller state is stored in Postgres (table `poller`). Postgres connection uses `POSTGRES_HOST`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `DATA_SOLUTION_DB` from `~/apache-airflow/.env` (also applied by deploy-infra). See [Implementation plan](../../doc/implementation-plan.md).
+
+Local CLI debugging may still use `--publish none` or `--publish stdout`; production Airflow does not use a transport toggle variable.
 
 ## Poller DAG
 
@@ -40,7 +43,7 @@ Equivalent manual run inside the Airflow container:
 ```bash
 python -m extractor_and_poller.poller \
   --data-object source/openmeteo/daily-temperature \
-  --publish none
+  --publish kafka
 ```
 
 `PYTHONPATH` is set in the Airflow container (`/opt/data-solution/code:/opt/data-solution`).
@@ -92,6 +95,7 @@ Confirm `~/apache-airflow/.env` on the local server includes `POSTGRES_HOST=post
       - [Architecture](../../doc/design/architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](../../doc/design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](../../doc/design/event-based-orchestration-plan.md)
+      - [Kafka topic naming](../../doc/design/kafka-topic-naming.md)
       - [Meta data design](../../doc/design/meta-data-design.md)
     - Operation
       - Incident
@@ -155,6 +159,9 @@ Confirm `~/apache-airflow/.env` on the local server includes `POSTGRES_HOST=post
           - V2026.06.09.5
             - [Notes](../../release/2026/06/09/v2026.06.09.5/notes.md)
             - [Retrospective](../../release/2026/06/09/v2026.06.09.5/retrospective.md)
+          - V2026.06.09.6
+            - [Notes](../../release/2026/06/09/v2026.06.09.6/notes.md)
+            - [Retrospective](../../release/2026/06/09/v2026.06.09.6/retrospective.md)
     - [Release <version>](../../release/release-notes-template.md)
     - [Retrospective — <version>](../../release/retrospective-template.md)
   - Setting

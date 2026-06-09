@@ -8,6 +8,12 @@ from unittest.mock import MagicMock, patch
 
 from extractor_and_poller.poller.change_probe import PollResult
 from extractor_and_poller.poller.events import KafkaPublisher, kafka_message_value
+from extractor_and_poller.poller.kafka_topic import (
+    EVENT_TYPE_PROGRESS,
+    POLL_TOPIC_CHANGE,
+    POLL_TOPIC_PROGRESS,
+    kafka_topic_for_event,
+)
 
 
 def _sample_result() -> PollResult:
@@ -25,6 +31,16 @@ def _sample_result() -> PollResult:
 
 
 class TestPollerEvents(unittest.TestCase):
+    def test_kafka_topic_for_poll_event_types(self) -> None:
+        self.assertEqual(
+            kafka_topic_for_event("data_object_change"),
+            POLL_TOPIC_CHANGE,
+        )
+        self.assertEqual(
+            kafka_topic_for_event(EVENT_TYPE_PROGRESS),
+            POLL_TOPIC_PROGRESS,
+        )
+
     def test_kafka_message_value_is_data_object_id_only(self) -> None:
         result = _sample_result()
         self.assertEqual(
@@ -44,7 +60,7 @@ class TestPollerEvents(unittest.TestCase):
         publisher.publish(result)
 
         producer.send.assert_called_once_with(
-            "data_object_change",
+            POLL_TOPIC_CHANGE,
             key="source/openmeteo/daily-temperature",
             value="source/openmeteo/daily-temperature",
         )
