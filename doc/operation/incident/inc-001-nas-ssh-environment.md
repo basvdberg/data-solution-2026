@@ -58,13 +58,15 @@ No pre-flight check in agent workflow to source NAS env before first `docker`/`g
 ## Resolution
 
 - Run `bash infra/scripts/setup-nas-ssh-env.sh` once on NAS
-- Source `infra/scripts/nas-remote-env.sh` at start of automation sessions
-- Always invoke scripts with `bash path/to/script.sh`; verify `test -x` after pull
-- Expect brief SSH outage when enabling PermitUserEnvironment
+- Set `bas` login shell to `~/.local/bin/nas-login-sh` in `/etc/passwd` (`sudo sed`; QTS admin password) — survives QNAP reboot
+- Source `infra/scripts/nas-remote-env.sh` in deploy scripts (already in `deploy-on-nas.sh`)
+- Do **not** rely on manual `PermitUserEnvironment` in `/etc/config/ssh/sshd_config` (regenerated on reboot)
+- Running sshd as `bas` without sudo (`setsid /etc/init.d/login.sh restart`) can segfault
 
 ## Prevention
 
-- First command block on every NAS SSH session: source `nas-remote-env.sh` or verify `docker --version`
+- Use **basnas-ssh** Cursor skill: plain `ssh bas@basnas 'docker …'` after one-time setup
+- Do not default to `bash -lc` + `nas-path.sh` per command
 - Do not set global `LD_LIBRARY_PATH` in `~/.profile` (breaks QNAP bash)
 - See [infra/readme.md](../../../infra/readme.md) SSH troubleshooting sections
 
@@ -72,8 +74,9 @@ No pre-flight check in agent workflow to source NAS env before first `docker`/`g
 
 | # | Action | Type | Owner | Status |
 |---|--------|------|-------|--------|
-| 1 | Document NAS SSH env in deploy-basnas-container skill | skill | agent | codified |
+| 1 | **basnas-ssh** skill + deploy-basnas-container link | skill | agent | codified |
 | 2 | Source env in deploy-on-nas.sh | script | agent | codified |
+| 3 | `enable-nas-login-shell.sh` + fix `enable-nas-ssh-user-env.sh` for QNAP active config | script | agent | pending |
 
 ## Related artifacts
 
@@ -96,6 +99,7 @@ No pre-flight check in agent workflow to source NAS env before first `docker`/`g
       - Poller
       - Tests
     - Postgres
+      - Migrations
   - Connection
   - Data
     - Staging
@@ -170,6 +174,9 @@ No pre-flight check in agent workflow to source NAS env before first `docker`/`g
           - V2026.06.09.2
             - [Notes](../../../release/2026/06/09/v2026.06.09.2/notes.md)
             - [Retrospective](../../../release/2026/06/09/v2026.06.09.2/retrospective.md)
+          - V2026.06.09.3
+            - [Notes](../../../release/2026/06/09/v2026.06.09.3/notes.md)
+            - [Retrospective](../../../release/2026/06/09/v2026.06.09.3/retrospective.md)
     - [Release <version>](../../../release/release-notes-template.md)
     - [Retrospective — <version>](../../../release/retrospective-template.md)
   - Setting

@@ -60,6 +60,7 @@ git checkout v2026.06.02.2
       - Poller
       - Tests
     - Postgres
+      - Migrations
   - Connection
   - Data
     - Staging
@@ -134,6 +135,9 @@ git checkout v2026.06.02.2
           - V2026.06.09.2
             - [Notes](../../09/v2026.06.09.2/notes.md)
             - [Retrospective](../../09/v2026.06.09.2/retrospective.md)
+          - V2026.06.09.3
+            - [Notes](../../09/v2026.06.09.3/notes.md)
+            - [Retrospective](../../09/v2026.06.09.3/retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

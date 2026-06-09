@@ -127,6 +127,7 @@ Prior incidents (INC-001–003) are from the 2026-06-03 infra PoC.
       - Poller
       - Tests
     - Postgres
+      - Migrations
   - Connection
   - Data
     - Staging
@@ -201,6 +202,9 @@ Prior incidents (INC-001–003) are from the 2026-06-03 infra PoC.
           - V2026.06.09.2
             - [Notes](../../09/v2026.06.09.2/notes.md)
             - [Retrospective](../../09/v2026.06.09.2/retrospective.md)
+          - V2026.06.09.3
+            - [Notes](../../09/v2026.06.09.3/notes.md)
+            - [Retrospective](../../09/v2026.06.09.3/retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

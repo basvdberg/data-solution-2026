@@ -1,5 +1,6 @@
 ﻿{
     "sync_infra":  true,
+    "run_db_migrations":  true,
     "paths":  [
                   "infra/airflow/.env.example",
                   "infra/airflow/docker-compose.standalone.yaml",
@@ -9,11 +10,18 @@
                   "infra/postgres/migrate-database-name.sh",
                   "infra/postgres/migrate-poller-from-dedicated-postgres.sh",
                   "infra/postgres/remove-dedicated-postgres.sh",
+                  "infra/postgres/run-applicable-migrations.sh",
                   "infra/scripts/deploy-infra-on-nas.sh",
                   "infra/scripts/nas-remote-env.sh"
               ],
-    "reason":  "Meaningful infra runtime file(s) changed since tag v2026.06.03.4: infra/airflow/.env.example, infra/airflow/docker-compose.standalone.yaml, infra/postgres/.env.example, infra/postgres/apply-shared-postgres-on-nas.sh, infra/postgres/create-app-user.sh, infra/postgres/migrate-database-name.sh, infra/postgres/migrate-poller-from-dedicated-postgres.sh, infra/postgres/remove-dedicated-postgres.sh, infra/scripts/deploy-infra-on-nas.sh, infra/scripts/nas-remote-env.sh",
-    "version":  "v2026.06.09.2",
+    "migration_paths":  [
+                            "code/postgres/migrations/001-poller-simplify.check.sql",
+                            "code/postgres/migrations/001-poller-simplify.sql",
+                            "code/postgres/migrations/manifest.txt",
+                            "code/postgres/schema.sql"
+                        ],
+    "reason":  "Meaningful infra runtime file(s) changed since tag v2026.06.03.4: infra/airflow/.env.example, infra/airflow/docker-compose.standalone.yaml, infra/postgres/.env.example, infra/postgres/apply-shared-postgres-on-nas.sh, infra/postgres/create-app-user.sh, infra/postgres/migrate-database-name.sh, infra/postgres/migrate-poller-from-dedicated-postgres.sh, infra/postgres/remove-dedicated-postgres.sh, infra/postgres/run-applicable-migrations.sh, infra/scripts/deploy-infra-on-nas.sh, infra/scripts/nas-remote-env.sh",
+    "version":  "v2026.06.09.3",
     "since_tag":  "v2026.06.03.4",
-    "updated_at":  "2026-06-09T07:50:11Z"
+    "updated_at":  "2026-06-09T11:37:42Z"
 }

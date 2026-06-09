@@ -4,12 +4,9 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 
-from airflow import DAG
 from airflow.exceptions import AirflowException
 from airflow.providers.standard.operators.python import PythonOperator
-from airflow.sdk import Variable
-
-from dag_run_guard import assert_manual_trigger_allowed_from_context
+from airflow.sdk import DAG, Variable
 
 DAG_ID = "openmeteo_data_object_poller"
 DEFAULT_DATA_OBJECT_ID = "source/openmeteo/daily-temperature"
@@ -18,8 +15,6 @@ DEFAULT_PUBLISH = "none"
 
 def run_openmeteo_poller() -> None:
     """Delegate to the poller CLI ``main()`` (same args as manual ``python -m``)."""
-    assert_manual_trigger_allowed_from_context()
-
     from extractor_and_poller.poller.__main__ import main
 
     exit_code = main(
@@ -52,7 +47,11 @@ default_args = {
 
 with DAG(
     dag_id=DAG_ID,
-    description="Probe Open-Meteo daily-temperature source marker; persist state in Postgres and optionally publish events.",
+    description=(
+        "Probe Open-Meteo daily-temperature source marker; persist state in Postgres and "
+        "optionally publish events. Manual triggers while a run is active are queued "
+        "(max_active_runs=1); task logs appear when the run starts."
+    ),
     default_args=default_args,
     schedule="@hourly",
     start_date=datetime(2026, 6, 1),

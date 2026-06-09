@@ -117,8 +117,8 @@ class TestOpenMeteoPoller(unittest.TestCase):
         self.assertIn("insert into poller", insert_sql.lower())
         self.assertIn("returning id", insert_sql.lower())
         insert_args = cursor.execute.call_args_list[-1][0][1]
-        self.assertEqual(insert_args[2], "source/openmeteo/daily-temperature")
-        self.assertEqual(insert_args[8], "2026-05-26")
+        self.assertEqual(insert_args[1], "source/openmeteo/daily-temperature")
+        self.assertEqual(insert_args[4], "2026-05-26")
 
     @patch("extractor_and_poller.poller.state.PostgresStateStore._connect")
     def test_poller_initializes_schema_when_table_missing(self, mock_connect) -> None:
@@ -139,6 +139,7 @@ class TestOpenMeteoPoller(unittest.TestCase):
         )
         self.assertIn("create table if not exists poller", executed_sql)
         self.assertIn("create index if not exists poller_data_object_polled_idx", executed_sql)
+        self.assertIn("create or replace view poller_latest_first", executed_sql)
         conn.commit.assert_called()
 
     @patch("extractor_and_poller.openmeteo.extractor.client.requests.get")

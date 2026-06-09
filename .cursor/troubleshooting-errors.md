@@ -15,8 +15,8 @@ Promote significant entries to postmortems in [`doc/operation/incident/`](../doc
 | **Command** | `docker ps` / `docker compose …` |
 | **Error** | bash: docker: command not found (127) |
 | **Description** | Non-interactive SSH uses minimal PATH; Container Station `docker` is under `/share/CACHEDEV*_DATA/.qpkg/container-station/bin`, not on default PATH. |
-| **Solution** | Run once on NAS: `bash infra/scripts/setup-nas-ssh-env.sh`; for automation source `infra/scripts/nas-remote-env.sh`; for bare `ssh … 'docker …'` run `bash infra/scripts/enable-nas-ssh-user-env.sh` once. |
-| **Prevention** | First command block on every NAS SSH session: source `nas-remote-env.sh` or verify `ssh $LOCAL_SERVER_SSH 'docker --version'`. See [infra/readme.md](../infra/readme.md#ssh-docker-command-not-found). |
+| **Solution** | Run `bash infra/scripts/setup-nas-ssh-env.sh`, then set login shell: `sudo sed -i 's#:/bin/sh$#:…/nas-login-sh#' /etc/passwd` (see [infra/readme.md](../infra/readme.md#ssh-docker-command-not-found)). Deploy scripts source `nas-remote-env.sh`. |
+| **Prevention** | Use **basnas-ssh** skill: plain `ssh $LOCAL_SERVER_SSH 'docker …'` after one-time setup. Do not default to `bash -lc` + `nas-path.sh`. Verify with `ssh $LOCAL_SERVER_SSH 'docker --version'`. |
 | **Count** | 1 |
 
 ### ERR-002 — Repeated which/find for docker (same session)
@@ -164,7 +164,7 @@ Promote significant entries to postmortems in [`doc/operation/incident/`](../doc
 
 ## Session: 2026-06-05
 
-### ERR-013 — Airflow DAG import: No module named dag_run_guard
+### ERR-013 — Airflow DAG import: No module named dag_run_guard (historical)
 
 | Field | Value |
 |-------|-------|
@@ -172,7 +172,7 @@ Promote significant entries to postmortems in [`doc/operation/incident/`](../doc
 | **Context** | NAS Airflow, after app deploy; DAG parse in UI |
 | **Command** | Trigger / view `openmeteo_data_object_poller` DAG |
 | **Error** | `ModuleNotFoundError: No module named 'dag_run_guard'` |
-| **Description** | `dag_run_guard.py` lives under `code/airflow/` but deployed `~/apache-airflow/docker-compose.standalone.yaml` had old two-path `PYTHONPATH` (missing `/opt/data-solution/code/airflow`). App-only `git pull` deploy does not sync infra compose. |
-| **Solution** | `bash ~/apps/data-solution-2026/infra/scripts/deploy-infra-on-nas.sh` (or `RUN_INFRA_SYNC=1` on deploy script); verify `airflow dags list-import-errors` is empty. |
-| **Prevention** | After DAG changes or poller imports: run `airflow dags list-import-errors` on NAS. `release/deploy-config.json` sets `sync_infra` on pre-commit when meaningful `infra/` files change; `deploy-on-nas.sh` runs infra sync automatically. Promoted to [INC-004](../doc/operation/incident/inc-004-airflow-pythonpath-drift.md). |
+| **Description** | Historical: `dag_run_guard.py` lived under `code/airflow/` and required `/opt/data-solution/code/airflow` on `PYTHONPATH`. Removed in 2026-06 — poller DAG no longer imports from `code/airflow/`. |
+| **Solution** | If you still see this on an old branch: `deploy-infra-on-nas.sh` to sync compose `PYTHONPATH`, or pull the version without `dag_run_guard`. Verify `airflow dags list-import-errors` is empty. |
+| **Prevention** | Run `airflow dags list-import-errors` after deploy. Promoted to [INC-004](../doc/operation/incident/inc-004-airflow-pythonpath-drift.md). |
 | **Count** | 1 |

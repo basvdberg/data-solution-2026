@@ -14,10 +14,7 @@
 - [Related artifacts](#related-artifacts)
 <!-- markdown-toc:end -->
 
-## Table of contents
-
-
-﻿# Retrospective — v2026.06.09.2
+﻿# Retrospective — v2026.06.09.3
 
 Per-release sprint retrospective. Agent drafts; user approves promotions and action items.
 
@@ -25,7 +22,7 @@ Per-release sprint retrospective. Agent drafts; user approves promotions and act
 
 | Field | Value |
 |-------|-------|
-| **Version** | v2026.06.09.2 |
+| **Version** | v2026.06.09.3 |
 | **Date** | 2026-06-09 |
 | **Commit** | `<fill-after-commit>` |
 | **Validation** | pass / fail / partial — brief outcome |
@@ -177,11 +174,11 @@ Per-release sprint retrospective. Agent drafts; user approves promotions and act
             - [Notes](../v2026.06.09.1/notes.md)
             - [Retrospective](../v2026.06.09.1/retrospective.md)
           - V2026.06.09.2
+            - [Notes](../v2026.06.09.2/notes.md)
+            - [Retrospective](../v2026.06.09.2/retrospective.md)
+          - V2026.06.09.3
             - [Notes](notes.md)
             - [Retrospective](retrospective.md)
-          - V2026.06.09.3
-            - [Notes](../v2026.06.09.3/notes.md)
-            - [Retrospective](../v2026.06.09.3/retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

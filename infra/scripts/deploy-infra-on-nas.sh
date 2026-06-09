@@ -191,6 +191,8 @@ main() {
   copy_file "${INFRA}/kafka/.env.example" "${KAFKA_DEST}/.env.example"
   copy_file "${INFRA}/postgres/.env.example" "${POSTGRES_DEST}/.env.example"
   copy_file "${INFRA}/postgres/create-app-user.sh" "${POSTGRES_DEST}/create-app-user.sh"
+  copy_file "${INFRA}/postgres/run-applicable-migrations.sh" \
+    "${POSTGRES_DEST}/run-applicable-migrations.sh"
   copy_file "${INFRA}/postgres/migrate-poller-from-dedicated-postgres.sh" \
     "${POSTGRES_DEST}/migrate-poller-from-dedicated-postgres.sh"
   copy_file "${INFRA}/postgres/remove-dedicated-postgres.sh" \
@@ -214,6 +216,7 @@ main() {
 
   echo "Infra deploy completed."
   echo "Postgres: run bash infra/postgres/create-app-user.sh once if schema or app role is missing."
+  echo "Postgres: deploy-on-nas.sh runs infra/postgres/run-applicable-migrations.sh when deploy-config run_db_migrations=true."
 }
 
 main "$@"

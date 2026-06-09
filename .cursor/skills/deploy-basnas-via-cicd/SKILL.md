@@ -32,7 +32,7 @@ DAGs and app code are bind-mounted from `~/apps/data-solution-2026`; no manual c
 powershell -ExecutionPolicy Bypass -File .\release\scripts\install-post-push-hook.ps1
 ```
 
-Needs `gh auth login` and `ssh $LOCAL_SERVER_SSH`.
+Needs `gh auth login` and `ssh $LOCAL_SERVER_SSH` (`docker -v` works bare after **basnas-ssh** setup).
 
 ## Infra compose changes
 

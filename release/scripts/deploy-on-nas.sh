@@ -12,6 +12,9 @@ source "${APP_ROOT}/infra/scripts/nas-remote-env.sh"
 # - Set RUN_POLLER_CHECK=1 to run optional Python poller smoke check
 # - Set RUN_INFRA_SYNC=1 to force infra sync (overrides release/deploy-config.json)
 # - release/deploy-config.json: sync_infra set automatically when infra/ runtime files change
+# - Set RUN_DB_MIGRATIONS=1 to force Postgres migrations (overrides deploy-config)
+# - Set RUN_DB_MIGRATIONS=0 to skip Postgres migrations
+# - release/deploy-config.json: run_db_migrations set when code/postgres/migrations change
 RUN_POLLER_CHECK="${RUN_POLLER_CHECK:-0}"
 RUN_INFRA_SYNC="${RUN_INFRA_SYNC:-0}"
 
@@ -47,6 +50,40 @@ if [ "$RUN_INFRA_SYNC" = "1" ]; then
   bash "${APP_ROOT}/infra/scripts/deploy-infra-on-nas.sh"
 else
   echo "Infra sync skipped (deploy-config sync_infra=false; set RUN_INFRA_SYNC=1 to force)."
+fi
+
+should_run_db_migrations() {
+  if [ "${RUN_DB_MIGRATIONS:-}" = "0" ]; then
+    return 1
+  fi
+  if [ "${RUN_DB_MIGRATIONS:-}" = "1" ]; then
+    return 0
+  fi
+  if [ -f "${APP_ROOT}/release/deploy-config.json" ] && [ -x "${SCRIPT_DIR}/read-deploy-config.sh" ]; then
+    config_run="$("${SCRIPT_DIR}/read-deploy-config.sh" run_db_migrations 2>/dev/null || echo "false")"
+    if [ "$config_run" = "true" ]; then
+      return 0
+    fi
+    if [ "$config_run" = "false" ]; then
+      return 1
+    fi
+  fi
+  return 0
+}
+
+if should_run_db_migrations; then
+  if [ -f "${APP_ROOT}/infra/postgres/run-applicable-migrations.sh" ]; then
+    config_reason=""
+    if [ -f "${APP_ROOT}/release/deploy-config.json" ] && [ -x "${SCRIPT_DIR}/read-deploy-config.sh" ]; then
+      config_reason="$("${SCRIPT_DIR}/read-deploy-config.sh" reason 2>/dev/null || true)"
+    fi
+    echo "Running applicable Postgres migrations${config_reason:+ — ${config_reason}}"
+    bash "${APP_ROOT}/infra/postgres/run-applicable-migrations.sh"
+  else
+    echo "WARN: run-applicable-migrations.sh not found; skipping DB migrations."
+  fi
+else
+  echo "DB migrations skipped (deploy-config run_db_migrations=false; set RUN_DB_MIGRATIONS=1 to force)."
 fi
 
 if [ "$RUN_POLLER_CHECK" = "1" ]; then

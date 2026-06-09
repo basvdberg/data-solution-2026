@@ -1,0 +1,3 @@
+# Ordered database migrations (one id per line). Applied by infra/postgres/run-applicable-migrations.sh
+# when the matching *.check.sql returns rows and the id is not yet in schema_migrations.
+001-poller-simplify

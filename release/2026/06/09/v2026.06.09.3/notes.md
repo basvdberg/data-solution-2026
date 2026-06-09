@@ -1,92 +1,109 @@
 ## Table of contents
 
 <!-- markdown-toc:start -->
-- [Release context](#release-context)
-- [What went well](#what-went-well)
-- [What did not go well](#what-did-not-go-well)
-- [Incidents this release](#incidents-this-release)
-- [Patterns (by category)](#patterns-by-category)
-- [Root causes (generalized)](#root-causes-generalized)
-- [Metrics](#metrics)
-- [Action items](#action-items)
-- [Promotions (approval gate)](#promotions-approval-gate)
-- [Lessons promoted](#lessons-promoted)
+- [Metadata](#metadata)
+- [Scope](#scope)
+- [Changes](#changes)
+  - [Added](#added)
+  - [Changed](#changed)
+  - [Deprecated](#deprecated)
+  - [Removed](#removed)
+  - [Fixed](#fixed)
+  - [Security](#security)
+- [Poller and Airflow impact](#poller-and-airflow-impact)
+- [Deployment](#deployment)
+- [Validation](#validation)
+- [Rollback](#rollback)
 - [Related artifacts](#related-artifacts)
+- [Notes](#notes)
 <!-- markdown-toc:end -->
 
-## Table of contents
+﻿# Release v2026.06.09.3
 
+Operator-facing release notes. Published to GitHub Releases via `publish-release.ps1`. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-﻿# Retrospective — v2026.06.09.2
+## Metadata
 
-Per-release sprint retrospective. Agent drafts; user approves promotions and action items.
+- Version: `v2026.06.09.3`
+- Date: `2026-06-09`
+- Branch: `main`
+- Commit: `<fill-after-commit>`
 
-## Release context
+## Scope
 
-| Field | Value |
-|-------|-------|
-| **Version** | v2026.06.09.2 |
-| **Date** | 2026-06-09 |
-| **Commit** | `<fill-after-commit>` |
-| **Validation** | pass / fail / partial — brief outcome |
+Brief description of what is included in this release.
 
-## What went well
+## Changes
 
--
-
-## What did not go well
+### Added
 
 -
 
-## Incidents this release
+### Changed
 
-| ID | Title | Severity |
-|----|-------|----------|
-| | | |
+-
 
-## Patterns (by category)
+### Deprecated
 
-| Category | Count | Example IDs | Theme |
-|----------|-------|-------------|-------|
-| | | | |
+-
 
-## Root causes (generalized)
+### Removed
 
-1.
+-
 
-## Metrics
+### Fixed
 
-| Metric | Value |
-|--------|-------|
-| ERR entries | |
-| Repeat ERR (Count > 1) | |
-| Incidents (INC) | |
-| Validation checklist | |
+-
 
-## Action items
+### Security
 
-| Item | Owner | Destination |
-|------|-------|-------------|
-| | | skill / rule / checklist / runbook / lessons-learned |
+-
 
-## Promotions (approval gate)
+## Poller and Airflow impact
 
-- [ ] Skill or rule update
-- [ ] Release notes template / validation step
-- [ ] Infra or deploy runbook
-- [ ] Lessons learned / issue category heat map
+- Poller mapping:
+- Airflow DAG (`code/airflow/dags/`):
+- Runtime variables changed:
 
-## Lessons promoted
+## Deployment
 
-| Category | Theme | lessons-learned anchor |
-|----------|-------|------------------------|
-| | | |
+- Trigger: push to `main` → CI → NAS pull deploy
+- Infra sync: automatic when `release/deploy-config.json` has `sync_infra: true` (set by pre-commit when compose/env under `infra/` changes)
+- NAS actions after deploy:
+  - [ ] Dependencies updated
+  - [ ] Services restarted
+  - [ ] Airflow DAGs parse and appear in UI
+
+## Validation
+
+- [ ] Unit tests passed (CI)
+- [ ] Integration checks passed
+- [ ] Airflow `dags list-import-errors` empty on NAS (`docker exec airflow-standalone airflow dags list-import-errors`)
+- [ ] Airflow poller manual run passed
+- [ ] Kafka publish verified (or stdout in smoke mode)
+- [ ] Postgres state persistence verified
+- [ ] Infra change only: host reboot or full down/up cycle verified (if `infra/` changed)
+
+## Rollback
+
+- Previous stable tag: `v2026.06.09.1`
+
+```bash
+cd ~/apps/data-solution-2026
+git fetch --all --tags
+git checkout v2026.06.09.1
+docker compose up -d
+```
 
 ## Related artifacts
 
-- Release notes: [`notes.md`](notes.md)
-- Release details: [`readme.md`](readme.md)
-- Incident register: [`doc/operation/incident/`](../../doc/operation/incident/readme.md)
+- Release details (internal): [`readme.md`](readme.md) *(same folder as this file after scaffold)*
+- Retrospective: [`retrospective.md`](retrospective.md)
+- Incidents: *(link INC-NNN from [incident register](../../doc/operation/incident/readme.md) if any)*
+
+## Notes
+
+Additional operational notes.
 
 ## Project structure
 
@@ -177,11 +194,11 @@ Per-release sprint retrospective. Agent drafts; user approves promotions and act
             - [Notes](../v2026.06.09.1/notes.md)
             - [Retrospective](../v2026.06.09.1/retrospective.md)
           - V2026.06.09.2
+            - [Notes](../v2026.06.09.2/notes.md)
+            - [Retrospective](../v2026.06.09.2/retrospective.md)
+          - V2026.06.09.3
             - [Notes](notes.md)
             - [Retrospective](retrospective.md)
-          - V2026.06.09.3
-            - [Notes](../v2026.06.09.3/notes.md)
-            - [Retrospective](../v2026.06.09.3/retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

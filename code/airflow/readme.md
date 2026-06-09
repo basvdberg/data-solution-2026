@@ -8,6 +8,8 @@
 - [Poller DAG](#poller-dag)
 <!-- markdown-toc:end -->
 
+**Target runtime:** Apache Airflow **3.2.0** (`apache/airflow:3.2.0` in [`infra/airflow/docker-compose.standalone.yaml`](../../infra/airflow/docker-compose.standalone.yaml)). DAGs import from `airflow.sdk`; operators from `airflow.providers.standard.*`.
+
 ## DAGs
 
 Python files under [dags/](dags/) are loaded by the Airflow scheduler from `/opt/airflow/dags` in the container.
@@ -41,11 +43,11 @@ python -m extractor_and_poller.poller \
   --publish none
 ```
 
-`PYTHONPATH` is set in the Airflow container (`/opt/data-solution/code:/opt/data-solution:/opt/data-solution/code/airflow`).
+`PYTHONPATH` is set in the Airflow container (`/opt/data-solution/code:/opt/data-solution`).
 
 The task runs as `PythonOperator` so it **inherits** container env vars (`POSTGRES_HOST`, `POSTGRES_USER`, etc.). Do not use a custom operator `env` dict that only sets `PYTHONPATH`—that replaces the whole environment and breaks Postgres (defaults to `localhost:5432`).
 
-**Manual trigger while a run is active:** plugin `plugins/manual_run_guard_plugin.py` (mounted from `code/airflow/plugins/`) marks the new manual DAG run **failed** with an explanatory note. The task also calls `assert_manual_trigger_allowed_from_context()` before work starts.
+**Manual trigger while a run is active:** the DAG has `max_active_runs=1`, so Airflow **queues** a new manual run until the current run finishes. That is expected. While queued, the DAG run shows state **queued** in the UI and there are **no task logs** yet — logs appear only when the run moves to **running**. To cancel, clear or fail the queued DAG run from the UI.
 
 **Task logs:** the DAG has no custom logging; output comes from the poller CLI. When run under Airflow, `configure_logging()` does **not** replace Airflow's task log handlers (see `extractor_and_poller.common.logging_setup.running_in_airflow_task`).
 
@@ -69,6 +71,7 @@ Confirm `~/apache-airflow/.env` on the local server includes `POSTGRES_HOST=post
       - Poller
       - Tests
     - Postgres
+      - Migrations
   - Connection
   - Data
     - Staging
@@ -143,6 +146,9 @@ Confirm `~/apache-airflow/.env` on the local server includes `POSTGRES_HOST=post
           - V2026.06.09.2
             - [Notes](../../release/2026/06/09/v2026.06.09.2/notes.md)
             - [Retrospective](../../release/2026/06/09/v2026.06.09.2/retrospective.md)
+          - V2026.06.09.3
+            - [Notes](../../release/2026/06/09/v2026.06.09.3/notes.md)
+            - [Retrospective](../../release/2026/06/09/v2026.06.09.3/retrospective.md)
     - [Release <version>](../../release/release-notes-template.md)
     - [Retrospective — <version>](../../release/retrospective-template.md)
   - Setting

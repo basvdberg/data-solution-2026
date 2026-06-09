@@ -18,9 +18,15 @@ class EventPublisher(Protocol):
 
 
 def event_payload(result: PollResult) -> dict[str, str | None]:
+    """Full poll result for stdout debugging."""
     payload = asdict(result)
     payload["event_time_utc"] = result.event_time_utc.isoformat()
     return payload
+
+
+def kafka_message_value(result: PollResult) -> str:
+    """Kafka message body: data object id only."""
+    return result.data_object_id
 
 
 class StdoutPublisher:
@@ -56,25 +62,22 @@ class KafkaPublisher:
         return KafkaProducer(
             bootstrap_servers=bootstrap_servers,
             key_serializer=lambda value: value.encode("utf-8"),
-            value_serializer=lambda value: json.dumps(value).encode("utf-8"),
+            value_serializer=lambda value: value.encode("utf-8"),
         )
 
     def publish(self, result: PollResult) -> None:
-        payload = event_payload(result)
+        value = kafka_message_value(result)
         future = self._producer.send(
             result.event_type,
             key=result.data_object_id,
-            value=payload,
-            headers=[("idempotency_key", result.idempotency_key.encode("utf-8"))],
+            value=value,
         )
-        # Surface transport errors as controlled failures.
         future.get(timeout=10)
         log.info(
-            "event_published transport=kafka bootstrap=%s topic=%s key=%s idempotency_key=%s",
+            "event_published transport=kafka bootstrap=%s topic=%s data_object_id=%s",
             self._bootstrap_servers,
             result.event_type,
-            result.data_object_id,
-            result.idempotency_key,
+            value,
         )
 
     def close(self) -> None:

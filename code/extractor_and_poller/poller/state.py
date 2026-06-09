@@ -141,29 +141,25 @@ class PostgresStateStore:
             cur.execute(
                 """
                 insert into poller (
-                    event_id,
-                    run_id,
-                    data_object_id,
-                    source_data_object_id,
-                    target_data_object_id,
-                    event_type,
                     polled_at_utc,
+                    data_object_id,
+                    event_type,
                     old_marker,
-                    new_marker
+                    new_marker,
+                    event_id,
+                    run_id
                 )
-                values (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                values (%s, %s, %s, %s, %s, %s, %s)
                 returning id
                 """,
                 (
-                    result.event_id,
-                    result.run_id,
-                    result.data_object_id,
-                    result.source_data_object_id,
-                    result.target_data_object_id,
-                    result.event_type,
                     polled_at,
+                    result.data_object_id,
+                    result.event_type,
                     result.previous_marker,
                     result.current_marker,
+                    result.event_id,
+                    result.run_id,
                 ),
             )
             row = cur.fetchone()

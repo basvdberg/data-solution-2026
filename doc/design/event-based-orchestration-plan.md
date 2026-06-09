@@ -68,7 +68,9 @@ Flow:
 
 ## Event contract (minimum)
 
-Use one envelope for both event types:
+Kafka message body is the **data object id** string only (topic remains `data_object_change` or `data_object_unchanged`; partition key is `data_object_id`). Full probe details live in Postgres table `poller` (query `poller_latest_first` for newest rows first).
+
+Stdout publish (`--publish stdout`) still emits the full envelope for local debugging:
 
 - `event_id` (uuid)
 - `event_type` (`data_object_change` or `data_object_unchanged`)
@@ -82,8 +84,8 @@ Use one envelope for both event types:
 
 Kafka topics:
 
-- `data_object_change` (key: `data_object_id`)
-- `data_object_unchanged` (key: `data_object_id`)
+- `data_object_change` (key: `data_object_id`, value: `data_object_id`)
+- `data_object_unchanged` (key: `data_object_id`, value: `data_object_id`)
 
 ## Data poller implementation plan
 
@@ -106,13 +108,12 @@ Acceptance:
 
 Deliverables:
 
-- Add producer module for poll results -> Kafka event envelope.
-- Publish to `data_object_change` and `data_object_unchanged` topics.
-- Add idempotency key policy (`data_object_id + current_marker`) in producer metadata/logging.
+- Add producer module: Kafka message **value** is `data_object_id` only.
+- Publish to `data_object_change` and `data_object_unchanged` topics (key and value: `data_object_id`).
 
 Acceptance:
 
-- Successful publish for both event types is visible with message key `data_object_id`.
+- Successful publish for both event types is visible with message value `data_object_id`.
 - Temporary Kafka outage results in controlled failure (no silent success).
 
 ### Phase 3 - Airflow poller DAG
@@ -167,12 +168,9 @@ Create or evolve these tables:
 
 - `poller` (implemented; see [code/postgres/schema.sql](../../code/postgres/schema.sql)):
   - `id` (pk)
-  - `event_id`, `run_id`
-  - `data_object_id`, `source_data_object_id`, `target_data_object_id`
-  - `event_type`
-  - `polled_at_utc` (timestamp)
-  - `old_marker`, `new_marker` (change markers)
-  - `inserted_at_utc`
+  - `polled_at_utc`, `data_object_id`, `event_type`, `old_marker`, `new_marker`
+  - `event_id`, `run_id` (correlation; see event contract above)
+- View `poller_latest_first`: same columns, newest `polled_at_utc` first
 - `event_log`:
   - `event_id` (pk)
   - `event_type`
@@ -278,6 +276,7 @@ Runtime rule:
       - Poller
       - Tests
     - Postgres
+      - Migrations
   - Connection
   - Data
     - Staging
@@ -352,6 +351,9 @@ Runtime rule:
           - V2026.06.09.2
             - [Notes](../../release/2026/06/09/v2026.06.09.2/notes.md)
             - [Retrospective](../../release/2026/06/09/v2026.06.09.2/retrospective.md)
+          - V2026.06.09.3
+            - [Notes](../../release/2026/06/09/v2026.06.09.3/notes.md)
+            - [Retrospective](../../release/2026/06/09/v2026.06.09.3/retrospective.md)
     - [Release <version>](../../release/release-notes-template.md)
     - [Retrospective — <version>](../../release/retrospective-template.md)
   - Setting

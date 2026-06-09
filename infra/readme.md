@@ -120,9 +120,10 @@ Optional: uncomment the `kafka` external network in [docker-compose.standalone.y
 - **Shared instance:** existing container `basnas_postgress` on host port **5432** (Docker network `immich_default`). Airflow connects as `basnas_postgress:5432`; SQL clients use `basnas:5432`.
 - Database: `data-solution-2026` (see [postgres/.env.example](postgres/.env.example)).
 - Schema DDL: [code/postgres/schema.sql](../code/postgres/schema.sql), applied by [postgres/create-app-user.sh](postgres/create-app-user.sh).
+- Incremental migrations: [code/postgres/migrations/](../code/postgres/migrations/) with applicability checks; [postgres/run-applicable-migrations.sh](postgres/run-applicable-migrations.sh) runs from [release/scripts/deploy-on-nas.sh](../release/scripts/deploy-on-nas.sh) when `release/deploy-config.json` has `run_db_migrations=true` (set by pre-commit when migration files change). Force with `RUN_DB_MIGRATIONS=1`; skip with `RUN_DB_MIGRATIONS=0`.
 - Application role: `data-solution-2026_app` (login, `SELECT`/`INSERT` on `poller` only). Create or rotate with `create-app-user.sh`; set `POSTGRES_USER` / `POSTGRES_PASSWORD` in Airflow `.env` to that role (see [airflow/.env.example](airflow/.env.example)).
 - Upgrading from `data_solution`: run [postgres/migrate-database-name.sh](postgres/migrate-database-name.sh) once, update `.env`, then `create-app-user.sh`.
-- Poller appends one row per probe to table `poller` (`data_object_id`, `polled_at_utc`, `old_marker`, `new_marker`, event envelope fields).
+- Poller appends one row per probe to table `poller` (`data_object_id`, `polled_at_utc`, markers, `event_type`, `event_id`, `run_id`).
 
 **Migrating from the legacy dedicated Postgres (`data-solution-postgres` on port 5433):**
 
@@ -171,7 +172,17 @@ Fix (run once on NAS after pull):
 bash infra/scripts/setup-nas-ssh-env.sh
 ```
 
-That extends `~/.ssh/environment`, `~/.local/bin/nas-path.sh`, and `~/.local/bin/docker` (symlink). Interactive `ssh $LOCAL_SERVER_SSH` loads `nas-path.sh` from `~/.profile`. For bare `ssh $LOCAL_SERVER_SSH 'docker …'`, enable [enable-nas-ssh-user-env.sh](scripts/enable-nas-ssh-user-env.sh) once (admin password).
+That installs `~/.local/bin/nas-path.sh`, `~/.local/bin/docker` (symlink), and `~/.local/bin/nas-login-sh`. Interactive `ssh $LOCAL_SERVER_SSH` loads `nas-path.sh` from `~/.profile`.
+
+For bare `ssh $LOCAL_SERVER_SSH 'docker …'` (agents and CI hooks), set the login shell once (survives QNAP reboot):
+
+```bash
+ssh $LOCAL_SERVER_SSH
+sudo cp -p /etc/passwd /etc/passwd.bak.nas-path
+sudo sed -i 's#:/bin/sh$#:/share/homes/bas/.local/bin/nas-login-sh#' /etc/passwd
+```
+
+`sudo` uses the **QTS administrator password**, not the SSH user password. QNAP Control Panel has no custom-shell field. Manual `PermitUserEnvironment` in `/etc/config/ssh/sshd_config` is **wiped on reboot** — do not rely on it. See Cursor skill **basnas-ssh** (`cursor-config/skills/basnas-ssh`).
 
 Verify (after `source local-server.env.example` or your `local-server.env`):
 
@@ -231,6 +242,7 @@ docker exec airflow-standalone cat '/opt/airflow/logs/dag_id=openmeteo_data_obje
       - Poller
       - Tests
     - Postgres
+      - Migrations
   - Connection
   - Data
     - Staging
@@ -305,6 +317,9 @@ docker exec airflow-standalone cat '/opt/airflow/logs/dag_id=openmeteo_data_obje
           - V2026.06.09.2
             - [Notes](../release/2026/06/09/v2026.06.09.2/notes.md)
             - [Retrospective](../release/2026/06/09/v2026.06.09.2/retrospective.md)
+          - V2026.06.09.3
+            - [Notes](../release/2026/06/09/v2026.06.09.3/notes.md)
+            - [Retrospective](../release/2026/06/09/v2026.06.09.3/retrospective.md)
     - [Release <version>](../release/release-notes-template.md)
     - [Retrospective — <version>](../release/retrospective-template.md)
   - Setting

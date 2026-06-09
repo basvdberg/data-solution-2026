@@ -115,7 +115,7 @@ ssh bas@basnas 'ps w | grep sshd'
 
 Restarting SSH from the QNAP Control Panel reloads the **active** config; toggling SSH off/on does **not** add `PermitUserEnvironment` to `/etc/config/ssh/sshd_config` if it was only ever appended to `/etc/ssh/sshd_config`.
 
-**Fix (admin on NAS):** log in as **admin** (not `bas`), append `PermitUserEnvironment yes` to `/etc/config/ssh/sshd_config`, then restart SSH from **Control Panel → Network & File Services → Telnet/SSH** (toggle off/on). QNAP’s user editor does not offer a custom shell field, so changing `bas`’s login shell via the GUI is not an option. Running `setsid /etc/init.d/login.sh restart` as `bas` can segfault and drop SSH. **Code fix:** change `enable-nas-ssh-user-env.sh` to patch `/etc/config/ssh/sshd_config`, not `/etc/ssh/sshd_config`. See [INC-001](doc/operation/incident/inc-001-nas-ssh-environment.md) and the planned `basnas-ssh` Cursor skill.
+**Fix that worked (persistent):** after `setup-nas-ssh-env.sh`, set `bas` login shell in `/etc/passwd` to `/share/homes/bas/.local/bin/nas-login-sh` with `sudo sed` (QTS admin password). Bare `ssh bas@basnas 'docker -v'` then works across reboot. QNAP wipes manual `PermitUserEnvironment` in `/etc/config/ssh/sshd_config` on reboot; `ssh admin@basnas` is denied; Control Panel has no shell field. Codified in Cursor skill **basnas-ssh** (`cursor-config/skills/basnas-ssh`). See [INC-001](doc/operation/incident/inc-001-nas-ssh-environment.md).
 
 ### Relation to the Airflow “no logs” session
 
@@ -281,6 +281,7 @@ See [Issue inventory and retrospectives](#issue-inventory-and-retrospectives) fo
       - Poller
       - Tests
     - Postgres
+      - Migrations
   - Connection
   - Data
     - Staging
@@ -355,6 +356,9 @@ See [Issue inventory and retrospectives](#issue-inventory-and-retrospectives) fo
           - V2026.06.09.2
             - [Notes](release/2026/06/09/v2026.06.09.2/notes.md)
             - [Retrospective](release/2026/06/09/v2026.06.09.2/retrospective.md)
+          - V2026.06.09.3
+            - [Notes](release/2026/06/09/v2026.06.09.3/notes.md)
+            - [Retrospective](release/2026/06/09/v2026.06.09.3/retrospective.md)
     - [Release <version>](release/release-notes-template.md)
     - [Retrospective — <version>](release/retrospective-template.md)
   - Setting

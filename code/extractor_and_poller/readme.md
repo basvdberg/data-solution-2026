@@ -24,7 +24,7 @@ python -m extractor_and_poller.openmeteo.extractor --mapping daily-temperature
 Event-oriented poller options:
 
 ```powershell
-# Publish event envelopes to stdout or Kafka (state always in Postgres)
+# Publish events: stdout = full JSON envelope; Kafka = data_object_id only
 python -m extractor_and_poller.poller --data-object source/openmeteo/daily-temperature --publish stdout
 python -m extractor_and_poller.poller --data-object source/openmeteo/daily-temperature --publish kafka
 ```
@@ -37,6 +37,8 @@ Airflow DAGs: [`code/airflow/`](../airflow/readme.md).
 
 - No local files or directories are created by the poller.
 - Each run appends one row to Postgres table `poller` (see [../postgres/schema.sql](../postgres/schema.sql)).
+- Query `poller_latest_first` to browse newest probe events first.
+- Schema upgrades on deploy: [../../infra/postgres/run-applicable-migrations.sh](../../infra/postgres/run-applicable-migrations.sh) (when `run_db_migrations` is set in deploy-config).
 - Environment: `POSTGRES_HOST`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `DATA_SOLUTION_DB` (default `data-solution-2026`), or `POSTGRES_DSN`.
 
 ## Project structure
@@ -55,6 +57,7 @@ Airflow DAGs: [`code/airflow/`](../airflow/readme.md).
       - Poller
       - Tests
     - Postgres
+      - Migrations
   - Connection
   - Data
     - Staging
@@ -129,6 +132,9 @@ Airflow DAGs: [`code/airflow/`](../airflow/readme.md).
           - V2026.06.09.2
             - [Notes](../../release/2026/06/09/v2026.06.09.2/notes.md)
             - [Retrospective](../../release/2026/06/09/v2026.06.09.2/retrospective.md)
+          - V2026.06.09.3
+            - [Notes](../../release/2026/06/09/v2026.06.09.3/notes.md)
+            - [Retrospective](../../release/2026/06/09/v2026.06.09.3/retrospective.md)
     - [Release <version>](../../release/release-notes-template.md)
     - [Retrospective — <version>](../../release/retrospective-template.md)
   - Setting
