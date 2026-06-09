@@ -1,112 +1,89 @@
 ## Table of contents
 
 <!-- markdown-toc:start -->
-- [Metadata](#metadata)
-- [Scope](#scope)
-- [Changes](#changes)
-  - [Added](#added)
-  - [Changed](#changed)
-  - [Deprecated](#deprecated)
-  - [Removed](#removed)
-  - [Fixed](#fixed)
-  - [Security](#security)
-- [Poller and Airflow impact](#poller-and-airflow-impact)
-- [Deployment](#deployment)
-- [Validation](#validation)
-- [Rollback](#rollback)
+- [Release context](#release-context)
+- [What went well](#what-went-well)
+- [What did not go well](#what-did-not-go-well)
+- [Incidents this release](#incidents-this-release)
+- [Patterns (by category)](#patterns-by-category)
+- [Root causes (generalized)](#root-causes-generalized)
+- [Metrics](#metrics)
+- [Action items](#action-items)
+- [Promotions (approval gate)](#promotions-approval-gate)
+- [Lessons promoted](#lessons-promoted)
 - [Related artifacts](#related-artifacts)
-- [Notes](#notes)
 <!-- markdown-toc:end -->
 
-## Table of contents
+﻿# Retrospective — v2026.06.09.4
 
+Per-release sprint retrospective. Agent drafts; user approves promotions and action items.
 
-﻿# Release v2026.06.08.1
+## Release context
 
-Operator-facing release notes. Published to GitHub Releases via `publish-release.ps1`. Format follows [Keep a Changelog](https://keepachangelog.com/).
+| Field | Value |
+|-------|-------|
+| **Version** | v2026.06.09.4 |
+| **Date** | 2026-06-09 |
+| **Commit** | `<fill-after-commit>` |
+| **Validation** | pass / fail / partial — brief outcome |
 
-## Metadata
-
-- Version: `v2026.06.08.1`
-- Date: `2026-06-08`
-- Branch: `main`
-- Commit: `<fill-after-commit>`
-
-## Scope
-
-Brief description of what is included in this release.
-
-## Changes
-
-### Added
+## What went well
 
 -
 
-### Changed
+## What did not go well
 
 -
 
-### Deprecated
+## Incidents this release
 
--
+| ID | Title | Severity |
+|----|-------|----------|
+| | | |
 
-### Removed
+## Patterns (by category)
 
--
+| Category | Count | Example IDs | Theme |
+|----------|-------|-------------|-------|
+| | | | |
 
-### Fixed
+## Root causes (generalized)
 
--
+1.
 
-### Security
+## Metrics
 
--
+| Metric | Value |
+|--------|-------|
+| ERR entries | |
+| Repeat ERR (Count > 1) | |
+| Incidents (INC) | |
+| Validation checklist | |
 
-## Poller and Airflow impact
+## Action items
 
-- Poller mapping:
-- Airflow DAG (`code/airflow/dags/`):
-- Runtime variables changed:
+| Item | Owner | Destination |
+|------|-------|-------------|
+| | | skill / rule / checklist / runbook / lessons-learned |
 
-## Deployment
+## Promotions (approval gate)
 
-- Trigger: push to `main` → CI → NAS pull deploy
-- Infra sync: automatic when `release/deploy-config.json` has `sync_infra: true` (set by pre-commit when compose/env under `infra/` changes)
-- NAS actions after deploy:
-  - [ ] Dependencies updated
-  - [ ] Services restarted
-  - [ ] Airflow DAGs parse and appear in UI
+- [ ] Skill or rule update
+- [ ] Release notes template / validation step
+- [ ] Infra or deploy runbook
+- [ ] Lessons learned / issue category heat map
 
-## Validation
+## Lessons promoted
 
-- [ ] Unit tests passed (CI)
-- [ ] Integration checks passed
-- [ ] Airflow `dags list-import-errors` empty on NAS (`docker exec airflow-standalone airflow dags list-import-errors`)
-- [ ] Airflow poller manual run passed
-- [ ] Kafka publish verified (or stdout in smoke mode)
-- [ ] Postgres state persistence verified
-- [ ] Infra change only: host reboot or full down/up cycle verified (if `infra/` changed)
-
-## Rollback
-
-- Previous stable tag: `v2026.06.05.5`
-
-```bash
-cd ~/apps/data-solution-2026
-git fetch --all --tags
-git checkout v2026.06.05.5
-docker compose up -d
-```
+| Category | Theme | lessons-learned anchor |
+|----------|-------|------------------------|
+| | | |
 
 ## Related artifacts
 
-- Release details (internal): [`readme.md`](readme.md) *(same folder as this file after scaffold)*
-- Retrospective: [`retrospective.md`](retrospective.md)
-- Incidents: *(link INC-NNN from [incident register](../../doc/operation/incident/readme.md) if any)*
-
-## Notes
-
-Additional operational notes.
+- Release notes: [`notes.md`](notes.md)
+- Release details: [`readme.md`](readme.md)
+- Incident register: [`doc/operation/incident/`](../../doc/operation/incident/readme.md)
 
 ## Project structure
 
@@ -187,24 +164,24 @@ Additional operational notes.
             - [Retrospective](../../05/v2026.06.05.6/retrospective.md)
         - 08
           - V2026.06.08.1
-            - [Notes](notes.md)
-            - [Retrospective](retrospective.md)
+            - [Notes](../../08/v2026.06.08.1/notes.md)
+            - [Retrospective](../../08/v2026.06.08.1/retrospective.md)
           - V2026.06.08.2
-            - [Notes](../v2026.06.08.2/notes.md)
-            - [Retrospective](../v2026.06.08.2/retrospective.md)
+            - [Notes](../../08/v2026.06.08.2/notes.md)
+            - [Retrospective](../../08/v2026.06.08.2/retrospective.md)
         - 09
           - V2026.06.09.1
-            - [Notes](../../09/v2026.06.09.1/notes.md)
-            - [Retrospective](../../09/v2026.06.09.1/retrospective.md)
+            - [Notes](../v2026.06.09.1/notes.md)
+            - [Retrospective](../v2026.06.09.1/retrospective.md)
           - V2026.06.09.2
-            - [Notes](../../09/v2026.06.09.2/notes.md)
-            - [Retrospective](../../09/v2026.06.09.2/retrospective.md)
+            - [Notes](../v2026.06.09.2/notes.md)
+            - [Retrospective](../v2026.06.09.2/retrospective.md)
           - V2026.06.09.3
-            - [Notes](../../09/v2026.06.09.3/notes.md)
-            - [Retrospective](../../09/v2026.06.09.3/retrospective.md)
+            - [Notes](../v2026.06.09.3/notes.md)
+            - [Retrospective](../v2026.06.09.3/retrospective.md)
           - V2026.06.09.4
-            - [Notes](../../09/v2026.06.09.4/notes.md)
-            - [Retrospective](../../09/v2026.06.09.4/retrospective.md)
+            - [Notes](notes.md)
+            - [Retrospective](retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

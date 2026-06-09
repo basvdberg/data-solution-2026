@@ -165,6 +165,9 @@ Empty scaffold releases (auto-bumped with no content) were removed during the 20
           - V2026.06.09.3
             - [Notes](2026/06/09/v2026.06.09.3/notes.md)
             - [Retrospective](2026/06/09/v2026.06.09.3/retrospective.md)
+          - V2026.06.09.4
+            - [Notes](2026/06/09/v2026.06.09.4/notes.md)
+            - [Retrospective](2026/06/09/v2026.06.09.4/retrospective.md)
     - [Release <version>](release-notes-template.md)
     - [Retrospective — <version>](retrospective-template.md)
   - Setting

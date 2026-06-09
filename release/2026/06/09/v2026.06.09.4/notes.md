@@ -18,17 +18,14 @@
 - [Notes](#notes)
 <!-- markdown-toc:end -->
 
-## Table of contents
-
-
-﻿# Release v2026.06.08.1
+﻿# Release v2026.06.09.4
 
 Operator-facing release notes. Published to GitHub Releases via `publish-release.ps1`. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## Metadata
 
-- Version: `v2026.06.08.1`
-- Date: `2026-06-08`
+- Version: `v2026.06.09.4`
+- Date: `2026-06-09`
 - Branch: `main`
 - Commit: `<fill-after-commit>`
 
@@ -89,12 +86,12 @@ Brief description of what is included in this release.
 
 ## Rollback
 
-- Previous stable tag: `v2026.06.05.5`
+- Previous stable tag: `v2026.06.09.2`
 
 ```bash
 cd ~/apps/data-solution-2026
 git fetch --all --tags
-git checkout v2026.06.05.5
+git checkout v2026.06.09.2
 docker compose up -d
 ```
 
@@ -187,24 +184,24 @@ Additional operational notes.
             - [Retrospective](../../05/v2026.06.05.6/retrospective.md)
         - 08
           - V2026.06.08.1
-            - [Notes](notes.md)
-            - [Retrospective](retrospective.md)
+            - [Notes](../../08/v2026.06.08.1/notes.md)
+            - [Retrospective](../../08/v2026.06.08.1/retrospective.md)
           - V2026.06.08.2
-            - [Notes](../v2026.06.08.2/notes.md)
-            - [Retrospective](../v2026.06.08.2/retrospective.md)
+            - [Notes](../../08/v2026.06.08.2/notes.md)
+            - [Retrospective](../../08/v2026.06.08.2/retrospective.md)
         - 09
           - V2026.06.09.1
-            - [Notes](../../09/v2026.06.09.1/notes.md)
-            - [Retrospective](../../09/v2026.06.09.1/retrospective.md)
+            - [Notes](../v2026.06.09.1/notes.md)
+            - [Retrospective](../v2026.06.09.1/retrospective.md)
           - V2026.06.09.2
-            - [Notes](../../09/v2026.06.09.2/notes.md)
-            - [Retrospective](../../09/v2026.06.09.2/retrospective.md)
+            - [Notes](../v2026.06.09.2/notes.md)
+            - [Retrospective](../v2026.06.09.2/retrospective.md)
           - V2026.06.09.3
-            - [Notes](../../09/v2026.06.09.3/notes.md)
-            - [Retrospective](../../09/v2026.06.09.3/retrospective.md)
+            - [Notes](../v2026.06.09.3/notes.md)
+            - [Retrospective](../v2026.06.09.3/retrospective.md)
           - V2026.06.09.4
-            - [Notes](../../09/v2026.06.09.4/notes.md)
-            - [Retrospective](../../09/v2026.06.09.4/retrospective.md)
+            - [Notes](notes.md)
+            - [Retrospective](retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

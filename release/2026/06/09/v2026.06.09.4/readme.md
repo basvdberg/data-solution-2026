@@ -1,112 +1,30 @@
-## Table of contents
+﻿## Table of contents
 
 <!-- markdown-toc:start -->
-- [Metadata](#metadata)
-- [Scope](#scope)
-- [Changes](#changes)
-  - [Added](#added)
-  - [Changed](#changed)
-  - [Deprecated](#deprecated)
-  - [Removed](#removed)
-  - [Fixed](#fixed)
-  - [Security](#security)
-- [Poller and Airflow impact](#poller-and-airflow-impact)
-- [Deployment](#deployment)
-- [Validation](#validation)
-- [Rollback](#rollback)
-- [Related artifacts](#related-artifacts)
-- [Notes](#notes)
+- [Release metadata](#release-metadata)
+- [Summary](#summary)
+- [Linked files](#linked-files)
 <!-- markdown-toc:end -->
 
-## Table of contents
+﻿# Release v2026.06.09.4 - Details
 
+## Release metadata
 
-﻿# Release v2026.06.08.1
+- Version: `v2026.06.09.4`
+- Development start: `2026-06-09T13:38:24+02:00`
+- Development end: `2026-06-09T13:38:44+02:00`
+- Release branch: `main`
+- Release commit: `fe19fde057ea9294c111591fdf2e4277df91f4ec`
 
-Operator-facing release notes. Published to GitHub Releases via `publish-release.ps1`. Format follows [Keep a Changelog](https://keepachangelog.com/).
+## Summary
 
-## Metadata
+- Update scope and changes in `notes.md` in this folder.
 
-- Version: `v2026.06.08.1`
-- Date: `2026-06-08`
-- Branch: `main`
-- Commit: `<fill-after-commit>`
+## Linked files
 
-## Scope
-
-Brief description of what is included in this release.
-
-## Changes
-
-### Added
-
--
-
-### Changed
-
--
-
-### Deprecated
-
--
-
-### Removed
-
--
-
-### Fixed
-
--
-
-### Security
-
--
-
-## Poller and Airflow impact
-
-- Poller mapping:
-- Airflow DAG (`code/airflow/dags/`):
-- Runtime variables changed:
-
-## Deployment
-
-- Trigger: push to `main` → CI → NAS pull deploy
-- Infra sync: automatic when `release/deploy-config.json` has `sync_infra: true` (set by pre-commit when compose/env under `infra/` changes)
-- NAS actions after deploy:
-  - [ ] Dependencies updated
-  - [ ] Services restarted
-  - [ ] Airflow DAGs parse and appear in UI
-
-## Validation
-
-- [ ] Unit tests passed (CI)
-- [ ] Integration checks passed
-- [ ] Airflow `dags list-import-errors` empty on NAS (`docker exec airflow-standalone airflow dags list-import-errors`)
-- [ ] Airflow poller manual run passed
-- [ ] Kafka publish verified (or stdout in smoke mode)
-- [ ] Postgres state persistence verified
-- [ ] Infra change only: host reboot or full down/up cycle verified (if `infra/` changed)
-
-## Rollback
-
-- Previous stable tag: `v2026.06.05.5`
-
-```bash
-cd ~/apps/data-solution-2026
-git fetch --all --tags
-git checkout v2026.06.05.5
-docker compose up -d
-```
-
-## Related artifacts
-
-- Release details (internal): [`readme.md`](readme.md) *(same folder as this file after scaffold)*
+- Release note: [`notes.md`](notes.md)
 - Retrospective: [`retrospective.md`](retrospective.md)
-- Incidents: *(link INC-NNN from [incident register](../../doc/operation/incident/readme.md) if any)*
-
-## Notes
-
-Additional operational notes.
+- Incident register: [`doc/operation/incident/`](../../../doc/operation/incident/readme.md)
 
 ## Project structure
 
@@ -187,24 +105,24 @@ Additional operational notes.
             - [Retrospective](../../05/v2026.06.05.6/retrospective.md)
         - 08
           - V2026.06.08.1
-            - [Notes](notes.md)
-            - [Retrospective](retrospective.md)
+            - [Notes](../../08/v2026.06.08.1/notes.md)
+            - [Retrospective](../../08/v2026.06.08.1/retrospective.md)
           - V2026.06.08.2
-            - [Notes](../v2026.06.08.2/notes.md)
-            - [Retrospective](../v2026.06.08.2/retrospective.md)
+            - [Notes](../../08/v2026.06.08.2/notes.md)
+            - [Retrospective](../../08/v2026.06.08.2/retrospective.md)
         - 09
           - V2026.06.09.1
-            - [Notes](../../09/v2026.06.09.1/notes.md)
-            - [Retrospective](../../09/v2026.06.09.1/retrospective.md)
+            - [Notes](../v2026.06.09.1/notes.md)
+            - [Retrospective](../v2026.06.09.1/retrospective.md)
           - V2026.06.09.2
-            - [Notes](../../09/v2026.06.09.2/notes.md)
-            - [Retrospective](../../09/v2026.06.09.2/retrospective.md)
+            - [Notes](../v2026.06.09.2/notes.md)
+            - [Retrospective](../v2026.06.09.2/retrospective.md)
           - V2026.06.09.3
-            - [Notes](../../09/v2026.06.09.3/notes.md)
-            - [Retrospective](../../09/v2026.06.09.3/retrospective.md)
+            - [Notes](../v2026.06.09.3/notes.md)
+            - [Retrospective](../v2026.06.09.3/retrospective.md)
           - V2026.06.09.4
-            - [Notes](../../09/v2026.06.09.4/notes.md)
-            - [Retrospective](../../09/v2026.06.09.4/retrospective.md)
+            - [Notes](notes.md)
+            - [Retrospective](retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

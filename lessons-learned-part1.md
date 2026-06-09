@@ -176,6 +176,9 @@ I bought a very good microphone and used Wispr Flow to translate my voice to tex
           - V2026.06.09.3
             - [Notes](release/2026/06/09/v2026.06.09.3/notes.md)
             - [Retrospective](release/2026/06/09/v2026.06.09.3/retrospective.md)
+          - V2026.06.09.4
+            - [Notes](release/2026/06/09/v2026.06.09.4/notes.md)
+            - [Retrospective](release/2026/06/09/v2026.06.09.4/retrospective.md)
     - [Release <version>](release/release-notes-template.md)
     - [Retrospective — <version>](release/retrospective-template.md)
   - Setting
