@@ -6,6 +6,9 @@
 - [Linked files](#linked-files)
 <!-- markdown-toc:end -->
 
+## Table of contents
+
+
 ﻿## Table of contents
 
 
@@ -141,6 +144,9 @@
           - V2026.06.09.16
             - [Notes](../v2026.06.09.16/notes.md)
             - [Retrospective](../v2026.06.09.16/retrospective.md)
+          - V2026.06.09.17
+            - [Notes](../v2026.06.09.17/notes.md)
+            - [Retrospective](../v2026.06.09.17/retrospective.md)
           - V2026.06.09.2
             - [Notes](../v2026.06.09.2/notes.md)
             - [Retrospective](../v2026.06.09.2/retrospective.md)

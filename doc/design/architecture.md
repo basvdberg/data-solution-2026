@@ -130,6 +130,9 @@ This solution follows the [separate what and how](https://github.com/basvdberg/d
           - V2026.06.09.16
             - [Notes](../../release/2026/06/09/v2026.06.09.16/notes.md)
             - [Retrospective](../../release/2026/06/09/v2026.06.09.16/retrospective.md)
+          - V2026.06.09.17
+            - [Notes](../../release/2026/06/09/v2026.06.09.17/notes.md)
+            - [Retrospective](../../release/2026/06/09/v2026.06.09.17/retrospective.md)
           - V2026.06.09.2
             - [Notes](../../release/2026/06/09/v2026.06.09.2/notes.md)
             - [Retrospective](../../release/2026/06/09/v2026.06.09.2/retrospective.md)
