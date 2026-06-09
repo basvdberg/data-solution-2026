@@ -149,6 +149,9 @@ git checkout v2026.06.03.3
           - V2026.06.09.14
             - [Notes](../../09/v2026.06.09.14/notes.md)
             - [Retrospective](../../09/v2026.06.09.14/retrospective.md)
+          - V2026.06.09.15
+            - [Notes](../../09/v2026.06.09.15/notes.md)
+            - [Retrospective](../../09/v2026.06.09.15/retrospective.md)
           - V2026.06.09.2
             - [Notes](../../09/v2026.06.09.2/notes.md)
             - [Retrospective](../../09/v2026.06.09.2/retrospective.md)

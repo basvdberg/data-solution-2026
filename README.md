@@ -196,6 +196,9 @@ Since the [May 19 LinkedIn post](https://github.com/basvdberg/data-engineering-2
           - V2026.06.09.14
             - [Notes](release/2026/06/09/v2026.06.09.14/notes.md)
             - [Retrospective](release/2026/06/09/v2026.06.09.14/retrospective.md)
+          - V2026.06.09.15
+            - [Notes](release/2026/06/09/v2026.06.09.15/notes.md)
+            - [Retrospective](release/2026/06/09/v2026.06.09.15/retrospective.md)
           - V2026.06.09.2
             - [Notes](release/2026/06/09/v2026.06.09.2/notes.md)
             - [Retrospective](release/2026/06/09/v2026.06.09.2/retrospective.md)

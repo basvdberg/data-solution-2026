@@ -14,6 +14,9 @@
 - [Related artifacts](#related-artifacts)
 <!-- markdown-toc:end -->
 
+## Table of contents
+
+
 ﻿# Retrospective — v2026.06.09.14
 
 Per-release sprint retrospective. Agent drafts; user approves promotions and action items.
@@ -191,6 +194,9 @@ Per-release sprint retrospective. Agent drafts; user approves promotions and act
           - V2026.06.09.14
             - [Notes](notes.md)
             - [Retrospective](retrospective.md)
+          - V2026.06.09.15
+            - [Notes](../v2026.06.09.15/notes.md)
+            - [Retrospective](../v2026.06.09.15/retrospective.md)
           - V2026.06.09.2
             - [Notes](../v2026.06.09.2/notes.md)
             - [Retrospective](../v2026.06.09.2/retrospective.md)
