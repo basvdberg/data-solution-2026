@@ -1,48 +1,112 @@
 ## Table of contents
 
 <!-- markdown-toc:start -->
-- [Release metadata](#release-metadata)
-- [Sequential summary of applied changes](#sequential-summary-of-applied-changes)
-- [Linked files](#linked-files)
+- [Metadata](#metadata)
+- [Scope](#scope)
+- [Changes](#changes)
+  - [Added](#added)
+  - [Changed](#changed)
+  - [Deprecated](#deprecated)
+  - [Removed](#removed)
+  - [Fixed](#fixed)
+  - [Security](#security)
+- [Poller and Airflow impact](#poller-and-airflow-impact)
+- [Deployment](#deployment)
+- [Validation](#validation)
+- [Rollback](#rollback)
+- [Related artifacts](#related-artifacts)
+- [Notes](#notes)
 <!-- markdown-toc:end -->
 
 ## Table of contents
 
 
-﻿## Table of contents
+﻿# Release v2026.06.09.5
 
+Operator-facing release notes. Published to GitHub Releases via `publish-release.ps1`. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-﻿## Table of contents
+## Metadata
 
+- Version: `v2026.06.09.5`
+- Date: `2026-06-09`
+- Branch: `main`
+- Commit: `<fill-after-commit>`
 
-﻿## Table of contents
+## Scope
 
+Brief description of what is included in this release.
 
-﻿# Release v2026.06.02.2 - Details
+## Changes
 
-## Release metadata
+### Added
 
-- Version: `v2026.06.02.2`
-- Development start: `2026-06-02T15:37:35+02:00`
-- Development end: `2026-06-03T10:18:07+02:00`
-- Release branch: `main`
-- Release commit: `233f2ad05dc62a7e15f3aa5e3ea6070223380e56`
-- Published release URL: <https://github.com/basvdberg/data-solution-2026/releases/tag/v2026.06.02.2>
+-
 
-## Sequential summary of applied changes
+### Changed
 
-1. Tested the new CI/CD setup and inspected failing GitHub Actions run.
-2. Identified root cause in CI dependency installation (`pip install -e .`) due to multi top-level package discovery.
-3. Updated workflow install step to explicit test dependencies (`pytest`, `requests`).
-4. Fixed post-push script parameter handling for `RequireCiSuccess` across shell invocations.
-5. Re-tested local workflow behavior:
-   - tests pass locally
-   - watcher correctly blocks deploy when CI fails
-6. Updated release version to `v2026.06.02.2`, created release notes, tagged, and published GitHub release.
+-
 
-## Linked files
+### Deprecated
 
-- Release note: [`notes.md`](notes.md)
+-
+
+### Removed
+
+-
+
+### Fixed
+
+-
+
+### Security
+
+-
+
+## Poller and Airflow impact
+
+- Poller mapping:
+- Airflow DAG (`code/airflow/dags/`):
+- Runtime variables changed:
+
+## Deployment
+
+- Trigger: push to `main` → CI → NAS pull deploy
+- Infra sync: automatic when `release/deploy-config.json` has `sync_infra: true` (set by pre-commit when compose/env under `infra/` changes)
+- NAS actions after deploy:
+  - [ ] Dependencies updated
+  - [ ] Services restarted
+  - [ ] Airflow DAGs parse and appear in UI
+
+## Validation
+
+- [ ] Unit tests passed (CI)
+- [ ] Integration checks passed
+- [ ] Airflow `dags list-import-errors` empty on NAS (`docker exec airflow-standalone airflow dags list-import-errors`)
+- [ ] Airflow poller manual run passed
+- [ ] Kafka publish verified (or stdout in smoke mode)
+- [ ] Postgres state persistence verified
+- [ ] Infra change only: host reboot or full down/up cycle verified (if `infra/` changed)
+
+## Rollback
+
+- Previous stable tag: `v2026.06.09.3`
+
+```bash
+cd ~/apps/data-solution-2026
+git fetch --all --tags
+git checkout v2026.06.09.3
+docker compose up -d
+```
+
+## Related artifacts
+
+- Release details (internal): [`readme.md`](readme.md) *(same folder as this file after scaffold)*
+- Retrospective: [`retrospective.md`](retrospective.md)
+- Incidents: *(link INC-NNN from [incident register](../../doc/operation/incident/readme.md) if any)*
+
+## Notes
+
+Additional operational notes.
 
 ## Project structure
 
@@ -101,9 +165,9 @@
       - 06
         - 02
           - V2026.06.02.1
-            - [Notes](../v2026.06.02.1/notes.md)
+            - [Notes](../../02/v2026.06.02.1/notes.md)
           - V2026.06.02.2
-            - [Release v2026.06.02.2](notes.md)
+            - [Release v2026.06.02.2](../../02/v2026.06.02.2/notes.md)
         - 03
           - V2026.06.03.1
             - [Release v2026.06.03.1](../../03/v2026.06.03.1/notes.md)
@@ -130,20 +194,20 @@
             - [Retrospective](../../08/v2026.06.08.2/retrospective.md)
         - 09
           - V2026.06.09.1
-            - [Notes](../../09/v2026.06.09.1/notes.md)
-            - [Retrospective](../../09/v2026.06.09.1/retrospective.md)
+            - [Notes](../v2026.06.09.1/notes.md)
+            - [Retrospective](../v2026.06.09.1/retrospective.md)
           - V2026.06.09.2
-            - [Notes](../../09/v2026.06.09.2/notes.md)
-            - [Retrospective](../../09/v2026.06.09.2/retrospective.md)
+            - [Notes](../v2026.06.09.2/notes.md)
+            - [Retrospective](../v2026.06.09.2/retrospective.md)
           - V2026.06.09.3
-            - [Notes](../../09/v2026.06.09.3/notes.md)
-            - [Retrospective](../../09/v2026.06.09.3/retrospective.md)
+            - [Notes](../v2026.06.09.3/notes.md)
+            - [Retrospective](../v2026.06.09.3/retrospective.md)
           - V2026.06.09.4
-            - [Notes](../../09/v2026.06.09.4/notes.md)
-            - [Retrospective](../../09/v2026.06.09.4/retrospective.md)
+            - [Notes](../v2026.06.09.4/notes.md)
+            - [Retrospective](../v2026.06.09.4/retrospective.md)
           - V2026.06.09.5
-            - [Notes](../../09/v2026.06.09.5/notes.md)
-            - [Retrospective](../../09/v2026.06.09.5/retrospective.md)
+            - [Notes](notes.md)
+            - [Retrospective](retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

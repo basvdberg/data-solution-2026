@@ -182,6 +182,9 @@ Per-release sprint retrospective. Agent drafts; user approves promotions and act
           - V2026.06.09.4
             - [Notes](2026/06/09/v2026.06.09.4/notes.md)
             - [Retrospective](2026/06/09/v2026.06.09.4/retrospective.md)
+          - V2026.06.09.5
+            - [Notes](2026/06/09/v2026.06.09.5/notes.md)
+            - [Retrospective](2026/06/09/v2026.06.09.5/retrospective.md)
     - [Release <version>](release-notes-template.md)
     - [Retrospective — <version>](retrospective-template.md)
   - Setting
