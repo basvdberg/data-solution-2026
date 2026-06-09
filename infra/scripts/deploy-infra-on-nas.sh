@@ -6,12 +6,13 @@
 #   bash infra/scripts/deploy-infra-on-nas.sh
 #
 # Environment:
-#   APP_ROOT          Repo clone (default: ~/apps/data-solution-2026)
-#   AIRFLOW_DEST      Legacy Airflow folder (default: ~/apache-airflow)
-#   KAFKA_DEST        Legacy Kafka folder (default: ~/kafka)
-#   POSTGRES_DEST     Legacy Postgres config folder (default: ~/data-solution-postgres)
-#   RUN_COMPOSE       1 = docker compose up -d after sync (default: 1)
-#   DRY_RUN           1 = print actions only (default: 0)
+#   APP_ROOT            Repo clone (default: ~/apps/data-solution-2026)
+#   AIRFLOW_DEST        Legacy Airflow folder (default: ~/apache-airflow)
+#   KAFKA_DEST          Legacy Kafka folder (default: ~/kafka)
+#   POSTGRES_DEST       Legacy Postgres config folder (default: ~/data-solution-postgres)
+#   INFRA_COMPONENTS    Comma-separated subset: airflow,kafka,postgres (default: from deploy-config or all)
+#   RUN_COMPOSE         1 = docker compose up -d after sync (default: 1)
+#   DRY_RUN             1 = print actions only (default: 0)
 
 set -euo pipefail
 
@@ -30,6 +31,8 @@ DRY_RUN="${DRY_RUN:-0}"
 
 INFRA="${APP_ROOT}/infra"
 APP_ABS="$(cd "$APP_ROOT" && pwd)"
+DEPLOY_CONFIG="${DEPLOY_CONFIG:-$APP_ROOT/release/deploy-config.json}"
+SELECTED_COMPONENTS=()
 
 run() {
   if [ "$DRY_RUN" = "1" ]; then
@@ -37,6 +40,52 @@ run() {
   else
     "$@"
   fi
+}
+
+component_selected() {
+  local name=$1
+  local c
+  for c in "${SELECTED_COMPONENTS[@]}"; do
+    if [ "$c" = "$name" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+resolve_components() {
+  if [ -n "${INFRA_COMPONENTS:-}" ]; then
+    local item
+    IFS=',' read -r -a _raw <<<"${INFRA_COMPONENTS}"
+    for item in "${_raw[@]}"; do
+      item="$(echo "$item" | tr -d '[:space:]')"
+      case "$item" in
+        airflow | kafka | postgres)
+          SELECTED_COMPONENTS+=("$item")
+          ;;
+        "")
+          ;;
+        *)
+          echo "ERROR: unknown infra component '${item}' (expected airflow, kafka, or postgres)" >&2
+          exit 1
+          ;;
+      esac
+    done
+    return
+  fi
+
+  local config_reader="${APP_ROOT}/release/scripts/read-deploy-config.sh"
+  if [ -x "$config_reader" ] && [ -f "$DEPLOY_CONFIG" ]; then
+    local line
+    while IFS= read -r line; do
+      [ -n "$line" ] && SELECTED_COMPONENTS+=("$line")
+    done < <(DEPLOY_CONFIG="$DEPLOY_CONFIG" "$config_reader" infra_components 2>/dev/null || true)
+    if [ "${#SELECTED_COMPONENTS[@]}" -gt 0 ]; then
+      return
+    fi
+  fi
+
+  SELECTED_COMPONENTS=(airflow kafka postgres)
 }
 
 copy_file() {
@@ -186,26 +235,18 @@ compose_up() {
   )
 }
 
-main() {
-  if [ ! -d "$INFRA" ]; then
-    echo "ERROR: infra folder not found at ${INFRA}. Set APP_ROOT or pull latest main." >&2
-    exit 1
-  fi
-
-  echo "App root:      ${APP_ABS}"
-  echo "Airflow dest:  ${AIRFLOW_DEST}"
-  echo "Kafka dest:    ${KAFKA_DEST}"
-  echo "Postgres cfg:  ${POSTGRES_DEST} (shared basnas_postgress; no compose stack)"
-
-  if [ -x "${SCRIPT_DIR}/setup-nas-ssh-env.sh" ]; then
-    bash "${SCRIPT_DIR}/setup-nas-ssh-env.sh"
-  fi
-
-  run mkdir -p "${AIRFLOW_DEST}/logs" "${AIRFLOW_DEST}/plugins"
-  run mkdir -p "${KAFKA_DEST}" "${POSTGRES_DEST}"
-
+sync_kafka() {
+  run mkdir -p "${KAFKA_DEST}"
   copy_file "${INFRA}/kafka/docker-compose.yml" "${KAFKA_DEST}/docker-compose.yml"
   copy_file "${INFRA}/kafka/.env.example" "${KAFKA_DEST}/.env.example"
+  ensure_kafka_env
+  if [ "$RUN_COMPOSE" = "1" ]; then
+    compose_up "$KAFKA_DEST"
+  fi
+}
+
+sync_postgres() {
+  run mkdir -p "${POSTGRES_DEST}"
   copy_file "${INFRA}/postgres/.env.example" "${POSTGRES_DEST}/.env.example"
   copy_file "${INFRA}/postgres/create-app-user.sh" "${POSTGRES_DEST}/create-app-user.sh"
   copy_file "${INFRA}/postgres/run-applicable-migrations.sh" \
@@ -216,26 +257,65 @@ main() {
     "${POSTGRES_DEST}/remove-dedicated-postgres.sh"
   copy_file "${INFRA}/postgres/apply-shared-postgres-on-nas.sh" \
     "${POSTGRES_DEST}/apply-shared-postgres-on-nas.sh"
+  ensure_postgres_env
+}
+
+sync_airflow() {
+  run mkdir -p "${AIRFLOW_DEST}/logs" "${AIRFLOW_DEST}/plugins"
   copy_file "${INFRA}/airflow/docker-compose.standalone.yaml" "${AIRFLOW_DEST}/docker-compose.standalone.yaml"
   copy_file "${INFRA}/airflow/.env.example" "${AIRFLOW_DEST}/.env.example"
-
-  ensure_kafka_env
-  ensure_postgres_env
   ensure_airflow_env
   ensure_data_dirs
-
   if [ "$RUN_COMPOSE" = "1" ]; then
-    compose_up "$KAFKA_DEST"
     compose_up "$AIRFLOW_DEST" -f docker-compose.standalone.yaml
     prune_obsolete_airflow_variables
-  else
+  fi
+}
+
+main() {
+  if [ ! -d "$INFRA" ]; then
+    echo "ERROR: infra folder not found at ${INFRA}. Set APP_ROOT or pull latest main." >&2
+    exit 1
+  fi
+
+  resolve_components
+  if [ "${#SELECTED_COMPONENTS[@]}" -eq 0 ]; then
+    echo "No infra components selected; nothing to sync."
+    exit 0
+  fi
+
+  echo "App root:      ${APP_ABS}"
+  echo "Components:    ${SELECTED_COMPONENTS[*]}"
+  echo "Airflow dest:  ${AIRFLOW_DEST}"
+  echo "Kafka dest:    ${KAFKA_DEST}"
+  echo "Postgres cfg:  ${POSTGRES_DEST} (shared basnas_postgress; no compose stack)"
+
+  if [ -x "${SCRIPT_DIR}/setup-nas-ssh-env.sh" ]; then
+    bash "${SCRIPT_DIR}/setup-nas-ssh-env.sh"
+  fi
+
+  if component_selected kafka; then
+    sync_kafka
+  fi
+  if component_selected postgres; then
+    sync_postgres
+  fi
+  if component_selected airflow; then
+    sync_airflow
+  fi
+
+  if [ "$RUN_COMPOSE" != "1" ]; then
     echo "RUN_COMPOSE=0: files synced; restart stacks manually if needed."
   fi
 
   echo "Infra deploy completed."
-  echo "Poller DAG publishes to Kafka by default; broker address from KAFKA_HOST in ${AIRFLOW_DEST}/.env."
-  echo "Postgres: run bash infra/postgres/create-app-user.sh once if schema or app role is missing."
-  echo "Postgres: deploy-on-nas.sh runs infra/postgres/run-applicable-migrations.sh when deploy-config run_db_migrations=true."
+  if component_selected airflow; then
+    echo "Poller DAG publishes to Kafka by default; broker address from KAFKA_HOST in ${AIRFLOW_DEST}/.env."
+  fi
+  if component_selected postgres; then
+    echo "Postgres: run bash infra/postgres/create-app-user.sh once if schema or app role is missing."
+    echo "Postgres: deploy-on-nas.sh runs infra/postgres/run-applicable-migrations.sh when deploy-config run_db_migrations=true."
+  fi
 }
 
 main "$@"

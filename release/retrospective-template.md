@@ -174,6 +174,12 @@ Per-release sprint retrospective. Agent drafts; user approves promotions and act
           - V2026.06.09.1
             - [Notes](2026/06/09/v2026.06.09.1/notes.md)
             - [Retrospective](2026/06/09/v2026.06.09.1/retrospective.md)
+          - V2026.06.09.10
+            - [Notes](2026/06/09/v2026.06.09.10/notes.md)
+            - [Retrospective](2026/06/09/v2026.06.09.10/retrospective.md)
+          - V2026.06.09.11
+            - [Notes](2026/06/09/v2026.06.09.11/notes.md)
+            - [Retrospective](2026/06/09/v2026.06.09.11/retrospective.md)
           - V2026.06.09.2
             - [Notes](2026/06/09/v2026.06.09.2/notes.md)
             - [Retrospective](2026/06/09/v2026.06.09.2/retrospective.md)
@@ -189,6 +195,15 @@ Per-release sprint retrospective. Agent drafts; user approves promotions and act
           - V2026.06.09.6
             - [Notes](2026/06/09/v2026.06.09.6/notes.md)
             - [Retrospective](2026/06/09/v2026.06.09.6/retrospective.md)
+          - V2026.06.09.7
+            - [Notes](2026/06/09/v2026.06.09.7/notes.md)
+            - [Retrospective](2026/06/09/v2026.06.09.7/retrospective.md)
+          - V2026.06.09.8
+            - [Notes](2026/06/09/v2026.06.09.8/notes.md)
+            - [Retrospective](2026/06/09/v2026.06.09.8/retrospective.md)
+          - V2026.06.09.9
+            - [Notes](2026/06/09/v2026.06.09.9/notes.md)
+            - [Retrospective](2026/06/09/v2026.06.09.9/retrospective.md)
     - [Release <version>](release-notes-template.md)
     - [Retrospective — <version>](retrospective-template.md)
   - Setting

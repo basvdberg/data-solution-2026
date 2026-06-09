@@ -1,5 +1,9 @@
 ﻿{
     "sync_infra":  true,
+    "infra_components":  [
+                             "airflow",
+                             "postgres"
+                         ],
     "run_db_migrations":  true,
     "paths":  [
                   "infra/airflow/.env.example",
@@ -10,9 +14,7 @@
                   "infra/postgres/migrate-database-name.sh",
                   "infra/postgres/migrate-poller-from-dedicated-postgres.sh",
                   "infra/postgres/remove-dedicated-postgres.sh",
-                  "infra/postgres/run-applicable-migrations.sh",
-                  "infra/scripts/deploy-infra-on-nas.sh",
-                  "infra/scripts/nas-remote-env.sh"
+                  "infra/postgres/run-applicable-migrations.sh"
               ],
     "migration_paths":  [
                             "code/postgres/migrations/001-poller-simplify.check.sql",
@@ -20,8 +22,8 @@
                             "code/postgres/migrations/manifest.txt",
                             "code/postgres/schema.sql"
                         ],
-    "reason":  "Meaningful infra runtime file(s) changed since tag v2026.06.03.4: infra/airflow/.env.example, infra/airflow/docker-compose.standalone.yaml, infra/postgres/.env.example, infra/postgres/apply-shared-postgres-on-nas.sh, infra/postgres/create-app-user.sh, infra/postgres/migrate-database-name.sh, infra/postgres/migrate-poller-from-dedicated-postgres.sh, infra/postgres/remove-dedicated-postgres.sh, infra/postgres/run-applicable-migrations.sh, infra/scripts/deploy-infra-on-nas.sh, infra/scripts/nas-remote-env.sh",
-    "version":  "v2026.06.09.6",
+    "reason":  "Infra component(s) airflow, postgres changed since tag v2026.06.03.4: infra/airflow/.env.example, infra/airflow/docker-compose.standalone.yaml, infra/postgres/.env.example, infra/postgres/apply-shared-postgres-on-nas.sh, infra/postgres/create-app-user.sh, infra/postgres/migrate-database-name.sh, infra/postgres/migrate-poller-from-dedicated-postgres.sh, infra/postgres/remove-dedicated-postgres.sh, infra/postgres/run-applicable-migrations.sh",
+    "version":  "v2026.06.09.11",
     "since_tag":  "v2026.06.03.4",
-    "updated_at":  "2026-06-09T13:17:16Z"
+    "updated_at":  "2026-06-09T13:29:05Z"
 }

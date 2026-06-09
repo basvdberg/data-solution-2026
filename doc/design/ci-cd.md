@@ -133,7 +133,7 @@ git reset --hard origin/main   # discard any local edits; deploy folder mirrors 
 # Infra sync runs automatically when release/deploy-config.json has sync_infra: true
 ```
 
-`release/deploy-config.json` is updated on each pre-commit by `release/scripts/update-deploy-config.ps1`. Meaningful changes include compose files, `.env.example`, and deploy scripts under `infra/` (not readme-only edits). Detection uses `git diff` since the latest `v*` tag plus staged files.
+`release/deploy-config.json` is updated on each pre-commit by `release/scripts/update-deploy-config.ps1`. Meaningful changes include compose files and `.env.example` under `infra/airflow`, `infra/kafka`, and `infra/postgres` (not readme-only edits or `infra/scripts/*`, which deploy via `git pull`). Detection uses `git diff` since the latest `v*` tag plus staged files. When `sync_infra` is true, `infra_components` lists which stacks to sync (for example only `airflow` when Kafka and Postgres are unchanged).
 
 The deploy script always **discards local changes** in the NAS clone before updating. Treat `~/apps/data-solution-2026` as read-only at runtime; never edit application code there—commit on your dev machine and push to `main` instead.
 
@@ -319,6 +319,12 @@ git checkout <previous-tag>
           - V2026.06.09.1
             - [Notes](../../release/2026/06/09/v2026.06.09.1/notes.md)
             - [Retrospective](../../release/2026/06/09/v2026.06.09.1/retrospective.md)
+          - V2026.06.09.10
+            - [Notes](../../release/2026/06/09/v2026.06.09.10/notes.md)
+            - [Retrospective](../../release/2026/06/09/v2026.06.09.10/retrospective.md)
+          - V2026.06.09.11
+            - [Notes](../../release/2026/06/09/v2026.06.09.11/notes.md)
+            - [Retrospective](../../release/2026/06/09/v2026.06.09.11/retrospective.md)
           - V2026.06.09.2
             - [Notes](../../release/2026/06/09/v2026.06.09.2/notes.md)
             - [Retrospective](../../release/2026/06/09/v2026.06.09.2/retrospective.md)
@@ -334,6 +340,15 @@ git checkout <previous-tag>
           - V2026.06.09.6
             - [Notes](../../release/2026/06/09/v2026.06.09.6/notes.md)
             - [Retrospective](../../release/2026/06/09/v2026.06.09.6/retrospective.md)
+          - V2026.06.09.7
+            - [Notes](../../release/2026/06/09/v2026.06.09.7/notes.md)
+            - [Retrospective](../../release/2026/06/09/v2026.06.09.7/retrospective.md)
+          - V2026.06.09.8
+            - [Notes](../../release/2026/06/09/v2026.06.09.8/notes.md)
+            - [Retrospective](../../release/2026/06/09/v2026.06.09.8/retrospective.md)
+          - V2026.06.09.9
+            - [Notes](../../release/2026/06/09/v2026.06.09.9/notes.md)
+            - [Retrospective](../../release/2026/06/09/v2026.06.09.9/retrospective.md)
     - [Release <version>](../../release/release-notes-template.md)
     - [Retrospective — <version>](../../release/retrospective-template.md)
   - Setting

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Read release/deploy-config.json on NAS (no jq required).
 # Usage: read-deploy-config.sh [key]
-#   key: sync_infra | run_db_migrations | paths | reason | version (default: sync_infra)
+#   key: sync_infra | infra_components | run_db_migrations | paths | reason | version (default: sync_infra)
 set -euo pipefail
 
 APP_ROOT="${APP_ROOT:-$HOME/apps/data-solution-2026}"
@@ -27,6 +27,9 @@ with open(path, encoding="utf-8") as f:
 
 if key == "sync_infra":
     print("true" if data.get("sync_infra") else "false")
+elif key == "infra_components":
+    for c in data.get("infra_components") or []:
+        print(c)
 elif key == "run_db_migrations":
     print("true" if data.get("run_db_migrations") else "false")
 elif key == "paths":

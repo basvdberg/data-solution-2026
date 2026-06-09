@@ -59,7 +59,7 @@ The large upstream multi-service Airflow template (`docker-compose.yaml` with Ce
 
 Copies compose files from `infra/` into legacy NAS folders (`~/apache-airflow`, `~/kafka`), keeps existing `.env` / `logs` / Kafka data, sets `DATA_SOLUTION_ROOT`, and restarts stacks.
 
-Routine pushes to `main` run infra sync automatically when [release/deploy-config.json](../release/deploy-config.json) has `sync_infra: true` (pre-commit sets this when meaningful files under `infra/` change since the last release tag). Force sync manually:
+Routine pushes to `main` run infra sync automatically when [release/deploy-config.json](../release/deploy-config.json) has `sync_infra: true` (pre-commit sets this when stack files under `infra/airflow`, `infra/kafka`, or `infra/postgres` change since the last release tag). Only the listed `infra_components` are copied and restarted — a Kafka-only change does not recreate Airflow. Force a full sync manually:
 
 ```bash
 RUN_INFRA_SYNC=1 bash ~/apps/data-solution-2026/release/scripts/deploy-on-nas.sh
@@ -73,6 +73,7 @@ Options:
 | `AIRFLOW_DEST` | `~/apache-airflow` | Airflow compose target |
 | `KAFKA_DEST` | `~/kafka` | Kafka compose target |
 | `POSTGRES_DEST` | `~/data-solution-postgres` | Postgres config + setup scripts (no compose) |
+| `INFRA_COMPONENTS` | from `deploy-config.json` | Comma-separated subset: `airflow`, `kafka`, `postgres` |
 | `RUN_COMPOSE` | `1` | Run `docker compose up -d` after sync |
 | `DRY_RUN` | `0` | Print actions only |
 
@@ -315,6 +316,12 @@ docker exec airflow-standalone cat '/opt/airflow/logs/dag_id=openmeteo_data_obje
           - V2026.06.09.1
             - [Notes](../release/2026/06/09/v2026.06.09.1/notes.md)
             - [Retrospective](../release/2026/06/09/v2026.06.09.1/retrospective.md)
+          - V2026.06.09.10
+            - [Notes](../release/2026/06/09/v2026.06.09.10/notes.md)
+            - [Retrospective](../release/2026/06/09/v2026.06.09.10/retrospective.md)
+          - V2026.06.09.11
+            - [Notes](../release/2026/06/09/v2026.06.09.11/notes.md)
+            - [Retrospective](../release/2026/06/09/v2026.06.09.11/retrospective.md)
           - V2026.06.09.2
             - [Notes](../release/2026/06/09/v2026.06.09.2/notes.md)
             - [Retrospective](../release/2026/06/09/v2026.06.09.2/retrospective.md)
@@ -330,6 +337,15 @@ docker exec airflow-standalone cat '/opt/airflow/logs/dag_id=openmeteo_data_obje
           - V2026.06.09.6
             - [Notes](../release/2026/06/09/v2026.06.09.6/notes.md)
             - [Retrospective](../release/2026/06/09/v2026.06.09.6/retrospective.md)
+          - V2026.06.09.7
+            - [Notes](../release/2026/06/09/v2026.06.09.7/notes.md)
+            - [Retrospective](../release/2026/06/09/v2026.06.09.7/retrospective.md)
+          - V2026.06.09.8
+            - [Notes](../release/2026/06/09/v2026.06.09.8/notes.md)
+            - [Retrospective](../release/2026/06/09/v2026.06.09.8/retrospective.md)
+          - V2026.06.09.9
+            - [Notes](../release/2026/06/09/v2026.06.09.9/notes.md)
+            - [Retrospective](../release/2026/06/09/v2026.06.09.9/retrospective.md)
     - [Release <version>](../release/release-notes-template.md)
     - [Retrospective — <version>](../release/retrospective-template.md)
   - Setting

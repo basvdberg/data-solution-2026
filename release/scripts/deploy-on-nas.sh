@@ -17,6 +17,7 @@ source "${APP_ROOT}/infra/scripts/nas-remote-env.sh"
 # - release/deploy-config.json: run_db_migrations set when code/postgres/migrations change
 RUN_POLLER_CHECK="${RUN_POLLER_CHECK:-0}"
 RUN_INFRA_SYNC="${RUN_INFRA_SYNC:-0}"
+INFRA_SYNC_FROM_CONFIG=0
 
 cd "$APP_ROOT"
 git fetch --all --tags
@@ -34,19 +35,37 @@ if [ "$RUN_INFRA_SYNC" != "1" ]; then
     config_sync="$("${SCRIPT_DIR}/read-deploy-config.sh" sync_infra)"
     if [ "$config_sync" = "true" ]; then
       RUN_INFRA_SYNC=1
+      INFRA_SYNC_FROM_CONFIG=1
       config_reason="$("${SCRIPT_DIR}/read-deploy-config.sh" reason)"
       echo "deploy-config: sync_infra=true — ${config_reason}"
     fi
   elif [ -f "${APP_ROOT}/release/deploy-config.json" ]; then
     if grep -qE '"sync_infra"[[:space:]]*:[[:space:]]*true' "${APP_ROOT}/release/deploy-config.json"; then
       RUN_INFRA_SYNC=1
+      INFRA_SYNC_FROM_CONFIG=1
       echo "deploy-config: sync_infra=true (grep fallback)"
     fi
   fi
 fi
 
 if [ "$RUN_INFRA_SYNC" = "1" ]; then
-  echo "Running infra sync (deploy-infra-on-nas.sh)..."
+  infra_components=""
+  if [ "$INFRA_SYNC_FROM_CONFIG" = "1" ] && [ -z "${INFRA_COMPONENTS:-}" ] && [ -x "${SCRIPT_DIR}/read-deploy-config.sh" ]; then
+    while IFS= read -r comp; do
+      [ -z "$comp" ] && continue
+      if [ -n "$infra_components" ]; then
+        infra_components="${infra_components},${comp}"
+      else
+        infra_components="$comp"
+      fi
+    done < <("${SCRIPT_DIR}/read-deploy-config.sh" infra_components 2>/dev/null || true)
+  fi
+  if [ -n "$infra_components" ]; then
+    export INFRA_COMPONENTS="$infra_components"
+    echo "Running infra sync for component(s): ${INFRA_COMPONENTS}"
+  else
+    echo "Running infra sync (all components)..."
+  fi
   bash "${APP_ROOT}/infra/scripts/deploy-infra-on-nas.sh"
 else
   echo "Infra sync skipped (deploy-config sync_infra=false; set RUN_INFRA_SYNC=1 to force)."

@@ -5,8 +5,8 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-# Meaningful infra = files that deploy-infra-on-nas.sh syncs to legacy NAS paths.
-# Docs (readme.md) and local-server.env.example do not affect runtime stacks.
+# Meaningful infra = stack files that deploy-infra-on-nas.sh copies to legacy NAS paths.
+# Docs, local-server.env.example, and infra/scripts/* are not copied (git pull updates scripts).
 $meaningfulPatterns = @(
     '^infra/airflow/.*\.(yaml|yml)$'
     '^infra/airflow/\.env\.example$'
@@ -14,7 +14,6 @@ $meaningfulPatterns = @(
     '^infra/kafka/\.env\.example$'
     '^infra/postgres/.*\.(yaml|yml|sql|sh)$'
     '^infra/postgres/\.env\.example$'
-    '^infra/scripts/(deploy-infra-on-nas|nas-remote-env)\.sh$'
 )
 
 $migrationPatterns = @(
@@ -34,6 +33,15 @@ function Test-MeaningfulInfraPath {
         }
     }
     return $false
+}
+
+function Get-InfraComponent {
+    param([string]$Path)
+    $normalized = ($Path -replace '\\', '/').Trim()
+    if ($normalized -match '^infra/airflow/') { return 'airflow' }
+    if ($normalized -match '^infra/kafka/') { return 'kafka' }
+    if ($normalized -match '^infra/postgres/') { return 'postgres' }
+    return $null
 }
 
 function Test-MigrationPath {
@@ -99,12 +107,18 @@ $allPaths = @($pathsSinceTag + $stagedPaths | Sort-Object -Unique)
 
 $meaningfulPaths = @($allPaths | Where-Object { Test-MeaningfulInfraPath $_ } | Sort-Object -Unique)
 $migrationPaths = @($allPaths | Where-Object { Test-MigrationPath $_ } | Sort-Object -Unique)
-$syncInfra = $meaningfulPaths.Count -gt 0
+$infraComponents = @(
+    $meaningfulPaths |
+        ForEach-Object { Get-InfraComponent $_ } |
+        Where-Object { $_ } |
+        Sort-Object -Unique
+)
+$syncInfra = $infraComponents.Count -gt 0
 $runDbMigrations = $migrationPaths.Count -gt 0
 
 if ($syncInfra) {
     $tagLabel = if ($sinceTag) { $sinceTag } else { "none" }
-    $reason = "Meaningful infra runtime file(s) changed since tag ${tagLabel}: $($meaningfulPaths -join ', ')"
+    $reason = "Infra component(s) $($infraComponents -join ', ') changed since tag ${tagLabel}: $($meaningfulPaths -join ', ')"
 } elseif ($runDbMigrations) {
     $tagLabel = if ($sinceTag) { $sinceTag } else { "none" }
     $reason = "Postgres migration file(s) changed since tag ${tagLabel}: $($migrationPaths -join ', ')"
@@ -118,6 +132,7 @@ if ($syncInfra) {
 
 $config = [ordered]@{
     sync_infra         = $syncInfra
+    infra_components   = @($infraComponents)
     run_db_migrations  = $runDbMigrations
     paths              = $meaningfulPaths
     migration_paths    = $migrationPaths
@@ -139,4 +154,4 @@ Add-Content -Path $configPath -Value "" -Encoding UTF8
 
 git -C $repoRoot add "release/deploy-config.json" 2>$null | Out-Null
 
-Write-Host "update-deploy-config: sync_infra=$syncInfra ($($meaningfulPaths.Count) path(s)); run_db_migrations=$runDbMigrations ($($migrationPaths.Count) path(s))"
+Write-Host "update-deploy-config: sync_infra=$syncInfra components=[$($infraComponents -join ', ')] ($($meaningfulPaths.Count) path(s)); run_db_migrations=$runDbMigrations ($($migrationPaths.Count) path(s))"
