@@ -2,12 +2,17 @@
 
 from __future__ import annotations
 
+import json
 import unittest
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
 from extractor_and_poller.poller.change_probe import PollResult
-from extractor_and_poller.poller.events import KafkaPublisher, kafka_message_value
+from extractor_and_poller.poller.events import (
+    KafkaPublisher,
+    kafka_event_payload,
+    kafka_message_value,
+)
 from extractor_and_poller.poller.kafka_topic import (
     EVENT_TYPE_PROGRESS,
     POLL_TOPIC_CHANGE,
@@ -41,15 +46,31 @@ class TestPollerEvents(unittest.TestCase):
             POLL_TOPIC_PROGRESS,
         )
 
-    def test_kafka_message_value_is_data_object_id_only(self) -> None:
+    def test_kafka_event_payload_contains_envelope_fields(self) -> None:
         result = _sample_result()
         self.assertEqual(
-            kafka_message_value(result),
-            "source/openmeteo/daily-temperature",
+            kafka_event_payload(result),
+            {
+                "data_object_id": "source/openmeteo/daily-temperature",
+                "event_type": "data_object_change",
+                "event_time_utc": "2026-05-26T00:00:00+00:00",
+                "old_marker": "2026-05-21",
+                "new_marker": "2026-05-26",
+                "event_id": "evt-1",
+            },
         )
 
+    def test_kafka_message_value_is_json_envelope(self) -> None:
+        result = _sample_result()
+        payload = json.loads(kafka_message_value(result))
+        self.assertEqual(payload["data_object_id"], "source/openmeteo/daily-temperature")
+        self.assertEqual(payload["event_type"], "data_object_change")
+        self.assertEqual(payload["old_marker"], "2026-05-21")
+        self.assertEqual(payload["new_marker"], "2026-05-26")
+        self.assertIn("event_time_utc", payload)
+
     @patch("extractor_and_poller.poller.events.KafkaPublisher._build_producer")
-    def test_kafka_publisher_sends_data_object_id_as_value(self, mock_build) -> None:
+    def test_kafka_publisher_sends_json_envelope_as_value(self, mock_build) -> None:
         producer = MagicMock()
         future = MagicMock()
         producer.send.return_value = future
@@ -62,7 +83,7 @@ class TestPollerEvents(unittest.TestCase):
         producer.send.assert_called_once_with(
             POLL_TOPIC_CHANGE,
             key="source/openmeteo/daily-temperature",
-            value="source/openmeteo/daily-temperature",
+            value=kafka_message_value(result),
         )
         future.get.assert_called_once_with(timeout=10)
 

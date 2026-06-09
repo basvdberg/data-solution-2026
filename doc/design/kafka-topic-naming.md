@@ -96,7 +96,7 @@ Route by `source_topic` and `event_id` in the payload rather than multiplying DL
 | Concern | Convention |
 |---------|------------|
 | **Key** | `data_object_id` |
-| **Value (poll)** | `data_object_id` only; full envelope in Postgres `poller` / `event_log` |
+| **Value (poll)** | JSON envelope: `data_object_id`, `event_type`, `event_time_utc`, `old_marker`, `new_marker`; Postgres `poller` also stores `event_id` and `run_id` |
 | **Retention** | Shorter for `ds.poll.data_object_progress`; longer for change and extract topics (replay) |
 | **ACL / subscribe** | Consumers use category prefix (`ds.poll.*`, `ds.extract.*`) |
 
@@ -114,6 +114,8 @@ Poll topic mapping lives in [`code/extractor_and_poller/poller/kafka_topic.py`](
       - Plugins
     - Extractor_And_Poller
       - Common
+      - Controller
+      - Extract
       - Openmeteo
         - Extractor
         - Poller
@@ -199,6 +201,12 @@ Poll topic mapping lives in [`code/extractor_and_poller/poller/kafka_topic.py`](
           - V2026.06.09.11
             - [Notes](../../release/2026/06/09/v2026.06.09.11/notes.md)
             - [Retrospective](../../release/2026/06/09/v2026.06.09.11/retrospective.md)
+          - V2026.06.09.12
+            - [Notes](../../release/2026/06/09/v2026.06.09.12/notes.md)
+            - [Retrospective](../../release/2026/06/09/v2026.06.09.12/retrospective.md)
+          - V2026.06.09.13
+            - [Notes](../../release/2026/06/09/v2026.06.09.13/notes.md)
+            - [Retrospective](../../release/2026/06/09/v2026.06.09.13/retrospective.md)
           - V2026.06.09.2
             - [Notes](../../release/2026/06/09/v2026.06.09.2/notes.md)
             - [Retrospective](../../release/2026/06/09/v2026.06.09.2/retrospective.md)

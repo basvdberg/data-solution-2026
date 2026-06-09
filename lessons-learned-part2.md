@@ -8,6 +8,7 @@
 - [Junior-programmer mistakes](#junior-programmer-mistakes)
 - [Infrastructure deployment](#infrastructure-deployment)
 - [Remote SSH troubleshooting](#remote-ssh-troubleshooting)
+- [Local server interaction: learn from SSH commands](#local-server-interaction-learn-from-ssh-commands)
 - [QNAP SSH: wrong Linux path and the wrong sshd config](#qnap-ssh-wrong-linux-path-and-the-wrong-sshd-config)
   - [The agent used the wrong remote Linux path](#the-agent-used-the-wrong-remote-linux-path)
   - [How the agent recovered (and why that misled us)](#how-the-agent-recovered-and-why-that-misled-us)
@@ -67,6 +68,29 @@ When the agent troubleshoots on the NAS, it logs in via SSH and runs Docker comm
 That pattern suggests the agent does not treat “repeat the same workaround” as an efficiency problem unless you say so. I had to **explicitly** prompt it to fix `PATH` (or source [`infra/scripts/nas-remote-env.sh`](infra/scripts/nas-remote-env.sh), which adds Container Station’s `docker` and other QNAP paths) so later commands could just use `docker`.
 
 **Takeaway:** After the first `command not found` for a tool you will need again, tell the agent to persist the fix for the rest of the session — export `PATH`, source the env script, or add a small helper — and do not accept repeated `which docker` / `find` lookups.
+
+## Local server interaction: learn from SSH commands
+
+Fixing [INC-001](doc/operation/incident/inc-001-nas-ssh-environment.md) (PATH, login shell) was necessary but not sufficient. Agents still improvise `ssh bas@basnas '…'` from **Windows PowerShell** every session — nested quotes, remote pipes, `grep -E` patterns with `|`, `docker --format` strings, env vars, and remote paths. Each layer (PowerShell → SSH → remote Bash) can strip or reinterpret quotes, so a command that looks right in chat fails on the NAS with misleading errors such as `bash: postgres: command not found` when the real issue is **quoting**, not a missing package.
+
+A concrete example: filtering containers with `grep -E "kafka|postgres|airflow"` inside single-quoted outer SSH failed because `|` became shell pipes on the NAS. A simpler `docker ps --format '{{.Names}}'` worked immediately. The fix belongs in **basnas-ssh** (copy-paste patterns, prefer Docker `--filter`, document bad vs good quoting) — not in the agent’s memory for the next chat.
+
+**This does not happen automatically.** Cursor does not watch your terminal, diff failed vs successful SSH invocations, and update skills on its own. You (or a deliberate retro step) must:
+
+1. **Monitor what actually ran** — terminal output, retry loops, and agent transcripts (`ssh bas@basnas`, `docker exec`, deploy scripts).
+2. **Compare failed vs working commands** — often the difference is outer double quotes vs single quotes, avoiding remote pipes, or using `$LOCAL_SERVER_SSH` / documented paths instead of guessed NAS paths.
+3. **Promote the working pattern** — ERR entry during the session; at release retro, propose updates to **basnas-ssh**, deploy skills, or `.cursor/troubleshooting-errors.md` prevention text.
+4. **Prefer copy-paste blocks in skills** over “the agent will figure out quoting.”
+
+**Release-cycle review** fits this well. At the end of each release (see [Issue inventory and retrospectives](#issue-inventory-and-retrospectives)), the [release-retrospective](https://github.com/basvdberg/cursor-config/blob/main/skills/release-retrospective/SKILL.md) workflow already scans chat transcripts when ERR/INC are incomplete. Extend that scan for **local-server interaction**:
+
+- Grep transcripts for `ssh bas@basnas`, `docker exec`, `deploy-on-nas`, and non-zero exits or `command not found`.
+- Note repeat failures (quoting, PATH, wrong remote path) and the command that finally worked.
+- Add **Promotions** action items: e.g. “add quoting table to basnas-ssh”, “document container name `basnas_postgress`”, “use `docker ps --format` without remote grep by default”.
+
+Same loop as ERR → INC → retro → lessons → skills; SSH command hygiene is just another promotion target, not a one-off chat fix.
+
+**Takeaway:** Treat BasNAS interaction as a **curated skill surface** maintained from real commands. Watch what agents execute over SSH; codify what works at retro time. Quoting, paths, and env vars are enforceable in **basnas-ssh** — they are not inferred reliably session to session.
 
 ## QNAP SSH: wrong Linux path and the wrong sshd config
 
@@ -218,7 +242,7 @@ Release notes are not hook scaffolding — they are the operator-facing record p
 
 ## Issue inventory and retrospectives
 
-Failures used to disappear into Cursor chat. A fix in one session did not appear in git, release notes, or the next agent context — which is why [INC-004](doc/operation/incident/inc-004-airflow-pythonpath-drift.md) was missing from the first draft of the [v2026.06.05.6 retrospective](release/retrospective/v2026.06.05.6.md) until I pointed at the chat.
+Failures used to disappear into Cursor chat. A fix in one session did not appear in git, release notes, or the next agent context — which is why [INC-004](doc/operation/incident/inc-004-airflow-pythonpath-drift.md) was missing from the first draft of the [v2026.06.05.6 retrospective](release/retrospective/v2026.06.05.6.md) until I pointed at the chat. The same applies to **SSH command patterns** (quoting, paths): unless retro scans transcripts and promotes them to **basnas-ssh**, the next agent rediscovers the failure.
 
 I introduced a layered inventory (see [operations hub](doc/operation/readme.md)):
 
@@ -275,6 +299,8 @@ See [Issue inventory and retrospectives](#issue-inventory-and-retrospectives) fo
       - Plugins
     - Extractor_And_Poller
       - Common
+      - Controller
+      - Extract
       - Openmeteo
         - Extractor
         - Poller
@@ -360,6 +386,12 @@ See [Issue inventory and retrospectives](#issue-inventory-and-retrospectives) fo
           - V2026.06.09.11
             - [Notes](release/2026/06/09/v2026.06.09.11/notes.md)
             - [Retrospective](release/2026/06/09/v2026.06.09.11/retrospective.md)
+          - V2026.06.09.12
+            - [Notes](release/2026/06/09/v2026.06.09.12/notes.md)
+            - [Retrospective](release/2026/06/09/v2026.06.09.12/retrospective.md)
+          - V2026.06.09.13
+            - [Notes](release/2026/06/09/v2026.06.09.13/notes.md)
+            - [Retrospective](release/2026/06/09/v2026.06.09.13/retrospective.md)
           - V2026.06.09.2
             - [Notes](release/2026/06/09/v2026.06.09.2/notes.md)
             - [Retrospective](release/2026/06/09/v2026.06.09.2/retrospective.md)

@@ -81,6 +81,8 @@ Empty scaffold releases (auto-bumped with no content) were removed during the 20
       - Plugins
     - Extractor_And_Poller
       - Common
+      - Controller
+      - Extract
       - Openmeteo
         - Extractor
         - Poller
@@ -166,6 +168,12 @@ Empty scaffold releases (auto-bumped with no content) were removed during the 20
           - V2026.06.09.11
             - [Notes](2026/06/09/v2026.06.09.11/notes.md)
             - [Retrospective](2026/06/09/v2026.06.09.11/retrospective.md)
+          - V2026.06.09.12
+            - [Notes](2026/06/09/v2026.06.09.12/notes.md)
+            - [Retrospective](2026/06/09/v2026.06.09.12/retrospective.md)
+          - V2026.06.09.13
+            - [Notes](2026/06/09/v2026.06.09.13/notes.md)
+            - [Retrospective](2026/06/09/v2026.06.09.13/retrospective.md)
           - V2026.06.09.2
             - [Notes](2026/06/09/v2026.06.09.2/notes.md)
             - [Retrospective](2026/06/09/v2026.06.09.2/retrospective.md)

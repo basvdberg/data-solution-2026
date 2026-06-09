@@ -5,3 +5,5 @@ jsonschema>=4
 xarray>=2024.1
 netCDF4>=1.6
 numpy>=1.26
+kafka-python>=2.0
+psycopg[binary]>=3.1

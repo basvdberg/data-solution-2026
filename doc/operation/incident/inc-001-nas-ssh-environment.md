@@ -93,6 +93,8 @@ No pre-flight check in agent workflow to source NAS env before first `docker`/`g
       - Plugins
     - Extractor_And_Poller
       - Common
+      - Controller
+      - Extract
       - Openmeteo
         - Extractor
         - Poller
@@ -178,6 +180,12 @@ No pre-flight check in agent workflow to source NAS env before first `docker`/`g
           - V2026.06.09.11
             - [Notes](../../../release/2026/06/09/v2026.06.09.11/notes.md)
             - [Retrospective](../../../release/2026/06/09/v2026.06.09.11/retrospective.md)
+          - V2026.06.09.12
+            - [Notes](../../../release/2026/06/09/v2026.06.09.12/notes.md)
+            - [Retrospective](../../../release/2026/06/09/v2026.06.09.12/retrospective.md)
+          - V2026.06.09.13
+            - [Notes](../../../release/2026/06/09/v2026.06.09.13/notes.md)
+            - [Retrospective](../../../release/2026/06/09/v2026.06.09.13/retrospective.md)
           - V2026.06.09.2
             - [Notes](../../../release/2026/06/09/v2026.06.09.2/notes.md)
             - [Retrospective](../../../release/2026/06/09/v2026.06.09.2/retrospective.md)

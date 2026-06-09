@@ -6,6 +6,12 @@
 - [Linked files](#linked-files)
 <!-- markdown-toc:end -->
 
+## Table of contents
+
+
+﻿## Table of contents
+
+
 ﻿## Table of contents
 
 
@@ -21,9 +27,9 @@
 
 - Version: `v2026.06.09.11`
 - Development start: `2026-06-09T15:27:36+02:00`
-- Development end: `2026-06-09T15:30:09+02:00`
+- Development end: `2026-06-09T15:30:44+02:00`
 - Release branch: `main`
-- Release commit: `7705e76fe25e94c6e85fd346d2760421721c8f5f`
+- Release commit: `293606bab86c62c16b9f50d9330767aa482a80e6`
 
 ## Summary
 
@@ -45,6 +51,8 @@
       - Plugins
     - Extractor_And_Poller
       - Common
+      - Controller
+      - Extract
       - Openmeteo
         - Extractor
         - Poller
@@ -130,6 +138,12 @@
           - V2026.06.09.11
             - [Notes](notes.md)
             - [Retrospective](retrospective.md)
+          - V2026.06.09.12
+            - [Notes](../v2026.06.09.12/notes.md)
+            - [Retrospective](../v2026.06.09.12/retrospective.md)
+          - V2026.06.09.13
+            - [Notes](../v2026.06.09.13/notes.md)
+            - [Retrospective](../v2026.06.09.13/retrospective.md)
           - V2026.06.09.2
             - [Notes](../v2026.06.09.2/notes.md)
             - [Retrospective](../v2026.06.09.2/retrospective.md)

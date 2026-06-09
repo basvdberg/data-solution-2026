@@ -25,9 +25,21 @@ def event_payload(result: PollResult) -> dict[str, str | None]:
     return payload
 
 
+def kafka_event_payload(result: PollResult) -> dict[str, str | None]:
+    """Poll event envelope for Kafka consumers (matches Postgres marker column names)."""
+    return {
+        "data_object_id": result.data_object_id,
+        "event_type": result.event_type,
+        "event_time_utc": result.event_time_utc.isoformat(),
+        "old_marker": result.previous_marker,
+        "new_marker": result.current_marker,
+        "event_id": result.event_id,
+    }
+
+
 def kafka_message_value(result: PollResult) -> str:
-    """Kafka message body: data object id only."""
-    return result.data_object_id
+    """Serialize the poll event envelope as JSON for Kafka message values."""
+    return json.dumps(kafka_event_payload(result), sort_keys=True)
 
 
 class StdoutPublisher:
@@ -81,7 +93,7 @@ class KafkaPublisher:
             self._bootstrap_servers,
             topic,
             result.event_type,
-            value,
+            result.data_object_id,
         )
 
     def close(self) -> None:

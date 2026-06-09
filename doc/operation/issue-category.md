@@ -41,9 +41,10 @@ Generalized lessons below are promoted from retrospectives [v2026.06.03.4](../..
 - Source PATH and libraries once per session (`nas-remote-env.sh`); do not rediscover `docker` or `git` paths.
 - QNAP SSH, Container Station, and optional QPKG paths are not on default `PATH` / `LD_LIBRARY_PATH`.
 - Expect brief SSH outage when changing `sshd` settings.
+- PowerShell → SSH quoting (pipes, `grep -E`, `docker --format`) fails silently; review executed commands at release retro and promote patterns to **basnas-ssh**.
 
 **Incidents:** [INC-001](incident/inc-001-nas-ssh-environment.md)  
-**Lessons:** [Remote SSH troubleshooting](../../lessons-learned-part2.md#remote-ssh-troubleshooting), [Agent troubleshooting efficiency](../../lessons-learned-part2.md#agent-troubleshooting-efficiency)
+**Lessons:** [Remote SSH troubleshooting](../../lessons-learned-part2.md#remote-ssh-troubleshooting), [Local server interaction: learn from SSH commands](../../lessons-learned-part2.md#local-server-interaction-learn-from-ssh-commands), [Agent troubleshooting efficiency](../../lessons-learned-part2.md#agent-troubleshooting-efficiency)
 
 ### orchestration
 
@@ -151,6 +152,8 @@ Update this table during each release retrospective. When one category appears i
       - Plugins
     - Extractor_And_Poller
       - Common
+      - Controller
+      - Extract
       - Openmeteo
         - Extractor
         - Poller
@@ -236,6 +239,12 @@ Update this table during each release retrospective. When one category appears i
           - V2026.06.09.11
             - [Notes](../../release/2026/06/09/v2026.06.09.11/notes.md)
             - [Retrospective](../../release/2026/06/09/v2026.06.09.11/retrospective.md)
+          - V2026.06.09.12
+            - [Notes](../../release/2026/06/09/v2026.06.09.12/notes.md)
+            - [Retrospective](../../release/2026/06/09/v2026.06.09.12/retrospective.md)
+          - V2026.06.09.13
+            - [Notes](../../release/2026/06/09/v2026.06.09.13/notes.md)
+            - [Retrospective](../../release/2026/06/09/v2026.06.09.13/retrospective.md)
           - V2026.06.09.2
             - [Notes](../../release/2026/06/09/v2026.06.09.2/notes.md)
             - [Retrospective](../../release/2026/06/09/v2026.06.09.2/retrospective.md)

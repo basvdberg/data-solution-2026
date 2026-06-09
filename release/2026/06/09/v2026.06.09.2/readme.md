@@ -48,6 +48,8 @@
       - Plugins
     - Extractor_And_Poller
       - Common
+      - Controller
+      - Extract
       - Openmeteo
         - Extractor
         - Poller
@@ -133,6 +135,12 @@
           - V2026.06.09.11
             - [Notes](../v2026.06.09.11/notes.md)
             - [Retrospective](../v2026.06.09.11/retrospective.md)
+          - V2026.06.09.12
+            - [Notes](../v2026.06.09.12/notes.md)
+            - [Retrospective](../v2026.06.09.12/retrospective.md)
+          - V2026.06.09.13
+            - [Notes](../v2026.06.09.13/notes.md)
+            - [Retrospective](../v2026.06.09.13/retrospective.md)
           - V2026.06.09.2
             - [Notes](notes.md)
             - [Retrospective](retrospective.md)

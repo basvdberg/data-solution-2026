@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+import os
 from datetime import datetime, timedelta
 
 from airflow.exceptions import AirflowException
@@ -11,6 +13,8 @@ from airflow.sdk import DAG, Variable
 DAG_ID = "openmeteo_data_object_poller"
 DEFAULT_DATA_OBJECT_ID = "source/openmeteo/daily-temperature"
 DEFAULT_PUBLISH = "kafka"
+
+log = logging.getLogger(__name__)
 
 
 def _poller_cli_argv() -> list[str]:
@@ -25,9 +29,18 @@ def _poller_cli_argv() -> list[str]:
 
 def run_openmeteo_poller() -> None:
     """Delegate to the poller CLI ``main()`` (same args as manual ``python -m``)."""
+    argv = _poller_cli_argv()
+    log.info(
+        "Airflow task starting openmeteo poller dag_id=%s run_id=%s logical_date=%s argv=%s",
+        os.environ.get("AIRFLOW_CTX_DAG_ID"),
+        os.environ.get("AIRFLOW_CTX_DAG_RUN_ID"),
+        os.environ.get("AIRFLOW_CTX_LOGICAL_DATE"),
+        argv,
+    )
+
     from extractor_and_poller.poller.__main__ import main
 
-    exit_code = main(_poller_cli_argv())
+    exit_code = main(argv)
 
     if exit_code == 2:
         raise AirflowException("poller exited with code 2 (configuration or validation error)")

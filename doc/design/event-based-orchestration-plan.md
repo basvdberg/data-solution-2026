@@ -68,24 +68,22 @@ Flow:
 
 ## Event contract (minimum)
 
-Kafka message body is the **data object id** string only (topics `ds.poll.data_object_change` and `ds.poll.data_object_progress`; partition key is `data_object_id`). Full probe details live in Postgres table `poller` (query `poller_latest_first` for newest rows first).
+Kafka message **value** is a JSON envelope (topics `ds.poll.data_object_change` and `ds.poll.data_object_progress`; partition key is `data_object_id`):
 
-Stdout publish (`--publish stdout`) still emits the full envelope for local debugging:
-
-- `event_id` (uuid)
+- `data_object_id` (`source/openmeteo/daily-temperature`)
 - `event_type` (`data_object_change` or `data_object_progress`)
 - `event_time_utc` (ISO-8601)
-- `data_object_id` (`source/openmeteo/daily-temperature`)
-- `source_data_object_id` (`source/openmeteo/daily-temperature`)
-- `target_data_object_id` (`staging/openmeteo/daily-temperature`)
-- `current_marker` (string)
-- `previous_marker` (string or null)
-- `run_id` (poller run correlation id)
+- `old_marker` (string or null)
+- `new_marker` (string)
+
+Postgres table `poller` stores the same markers plus correlation fields (`event_id`, `run_id`); query `poller_latest_first` for newest rows first.
+
+Stdout publish (`--publish stdout`) emits an extended envelope for local debugging (adds `event_id`, `run_id`, `source_data_object_id`, `target_data_object_id`, and `current_marker` / `previous_marker` field names from `PollResult`).
 
 Kafka topics (see [Kafka topic naming](kafka-topic-naming.md)):
 
-- `ds.poll.data_object_change` (key: `data_object_id`, value: `data_object_id`)
-- `ds.poll.data_object_progress` (key: `data_object_id`, value: `data_object_id`)
+- `ds.poll.data_object_change` (key: `data_object_id`, value: JSON envelope above)
+- `ds.poll.data_object_progress` (key: `data_object_id`, value: JSON envelope above)
 
 ## Data poller implementation plan
 
@@ -108,12 +106,12 @@ Acceptance:
 
 Deliverables:
 
-- Add producer module: Kafka message **value** is `data_object_id` only.
-- Publish to `ds.poll.data_object_change` and `ds.poll.data_object_progress` (key and value: `data_object_id`).
+- Add producer module: Kafka message **value** is the JSON poll envelope (`data_object_id`, `event_type`, `event_time_utc`, `old_marker`, `new_marker`).
+- Publish to `ds.poll.data_object_change` and `ds.poll.data_object_progress` (key: `data_object_id`).
 
 Acceptance:
 
-- Successful publish for both event types is visible with message value `data_object_id`.
+- Successful publish for both event types is visible with a JSON value containing the envelope fields.
 - Temporary Kafka outage results in controlled failure (no silent success).
 
 ### Phase 3 - Airflow poller DAG
@@ -270,6 +268,8 @@ Runtime rule:
       - Plugins
     - Extractor_And_Poller
       - Common
+      - Controller
+      - Extract
       - Openmeteo
         - Extractor
         - Poller
@@ -355,6 +355,12 @@ Runtime rule:
           - V2026.06.09.11
             - [Notes](../../release/2026/06/09/v2026.06.09.11/notes.md)
             - [Retrospective](../../release/2026/06/09/v2026.06.09.11/retrospective.md)
+          - V2026.06.09.12
+            - [Notes](../../release/2026/06/09/v2026.06.09.12/notes.md)
+            - [Retrospective](../../release/2026/06/09/v2026.06.09.12/retrospective.md)
+          - V2026.06.09.13
+            - [Notes](../../release/2026/06/09/v2026.06.09.13/notes.md)
+            - [Retrospective](../../release/2026/06/09/v2026.06.09.13/retrospective.md)
           - V2026.06.09.2
             - [Notes](../../release/2026/06/09/v2026.06.09.2/notes.md)
             - [Retrospective](../../release/2026/06/09/v2026.06.09.2/retrospective.md)

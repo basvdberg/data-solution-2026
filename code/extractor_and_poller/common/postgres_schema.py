@@ -38,6 +38,23 @@ select
     run_id
 from poller
 order by polled_at_utc desc, id desc;
+
+create schema if not exists staging;
+
+create table if not exists extract_run_audit (
+    run_id text primary key,
+    event_id text not null unique,
+    mapping_id text not null,
+    marker text not null,
+    status text not null,
+    started_at_utc timestamptz not null,
+    finished_at_utc timestamptz,
+    output_table text,
+    row_count bigint
+);
+
+create index if not exists extract_run_audit_mapping_started_idx
+    on extract_run_audit (mapping_id, started_at_utc desc);
 """.strip()
 
 _SCHEMA_PATH = CODE_ROOT / "postgres" / "schema.sql"
