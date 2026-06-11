@@ -195,6 +195,9 @@ ERR (tactical, session)  →  INC (significant event)  →  retro (per release) 
           - V2026.06.11.2
             - [Notes](../../release/2026/06/11/v2026.06.11.2/notes.md)
             - [Retrospective](../../release/2026/06/11/v2026.06.11.2/retrospective.md)
+          - V2026.06.11.3
+            - [Notes](../../release/2026/06/11/v2026.06.11.3/notes.md)
+            - [Retrospective](../../release/2026/06/11/v2026.06.11.3/retrospective.md)
     - [Release <version>](../../release/release-notes-template.md)
     - [Retrospective — <version>](../../release/retrospective-template.md)
   - Setting

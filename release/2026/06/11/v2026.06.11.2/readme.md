@@ -1,10 +1,16 @@
-﻿## Table of contents
+## Table of contents
 
 <!-- markdown-toc:start -->
 - [Release metadata](#release-metadata)
 - [Summary](#summary)
 - [Linked files](#linked-files)
 <!-- markdown-toc:end -->
+
+## Table of contents
+
+
+﻿## Table of contents
+
 
 ﻿# Release v2026.06.11.2 - Details
 
@@ -174,6 +180,9 @@
           - V2026.06.11.2
             - [Notes](notes.md)
             - [Retrospective](retrospective.md)
+          - V2026.06.11.3
+            - [Notes](../v2026.06.11.3/notes.md)
+            - [Retrospective](../v2026.06.11.3/retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting
