@@ -252,6 +252,9 @@ Backfilled retrospective for the NAS/Airflow infra PoC session (2026-06-03). Age
           - V2026.06.11.5
             - [Notes](../../11/v2026.06.11.5/notes.md)
             - [Retrospective](../../11/v2026.06.11.5/retrospective.md)
+          - V2026.06.11.6
+            - [Notes](../../11/v2026.06.11.6/notes.md)
+            - [Retrospective](../../11/v2026.06.11.6/retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

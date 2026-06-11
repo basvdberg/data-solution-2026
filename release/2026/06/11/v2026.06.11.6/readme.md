@@ -6,21 +6,18 @@
 - [Linked files](#linked-files)
 <!-- markdown-toc:end -->
 
-## Table of contents
-
-
 ﻿## Table of contents
 
 
-﻿# Release v2026.06.09.3 - Details
+﻿# Release v2026.06.11.6 - Details
 
 ## Release metadata
 
-- Version: `v2026.06.09.3`
-- Development start: `2026-06-09T13:37:41+02:00`
-- Development end: `2026-06-09T13:38:02+02:00`
+- Version: `v2026.06.11.6`
+- Development start: `2026-06-11T12:54:08+02:00`
+- Development end: `2026-06-11T12:54:48+02:00`
 - Release branch: `main`
-- Release commit: `3390b7eda2f91bff9f4c744b2466e7963a6d310a`
+- Release commit: `842ea7e7efe76b775039d23b75f2358dc456adf6`
 
 ## Summary
 
@@ -123,75 +120,75 @@
             - [Retrospective](../../08/v2026.06.08.2/retrospective.md)
         - 09
           - V2026.06.09.1
-            - [Notes](../v2026.06.09.1/notes.md)
-            - [Retrospective](../v2026.06.09.1/retrospective.md)
+            - [Notes](../../09/v2026.06.09.1/notes.md)
+            - [Retrospective](../../09/v2026.06.09.1/retrospective.md)
           - V2026.06.09.10
-            - [Notes](../v2026.06.09.10/notes.md)
-            - [Retrospective](../v2026.06.09.10/retrospective.md)
+            - [Notes](../../09/v2026.06.09.10/notes.md)
+            - [Retrospective](../../09/v2026.06.09.10/retrospective.md)
           - V2026.06.09.11
-            - [Notes](../v2026.06.09.11/notes.md)
-            - [Retrospective](../v2026.06.09.11/retrospective.md)
+            - [Notes](../../09/v2026.06.09.11/notes.md)
+            - [Retrospective](../../09/v2026.06.09.11/retrospective.md)
           - V2026.06.09.12
-            - [Notes](../v2026.06.09.12/notes.md)
-            - [Retrospective](../v2026.06.09.12/retrospective.md)
+            - [Notes](../../09/v2026.06.09.12/notes.md)
+            - [Retrospective](../../09/v2026.06.09.12/retrospective.md)
           - V2026.06.09.13
-            - [Notes](../v2026.06.09.13/notes.md)
-            - [Retrospective](../v2026.06.09.13/retrospective.md)
+            - [Notes](../../09/v2026.06.09.13/notes.md)
+            - [Retrospective](../../09/v2026.06.09.13/retrospective.md)
           - V2026.06.09.14
-            - [Notes](../v2026.06.09.14/notes.md)
-            - [Retrospective](../v2026.06.09.14/retrospective.md)
+            - [Notes](../../09/v2026.06.09.14/notes.md)
+            - [Retrospective](../../09/v2026.06.09.14/retrospective.md)
           - V2026.06.09.15
-            - [Notes](../v2026.06.09.15/notes.md)
-            - [Retrospective](../v2026.06.09.15/retrospective.md)
+            - [Notes](../../09/v2026.06.09.15/notes.md)
+            - [Retrospective](../../09/v2026.06.09.15/retrospective.md)
           - V2026.06.09.16
-            - [Notes](../v2026.06.09.16/notes.md)
-            - [Retrospective](../v2026.06.09.16/retrospective.md)
+            - [Notes](../../09/v2026.06.09.16/notes.md)
+            - [Retrospective](../../09/v2026.06.09.16/retrospective.md)
           - V2026.06.09.17
-            - [Notes](../v2026.06.09.17/notes.md)
-            - [Retrospective](../v2026.06.09.17/retrospective.md)
+            - [Notes](../../09/v2026.06.09.17/notes.md)
+            - [Retrospective](../../09/v2026.06.09.17/retrospective.md)
           - V2026.06.09.2
-            - [Notes](../v2026.06.09.2/notes.md)
-            - [Retrospective](../v2026.06.09.2/retrospective.md)
+            - [Notes](../../09/v2026.06.09.2/notes.md)
+            - [Retrospective](../../09/v2026.06.09.2/retrospective.md)
           - V2026.06.09.3
-            - [Notes](notes.md)
-            - [Retrospective](retrospective.md)
+            - [Notes](../../09/v2026.06.09.3/notes.md)
+            - [Retrospective](../../09/v2026.06.09.3/retrospective.md)
           - V2026.06.09.4
-            - [Notes](../v2026.06.09.4/notes.md)
-            - [Retrospective](../v2026.06.09.4/retrospective.md)
+            - [Notes](../../09/v2026.06.09.4/notes.md)
+            - [Retrospective](../../09/v2026.06.09.4/retrospective.md)
           - V2026.06.09.5
-            - [Notes](../v2026.06.09.5/notes.md)
-            - [Retrospective](../v2026.06.09.5/retrospective.md)
+            - [Notes](../../09/v2026.06.09.5/notes.md)
+            - [Retrospective](../../09/v2026.06.09.5/retrospective.md)
           - V2026.06.09.6
-            - [Notes](../v2026.06.09.6/notes.md)
-            - [Retrospective](../v2026.06.09.6/retrospective.md)
+            - [Notes](../../09/v2026.06.09.6/notes.md)
+            - [Retrospective](../../09/v2026.06.09.6/retrospective.md)
           - V2026.06.09.7
-            - [Notes](../v2026.06.09.7/notes.md)
-            - [Retrospective](../v2026.06.09.7/retrospective.md)
+            - [Notes](../../09/v2026.06.09.7/notes.md)
+            - [Retrospective](../../09/v2026.06.09.7/retrospective.md)
           - V2026.06.09.8
-            - [Notes](../v2026.06.09.8/notes.md)
-            - [Retrospective](../v2026.06.09.8/retrospective.md)
+            - [Notes](../../09/v2026.06.09.8/notes.md)
+            - [Retrospective](../../09/v2026.06.09.8/retrospective.md)
           - V2026.06.09.9
-            - [Notes](../v2026.06.09.9/notes.md)
-            - [Retrospective](../v2026.06.09.9/retrospective.md)
+            - [Notes](../../09/v2026.06.09.9/notes.md)
+            - [Retrospective](../../09/v2026.06.09.9/retrospective.md)
         - 11
           - V2026.06.11.1
-            - [Notes](../../11/v2026.06.11.1/notes.md)
-            - [Retrospective](../../11/v2026.06.11.1/retrospective.md)
+            - [Notes](../v2026.06.11.1/notes.md)
+            - [Retrospective](../v2026.06.11.1/retrospective.md)
           - V2026.06.11.2
-            - [Notes](../../11/v2026.06.11.2/notes.md)
-            - [Retrospective](../../11/v2026.06.11.2/retrospective.md)
+            - [Notes](../v2026.06.11.2/notes.md)
+            - [Retrospective](../v2026.06.11.2/retrospective.md)
           - V2026.06.11.3
-            - [Notes](../../11/v2026.06.11.3/notes.md)
-            - [Retrospective](../../11/v2026.06.11.3/retrospective.md)
+            - [Notes](../v2026.06.11.3/notes.md)
+            - [Retrospective](../v2026.06.11.3/retrospective.md)
           - V2026.06.11.4
-            - [Notes](../../11/v2026.06.11.4/notes.md)
-            - [Retrospective](../../11/v2026.06.11.4/retrospective.md)
+            - [Notes](../v2026.06.11.4/notes.md)
+            - [Retrospective](../v2026.06.11.4/retrospective.md)
           - V2026.06.11.5
-            - [Notes](../../11/v2026.06.11.5/notes.md)
-            - [Retrospective](../../11/v2026.06.11.5/retrospective.md)
+            - [Notes](../v2026.06.11.5/notes.md)
+            - [Retrospective](../v2026.06.11.5/retrospective.md)
           - V2026.06.11.6
-            - [Notes](../../11/v2026.06.11.6/notes.md)
-            - [Retrospective](../../11/v2026.06.11.6/retrospective.md)
+            - [Notes](notes.md)
+            - [Retrospective](retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

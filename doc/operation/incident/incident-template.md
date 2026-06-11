@@ -230,6 +230,9 @@ Concrete behaviors for the next occurrence (agent and human).
           - V2026.06.11.5
             - [Notes](../../../release/2026/06/11/v2026.06.11.5/notes.md)
             - [Retrospective](../../../release/2026/06/11/v2026.06.11.5/retrospective.md)
+          - V2026.06.11.6
+            - [Notes](../../../release/2026/06/11/v2026.06.11.6/notes.md)
+            - [Retrospective](../../../release/2026/06/11/v2026.06.11.6/retrospective.md)
     - [Release <version>](../../../release/release-notes-template.md)
     - [Retrospective — <version>](../../../release/retrospective-template.md)
   - Setting

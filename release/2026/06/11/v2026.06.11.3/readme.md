@@ -201,6 +201,9 @@
           - V2026.06.11.5
             - [Notes](../v2026.06.11.5/notes.md)
             - [Retrospective](../v2026.06.11.5/retrospective.md)
+          - V2026.06.11.6
+            - [Notes](../v2026.06.11.6/notes.md)
+            - [Retrospective](../v2026.06.11.6/retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting
