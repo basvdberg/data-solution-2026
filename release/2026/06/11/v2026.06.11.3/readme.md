@@ -6,6 +6,9 @@
 - [Linked files](#linked-files)
 <!-- markdown-toc:end -->
 
+## Table of contents
+
+
 ﻿## Table of contents
 
 
@@ -192,6 +195,9 @@
           - V2026.06.11.3
             - [Notes](notes.md)
             - [Retrospective](retrospective.md)
+          - V2026.06.11.4
+            - [Notes](../v2026.06.11.4/notes.md)
+            - [Retrospective](../v2026.06.11.4/retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

@@ -1,99 +1,109 @@
 ## Table of contents
 
 <!-- markdown-toc:start -->
-- [Release context](#release-context)
-- [What went well](#what-went-well)
-- [What did not go well](#what-did-not-go-well)
-- [Incidents this release](#incidents-this-release)
-- [Patterns (by category)](#patterns-by-category)
-- [Root causes (generalized)](#root-causes-generalized)
-- [Metrics](#metrics)
-- [Action items](#action-items)
-- [Promotions (approval gate)](#promotions-approval-gate)
+- [Metadata](#metadata)
+- [Scope](#scope)
+- [Changes](#changes)
+  - [Added](#added)
+  - [Changed](#changed)
+  - [Deprecated](#deprecated)
+  - [Removed](#removed)
+  - [Fixed](#fixed)
+  - [Security](#security)
+- [Poller and Airflow impact](#poller-and-airflow-impact)
+- [Deployment](#deployment)
+- [Validation](#validation)
+- [Rollback](#rollback)
 - [Related artifacts](#related-artifacts)
+- [Notes](#notes)
 <!-- markdown-toc:end -->
 
-## Table of contents
+﻿# Release v2026.06.11.4
 
+Operator-facing release notes. Published to GitHub Releases via `publish-release.ps1`. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-﻿# Retrospective — v2026.06.03.4
+## Metadata
 
-Backfilled retrospective for the NAS/Airflow infra PoC session (2026-06-03). Agent-drafted from ERR-001–012 and promoted incidents.
+- Version: `v2026.06.11.4`
+- Date: `2026-06-11`
+- Branch: `main`
+- Commit: `<fill-after-commit>`
 
-## Release context
+## Scope
 
-| Field | Value |
-|-------|-------|
-| **Version** | v2026.06.03.4 |
-| **Date** | 2026-06-03 |
-| **Commit** | *(infra PoC period)* |
-| **Validation** | partial — UI worked before reboot test exposed gaps |
+Brief description of what is included in this release.
 
-## What went well
+## Changes
 
-- Cursor backtracking solved complex NAS/Docker/Airflow integration incrementally
-- Versioned compose and infra readme grew into a durable runbook
-- SSH-based remote agent workflow proved viable for PoC hosting
+### Added
 
-## What did not go well
+-
 
-- Twelve distinct ERR entries in one session — high troubleshooting tax
-- Airflow declared stable multiple times before reboot verification
-- NAS SSH environment rediscovered instead of sourced once
+### Changed
 
-## Incidents this release
+-
 
-| ID | Title | Severity |
-|----|-------|----------|
-| [INC-001](../../doc/operation/incident/inc-001-nas-ssh-environment.md) | NAS non-interactive SSH environment | degraded |
-| [INC-002](../../doc/operation/incident/inc-002-airflow-infra-stability.md) | Airflow standalone infra instability | blocker |
-| [INC-003](../../doc/operation/incident/inc-003-agent-process-gaps.md) | Agent rediscovery and false-done verification | degraded |
+### Deprecated
 
-## Patterns (by category)
+-
 
-| Category | Count | Example IDs | Theme |
-|----------|-------|-------------|-------|
-| infra-environment | 4 | ERR-001, 007, 009, 010 | Non-interactive SSH ≠ interactive shell |
-| orchestration | 5 | ERR-003–006, 008 | Pin identity; wait for startup; reboot test |
-| agent-efficiency | 2 | ERR-002, 011 | Read log; verify paths before invoke |
-| process-verification | 1 | ERR-012 | One browser check ≠ durable infra fix |
+### Removed
 
-## Root causes (generalized)
+-
 
-1. **Environment assumptions** — tools work locally or in interactive SSH but not in agent automation.
-2. **Unpinned identity** — hostname, password, ports drift on recreate/reboot.
-3. **Weak definition of done** — no mandatory persistence verification across restart.
+### Fixed
 
-## Metrics
+-
 
-- ERR entries this period: 12 | repeated mistakes: 1 (ERR-002 pattern)
-- Incidents opened: 3 | resolved: 2 | codified: 3
-- Validation checklist: partial
+### Security
 
-## Action items
+-
 
-| # | Action | Type | Owner | Status |
-|---|--------|------|-------|--------|
-| 1 | Maintain `.cursor/troubleshooting-errors.md` with ERR dedup | skill | agent | codified |
-| 2 | NAS env sourcing in first SSH command block | skill | agent | codified |
-| 3 | Reboot verification in release validation when `infra/` changes | checklist | agent | codified |
-| 4 | Issue inventory + per-release retrospective workflow | process | agent | codified |
-| 5 | Promote recurring themes to lessons-learned when 3+ releases show same category | lessons-learned | user | codified |
+## Poller and Airflow impact
 
-## Promotions (approval gate)
+- Poller mapping:
+- Airflow DAG (`code/airflow/dags/`):
+- Runtime variables changed:
 
-- [x] Update skill: troubleshooting-error-log
-- [x] Update skill: release-retrospective (this workflow)
-- [x] Update `release/release-notes-template.md` validation (reboot item)
-- [x] Update `infra/readme.md` runbook (existing troubleshooting sections)
-- [x] Add theme to `lessons-learned-part2.md` — infra verification (existing section + [issue-category.md](../../doc/operation/issue-category.md))
-- [ ] Propose design pattern: verify persistence across restart
+## Deployment
+
+- Trigger: push to `main` → CI → NAS pull deploy
+- Infra sync: automatic when `release/deploy-config.json` has `sync_infra: true` (set by pre-commit when compose/env under `infra/` changes)
+- NAS actions after deploy:
+  - [ ] Dependencies updated
+  - [ ] Services restarted
+  - [ ] Airflow DAGs parse and appear in UI
+
+## Validation
+
+- [ ] Unit tests passed (CI)
+- [ ] Integration checks passed
+- [ ] Airflow `dags list-import-errors` empty on NAS (`docker exec airflow-standalone airflow dags list-import-errors`)
+- [ ] Airflow poller manual run passed
+- [ ] Kafka publish verified (or stdout in smoke mode)
+- [ ] Postgres state persistence verified
+- [ ] Infra change only: host reboot or full down/up cycle verified (if `infra/` changed)
+
+## Rollback
+
+- Previous stable tag: `v2026.06.11.2`
+
+```bash
+cd ~/apps/data-solution-2026
+git fetch --all --tags
+git checkout v2026.06.11.2
+docker compose up -d
+```
 
 ## Related artifacts
 
-- Release notes: [`notes.md`](../notes/v2026.06.03.4.md)
-- Incident register: [`doc/operation/incident/`](../../doc/operation/incident/readme.md)
-- Troubleshooting log: [`.cursor/troubleshooting-errors.md`](../../.cursor/troubleshooting-errors.md)
+- Release details (internal): [`readme.md`](readme.md) *(same folder as this file after scaffold)*
+- Retrospective: [`retrospective.md`](retrospective.md)
+- Incidents: *(link INC-NNN from [incident register](../../doc/operation/incident/readme.md) if any)*
+
+## Notes
+
+Additional operational notes.
 
 ## Project structure
 
@@ -162,14 +172,14 @@ Backfilled retrospective for the NAS/Airflow infra PoC session (2026-06-03). Age
             - [Release v2026.06.02.2](../../02/v2026.06.02.2/notes.md)
         - 03
           - V2026.06.03.1
-            - [Release v2026.06.03.1](../v2026.06.03.1/notes.md)
+            - [Release v2026.06.03.1](../../03/v2026.06.03.1/notes.md)
           - V2026.06.03.2
-            - [Release v2026.06.03.2](../v2026.06.03.2/notes.md)
+            - [Release v2026.06.03.2](../../03/v2026.06.03.2/notes.md)
           - V2026.06.03.3
-            - [Release v2026.06.03.3](../v2026.06.03.3/notes.md)
+            - [Release v2026.06.03.3](../../03/v2026.06.03.3/notes.md)
           - V2026.06.03.4
-            - [Release v2026.06.03.4](notes.md)
-            - [Retrospective](retrospective.md)
+            - [Release v2026.06.03.4](../../03/v2026.06.03.4/notes.md)
+            - [Retrospective](../../03/v2026.06.03.4/retrospective.md)
         - 04
           - V2026.06.04.1
             - [Notes](../../04/v2026.06.04.1/notes.md)
@@ -238,17 +248,17 @@ Backfilled retrospective for the NAS/Airflow infra PoC session (2026-06-03). Age
             - [Retrospective](../../09/v2026.06.09.9/retrospective.md)
         - 11
           - V2026.06.11.1
-            - [Notes](../../11/v2026.06.11.1/notes.md)
-            - [Retrospective](../../11/v2026.06.11.1/retrospective.md)
+            - [Notes](../v2026.06.11.1/notes.md)
+            - [Retrospective](../v2026.06.11.1/retrospective.md)
           - V2026.06.11.2
-            - [Notes](../../11/v2026.06.11.2/notes.md)
-            - [Retrospective](../../11/v2026.06.11.2/retrospective.md)
+            - [Notes](../v2026.06.11.2/notes.md)
+            - [Retrospective](../v2026.06.11.2/retrospective.md)
           - V2026.06.11.3
-            - [Notes](../../11/v2026.06.11.3/notes.md)
-            - [Retrospective](../../11/v2026.06.11.3/retrospective.md)
+            - [Notes](../v2026.06.11.3/notes.md)
+            - [Retrospective](../v2026.06.11.3/retrospective.md)
           - V2026.06.11.4
-            - [Notes](../../11/v2026.06.11.4/notes.md)
-            - [Retrospective](../../11/v2026.06.11.4/retrospective.md)
+            - [Notes](notes.md)
+            - [Retrospective](retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

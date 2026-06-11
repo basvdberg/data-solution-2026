@@ -185,6 +185,9 @@ Copy [incident-template.md](incident-template.md). Link from:
           - V2026.06.11.3
             - [Notes](../../../release/2026/06/11/v2026.06.11.3/notes.md)
             - [Retrospective](../../../release/2026/06/11/v2026.06.11.3/retrospective.md)
+          - V2026.06.11.4
+            - [Notes](../../../release/2026/06/11/v2026.06.11.4/notes.md)
+            - [Retrospective](../../../release/2026/06/11/v2026.06.11.4/retrospective.md)
     - [Release <version>](../../../release/release-notes-template.md)
     - [Retrospective — <version>](../../../release/retrospective-template.md)
   - Setting
