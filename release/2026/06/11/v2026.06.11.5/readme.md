@@ -1,92 +1,30 @@
-## Table of contents
+﻿## Table of contents
 
 <!-- markdown-toc:start -->
-- [Release context](#release-context)
-- [What went well](#what-went-well)
-- [What did not go well](#what-did-not-go-well)
-- [Incidents this release](#incidents-this-release)
-- [Patterns (by category)](#patterns-by-category)
-- [Root causes (generalized)](#root-causes-generalized)
-- [Metrics](#metrics)
-- [Action items](#action-items)
-- [Promotions (approval gate)](#promotions-approval-gate)
-- [Lessons promoted](#lessons-promoted)
-- [Related artifacts](#related-artifacts)
+- [Release metadata](#release-metadata)
+- [Summary](#summary)
+- [Linked files](#linked-files)
 <!-- markdown-toc:end -->
 
-## Table of contents
+﻿# Release v2026.06.11.5 - Details
 
+## Release metadata
 
-﻿# Retrospective — v2026.06.11.2
+- Version: `v2026.06.11.5`
+- Development start: `2026-06-11T12:53:10+02:00`
+- Development end: `2026-06-11T12:53:50+02:00`
+- Release branch: `main`
+- Release commit: `e71550d9786d3e438debe4679c26b203952f4cef`
 
-Per-release sprint retrospective. Agent drafts; user approves promotions and action items.
+## Summary
 
-## Release context
+- Update scope and changes in `notes.md` in this folder.
 
-| Field | Value |
-|-------|-------|
-| **Version** | v2026.06.11.2 |
-| **Date** | 2026-06-11 |
-| **Commit** | `<fill-after-commit>` |
-| **Validation** | pass / fail / partial — brief outcome |
+## Linked files
 
-## What went well
-
--
-
-## What did not go well
-
--
-
-## Incidents this release
-
-| ID | Title | Severity |
-|----|-------|----------|
-| | | |
-
-## Patterns (by category)
-
-| Category | Count | Example IDs | Theme |
-|----------|-------|-------------|-------|
-| | | | |
-
-## Root causes (generalized)
-
-1.
-
-## Metrics
-
-| Metric | Value |
-|--------|-------|
-| ERR entries | |
-| Repeat ERR (Count > 1) | |
-| Incidents (INC) | |
-| Validation checklist | |
-
-## Action items
-
-| Item | Owner | Destination |
-|------|-------|-------------|
-| | | skill / rule / checklist / runbook / lessons-learned |
-
-## Promotions (approval gate)
-
-- [ ] Skill or rule update
-- [ ] Release notes template / validation step
-- [ ] Infra or deploy runbook
-- [ ] Lessons learned / issue category heat map
-
-## Lessons promoted
-
-| Category | Theme | lessons-learned anchor |
-|----------|-------|------------------------|
-| | | |
-
-## Related artifacts
-
-- Release notes: [`notes.md`](notes.md)
-- Release details: [`readme.md`](readme.md)
-- Incident register: [`doc/operation/incident/`](../../doc/operation/incident/readme.md)
+- Release note: [`notes.md`](notes.md)
+- Retrospective: [`retrospective.md`](retrospective.md)
+- Incident register: [`doc/operation/incident/`](../../../doc/operation/incident/readme.md)
 
 ## Project structure
 
@@ -234,8 +172,8 @@ Per-release sprint retrospective. Agent drafts; user approves promotions and act
             - [Notes](../v2026.06.11.1/notes.md)
             - [Retrospective](../v2026.06.11.1/retrospective.md)
           - V2026.06.11.2
-            - [Notes](notes.md)
-            - [Retrospective](retrospective.md)
+            - [Notes](../v2026.06.11.2/notes.md)
+            - [Retrospective](../v2026.06.11.2/retrospective.md)
           - V2026.06.11.3
             - [Notes](../v2026.06.11.3/notes.md)
             - [Retrospective](../v2026.06.11.3/retrospective.md)
@@ -243,8 +181,8 @@ Per-release sprint retrospective. Agent drafts; user approves promotions and act
             - [Notes](../v2026.06.11.4/notes.md)
             - [Retrospective](../v2026.06.11.4/retrospective.md)
           - V2026.06.11.5
-            - [Notes](../v2026.06.11.5/notes.md)
-            - [Retrospective](../v2026.06.11.5/retrospective.md)
+            - [Notes](notes.md)
+            - [Retrospective](retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

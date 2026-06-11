@@ -198,6 +198,9 @@ git checkout v2026.06.02.2
           - V2026.06.11.4
             - [Notes](../../11/v2026.06.11.4/notes.md)
             - [Retrospective](../../11/v2026.06.11.4/retrospective.md)
+          - V2026.06.11.5
+            - [Notes](../../11/v2026.06.11.5/notes.md)
+            - [Retrospective](../../11/v2026.06.11.5/retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

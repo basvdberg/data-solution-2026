@@ -262,6 +262,9 @@ Additional operational notes.
           - V2026.06.11.4
             - [Notes](../v2026.06.11.4/notes.md)
             - [Retrospective](../v2026.06.11.4/retrospective.md)
+          - V2026.06.11.5
+            - [Notes](../v2026.06.11.5/notes.md)
+            - [Retrospective](../v2026.06.11.5/retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

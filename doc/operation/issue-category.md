@@ -296,6 +296,9 @@ Update this table during each release retrospective. When one category appears i
           - V2026.06.11.4
             - [Notes](../../release/2026/06/11/v2026.06.11.4/notes.md)
             - [Retrospective](../../release/2026/06/11/v2026.06.11.4/retrospective.md)
+          - V2026.06.11.5
+            - [Notes](../../release/2026/06/11/v2026.06.11.5/notes.md)
+            - [Retrospective](../../release/2026/06/11/v2026.06.11.5/retrospective.md)
     - [Release <version>](../../release/release-notes-template.md)
     - [Retrospective — <version>](../../release/retrospective-template.md)
   - Setting
