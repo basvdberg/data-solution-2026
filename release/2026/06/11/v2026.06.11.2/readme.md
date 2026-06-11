@@ -1,4 +1,4 @@
-## Table of contents
+﻿## Table of contents
 
 <!-- markdown-toc:start -->
 - [Release metadata](#release-metadata)
@@ -6,21 +6,15 @@
 - [Linked files](#linked-files)
 <!-- markdown-toc:end -->
 
-## Table of contents
-
-
-﻿## Table of contents
-
-
-﻿# Release v2026.06.08.1 - Details
+﻿# Release v2026.06.11.2 - Details
 
 ## Release metadata
 
-- Version: `v2026.06.08.1`
-- Development start: `2026-06-08T21:45:46+02:00`
-- Development end: `2026-06-08T21:46:05+02:00`
+- Version: `v2026.06.11.2`
+- Development start: `2026-06-11T12:32:30+02:00`
+- Development end: `2026-06-11T12:33:12+02:00`
 - Release branch: `main`
-- Release commit: `b1ad04deff19dc074dde6e5b7af725408c099190`
+- Release commit: `12af24ad3390b22ca2fa7f64338c38ebaa699d36`
 
 ## Summary
 
@@ -116,11 +110,11 @@
             - [Retrospective](../../05/v2026.06.05.6/retrospective.md)
         - 08
           - V2026.06.08.1
-            - [Notes](notes.md)
-            - [Retrospective](retrospective.md)
+            - [Notes](../../08/v2026.06.08.1/notes.md)
+            - [Retrospective](../../08/v2026.06.08.1/retrospective.md)
           - V2026.06.08.2
-            - [Notes](../v2026.06.08.2/notes.md)
-            - [Retrospective](../v2026.06.08.2/retrospective.md)
+            - [Notes](../../08/v2026.06.08.2/notes.md)
+            - [Retrospective](../../08/v2026.06.08.2/retrospective.md)
         - 09
           - V2026.06.09.1
             - [Notes](../../09/v2026.06.09.1/notes.md)
@@ -175,11 +169,11 @@
             - [Retrospective](../../09/v2026.06.09.9/retrospective.md)
         - 11
           - V2026.06.11.1
-            - [Notes](../../11/v2026.06.11.1/notes.md)
-            - [Retrospective](../../11/v2026.06.11.1/retrospective.md)
+            - [Notes](../v2026.06.11.1/notes.md)
+            - [Retrospective](../v2026.06.11.1/retrospective.md)
           - V2026.06.11.2
-            - [Notes](../../11/v2026.06.11.2/notes.md)
-            - [Retrospective](../../11/v2026.06.11.2/retrospective.md)
+            - [Notes](notes.md)
+            - [Retrospective](retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

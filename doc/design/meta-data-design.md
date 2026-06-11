@@ -293,6 +293,9 @@ The path IDs in the repo remain the stable names humans use in reviews and logs.
           - V2026.06.11.1
             - [Notes](../../release/2026/06/11/v2026.06.11.1/notes.md)
             - [Retrospective](../../release/2026/06/11/v2026.06.11.1/retrospective.md)
+          - V2026.06.11.2
+            - [Notes](../../release/2026/06/11/v2026.06.11.2/notes.md)
+            - [Retrospective](../../release/2026/06/11/v2026.06.11.2/retrospective.md)
     - [Release <version>](../../release/release-notes-template.md)
     - [Retrospective — <version>](../../release/retrospective-template.md)
   - Setting

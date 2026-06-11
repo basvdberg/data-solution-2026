@@ -1,36 +1,89 @@
 ## Table of contents
 
 <!-- markdown-toc:start -->
-- [Release metadata](#release-metadata)
-- [Summary](#summary)
-- [Linked files](#linked-files)
+- [Release context](#release-context)
+- [What went well](#what-went-well)
+- [What did not go well](#what-did-not-go-well)
+- [Incidents this release](#incidents-this-release)
+- [Patterns (by category)](#patterns-by-category)
+- [Root causes (generalized)](#root-causes-generalized)
+- [Metrics](#metrics)
+- [Action items](#action-items)
+- [Promotions (approval gate)](#promotions-approval-gate)
+- [Lessons promoted](#lessons-promoted)
+- [Related artifacts](#related-artifacts)
 <!-- markdown-toc:end -->
 
-## Table of contents
+﻿# Retrospective — v2026.06.11.2
 
+Per-release sprint retrospective. Agent drafts; user approves promotions and action items.
 
-﻿## Table of contents
+## Release context
 
+| Field | Value |
+|-------|-------|
+| **Version** | v2026.06.11.2 |
+| **Date** | 2026-06-11 |
+| **Commit** | `<fill-after-commit>` |
+| **Validation** | pass / fail / partial — brief outcome |
 
-﻿# Release v2026.06.08.1 - Details
+## What went well
 
-## Release metadata
+-
 
-- Version: `v2026.06.08.1`
-- Development start: `2026-06-08T21:45:46+02:00`
-- Development end: `2026-06-08T21:46:05+02:00`
-- Release branch: `main`
-- Release commit: `b1ad04deff19dc074dde6e5b7af725408c099190`
+## What did not go well
 
-## Summary
+-
 
-- Update scope and changes in `notes.md` in this folder.
+## Incidents this release
 
-## Linked files
+| ID | Title | Severity |
+|----|-------|----------|
+| | | |
 
-- Release note: [`notes.md`](notes.md)
-- Retrospective: [`retrospective.md`](retrospective.md)
-- Incident register: [`doc/operation/incident/`](../../../doc/operation/incident/readme.md)
+## Patterns (by category)
+
+| Category | Count | Example IDs | Theme |
+|----------|-------|-------------|-------|
+| | | | |
+
+## Root causes (generalized)
+
+1.
+
+## Metrics
+
+| Metric | Value |
+|--------|-------|
+| ERR entries | |
+| Repeat ERR (Count > 1) | |
+| Incidents (INC) | |
+| Validation checklist | |
+
+## Action items
+
+| Item | Owner | Destination |
+|------|-------|-------------|
+| | | skill / rule / checklist / runbook / lessons-learned |
+
+## Promotions (approval gate)
+
+- [ ] Skill or rule update
+- [ ] Release notes template / validation step
+- [ ] Infra or deploy runbook
+- [ ] Lessons learned / issue category heat map
+
+## Lessons promoted
+
+| Category | Theme | lessons-learned anchor |
+|----------|-------|------------------------|
+| | | |
+
+## Related artifacts
+
+- Release notes: [`notes.md`](notes.md)
+- Release details: [`readme.md`](readme.md)
+- Incident register: [`doc/operation/incident/`](../../doc/operation/incident/readme.md)
 
 ## Project structure
 
@@ -116,11 +169,11 @@
             - [Retrospective](../../05/v2026.06.05.6/retrospective.md)
         - 08
           - V2026.06.08.1
-            - [Notes](notes.md)
-            - [Retrospective](retrospective.md)
+            - [Notes](../../08/v2026.06.08.1/notes.md)
+            - [Retrospective](../../08/v2026.06.08.1/retrospective.md)
           - V2026.06.08.2
-            - [Notes](../v2026.06.08.2/notes.md)
-            - [Retrospective](../v2026.06.08.2/retrospective.md)
+            - [Notes](../../08/v2026.06.08.2/notes.md)
+            - [Retrospective](../../08/v2026.06.08.2/retrospective.md)
         - 09
           - V2026.06.09.1
             - [Notes](../../09/v2026.06.09.1/notes.md)
@@ -175,11 +228,11 @@
             - [Retrospective](../../09/v2026.06.09.9/retrospective.md)
         - 11
           - V2026.06.11.1
-            - [Notes](../../11/v2026.06.11.1/notes.md)
-            - [Retrospective](../../11/v2026.06.11.1/retrospective.md)
+            - [Notes](../v2026.06.11.1/notes.md)
+            - [Retrospective](../v2026.06.11.1/retrospective.md)
           - V2026.06.11.2
-            - [Notes](../../11/v2026.06.11.2/notes.md)
-            - [Retrospective](../../11/v2026.06.11.2/retrospective.md)
+            - [Notes](notes.md)
+            - [Retrospective](retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting
