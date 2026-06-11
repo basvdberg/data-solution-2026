@@ -1,4 +1,4 @@
-## Table of contents
+﻿## Table of contents
 
 <!-- markdown-toc:start -->
 - [Release metadata](#release-metadata)
@@ -24,9 +24,9 @@
 
 - Version: `v2026.06.09.17`
 - Development start: `2026-06-09T16:44:04+02:00`
-- Development end: `2026-06-09T16:49:04+02:00`
+- Development end: `2026-06-09T17:09:19+02:00`
 - Release branch: `main`
-- Release commit: `491c7eb9f5f73916466fd9080bced046c8a87c87`
+- Release commit: `ab874b969189a90f9b9cec039dc94460b2411516`
 
 ## Summary
 

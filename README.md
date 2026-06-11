@@ -45,7 +45,7 @@ A **staging layer** for daily mean temperature across the Netherlands.
 
 - Event-based orchestration for source-to-staging: poller publishes change events on Kafka; Airflow reacts and triggers extract (see [event-based orchestration plan](doc/design/event-based-orchestration-plan.md)).
 
-**Lessons so far** ([full notes](lessons-learned.md)).
+**Lessons so far** ([full notes](lessons-learned-part1.md)).
 
 ## Documentation
 
@@ -59,7 +59,8 @@ A **staging layer** for daily mean temperature across the Netherlands.
 | Event orchestration | [Event-based orchestration plan](doc/design/event-based-orchestration-plan.md) |
 | Kafka topics | [Kafka topic naming](doc/design/kafka-topic-naming.md) |
 | Implementation checklist | [Implementation plan](doc/implementation-plan.md) |
-| Observations | [Lessons learned](lessons-learned.md) |
+| Observations | [Lessons learned](lessons-learned-part1.md) |
+| LinkedIn (lessons learned) | [LinkedIn post (part 3)](docs/linkedin-post-part3.md) |
 
 ## Design patterns changed
 
@@ -233,6 +234,8 @@ Since the [May 19 LinkedIn post](https://github.com/basvdberg/data-engineering-2
     - [Retrospective — <version>](release/retrospective-template.md)
   - Setting
   - Template
+  - Docs
+    - [LinkedIn post (part 3)](docs/linkedin-post-part3.md)
   - [Getting started](getting-started.md)
   - [Lessons learned](lessons-learned-part1.md)
   - [Lessons learned (part 2)](lessons-learned-part2.md)
