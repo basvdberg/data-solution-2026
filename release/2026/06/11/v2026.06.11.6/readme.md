@@ -15,15 +15,18 @@
 ﻿## Table of contents
 
 
+﻿## Table of contents
+
+
 ﻿# Release v2026.06.11.6 - Details
 
 ## Release metadata
 
 - Version: `v2026.06.11.6`
 - Development start: `2026-06-11T12:54:08+02:00`
-- Development end: `2026-06-11T12:57:49+02:00`
+- Development end: `2026-06-11T12:59:07+02:00`
 - Release branch: `main`
-- Release commit: `202470375e7f5a3bd8d4d26421858bec83f29f4f`
+- Release commit: `4e8db0641477715a1cee7c96db93ac3d589d190c`
 
 ## Summary
 
@@ -87,6 +90,7 @@
     - [Implementation plan (Open-Meteo → event orchestration)](../../../../../doc/implementation-plan.md)
   - Docs
     - [LinkedIn post (part 3)](../../../../../docs/linkedin-post-part3.md)
+    - [Linkedin Post Part3V2](../../../../../docs/linkedin-post-part3v2.md)
   - Infra
     - Airflow
       - Dags
@@ -195,6 +199,9 @@
           - V2026.06.11.6
             - [Notes](notes.md)
             - [Retrospective](retrospective.md)
+          - V2026.06.11.7
+            - [Notes](../v2026.06.11.7/notes.md)
+            - [Retrospective](../v2026.06.11.7/retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

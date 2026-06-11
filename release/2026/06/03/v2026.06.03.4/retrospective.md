@@ -147,6 +147,7 @@ Backfilled retrospective for the NAS/Airflow infra PoC session (2026-06-03). Age
     - [Implementation plan (Open-Meteo → event orchestration)](../../../../../doc/implementation-plan.md)
   - Docs
     - [LinkedIn post (part 3)](../../../../../docs/linkedin-post-part3.md)
+    - [Linkedin Post Part3V2](../../../../../docs/linkedin-post-part3v2.md)
   - Infra
     - Airflow
       - Dags
@@ -255,6 +256,9 @@ Backfilled retrospective for the NAS/Airflow infra PoC session (2026-06-03). Age
           - V2026.06.11.6
             - [Notes](../../11/v2026.06.11.6/notes.md)
             - [Retrospective](../../11/v2026.06.11.6/retrospective.md)
+          - V2026.06.11.7
+            - [Notes](../../11/v2026.06.11.7/notes.md)
+            - [Retrospective](../../11/v2026.06.11.7/retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

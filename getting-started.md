@@ -95,6 +95,7 @@ python -m extractor_and_poller.openmeteo.extractor --mapping daily-temperature
     - [Implementation plan (Open-Meteo → event orchestration)](doc/implementation-plan.md)
   - Docs
     - [LinkedIn post (part 3)](docs/linkedin-post-part3.md)
+    - [Linkedin Post Part3V2](docs/linkedin-post-part3v2.md)
   - Infra
     - Airflow
       - Dags
@@ -203,6 +204,9 @@ python -m extractor_and_poller.openmeteo.extractor --mapping daily-temperature
           - V2026.06.11.6
             - [Notes](release/2026/06/11/v2026.06.11.6/notes.md)
             - [Retrospective](release/2026/06/11/v2026.06.11.6/retrospective.md)
+          - V2026.06.11.7
+            - [Notes](release/2026/06/11/v2026.06.11.7/notes.md)
+            - [Retrospective](release/2026/06/11/v2026.06.11.7/retrospective.md)
     - [Release <version>](release/release-notes-template.md)
     - [Retrospective — <version>](release/retrospective-template.md)
   - Setting

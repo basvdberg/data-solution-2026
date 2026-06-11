@@ -1,55 +1,38 @@
-# LinkedIn post (part 3)
-
 ## Table of contents
 
 <!-- markdown-toc:start -->
-- [Post](#post)
-- [Architecture diagram](#architecture-diagram)
+_No sections yet._
 <!-- markdown-toc:end -->
 
-## Post
+Lessons from building a data engineering PoC with an AI agent. Part 3
 
-Lessons from building a data engineering PoC with an AI agent.
+In my May post (https://github.com/basvdberg/data-engineering-2026) I described a new way of working with GenAI. In June I shared progress on the Data Solution 2026 (https://github.com/basvdberg/data-solution-2026) proof of concept. Here is what I learned along the way.
 
-In my [May post](https://github.com/basvdberg/data-engineering-2026) I described a new way of working with GenAI. In June I shared progress on the [Data Solution 2026](https://github.com/basvdberg/data-solution-2026) proof of concept. Here is what I learned along the way.
-
-Working with an AI agent feels like having a **junior** assistant — working really hard to help you out. I emphasize *junior* because it does require me to **fully specify** what needs to be done. The agent optimises for "works now" in the current session. Treat it as a fast implementer, not the architect — document platform decisions, constraints, and skills first, then review diffs before they land.
+Working with an AI agent feels like having a junior assistant — working really hard to help you out. I emphasize junior because it does require me to fully specify what needs to be done.
 
 A concrete example: I asked for Airflow DAG code assuming it would use the latest version. It followed Airflow 2 patterns while my server runs Airflow 3. The task looked stuck ("no logs available") while it crashed on an API that no longer exists. A single line in the prompt ("we run Airflow 3.2") would have avoided that.
 
-**SSH troubleshooting ate more time than it should.** The agent runs commands on my local NAS over SSH. Non-interactive sessions had a minimal PATH (`docker` not found), nested quoting from PowerShell broke remote commands, and the same workarounds were rediscovered session after session. On QNAP, the active sshd config file was not the one we had patched — bare `ssh host 'docker …'` failed until we fixed the login shell once, permanently. Fixing the default path and codifying copy-paste patterns in a Cursor skill cleared a lot of noise — but the agent will not do that by itself.
+SSH troubleshooting ate more time than it should. The agent runs commands on my local NAS over SSH. Non-interactive sessions had a minimal PATH (docker not found), nested quoting from PowerShell broke remote commands, and the same workarounds were rediscovered session after session. Fixing the default path and codifying copy-paste patterns in a Cursor skill cleared a lot of noise — but the agent will not do that by itself.
 
-**Capture fixes or you pay twice.** A fix that lives only in chat is not organisational learning. I now log recurring errors during debugging, write incidents when impact is real, and run a retrospective after each release to promote patterns into skills, rules, and pipeline changes — for example, infra-aware deploy when only `infra/` files change, with progress alerts to my phone.
+Capture fixes or you pay twice. A fix that lives only in chat is not organisational learning. I now log recurring errors during debugging, write incidents when impact is real, and run a retrospective after each release to promote patterns into skills, rules, and pipeline changes — for example, infra-aware deploy when only infra/ files change, with progress alerts to my phone.
 
-**Learning by doing beat reading docs.** I was new to Apache Airflow and Apache Kafka. Learning from working examples in *my* architecture — with the agent as tutor — got me productive faster than documentation or YouTube alone.
+Learning by doing beat reading docs. I was new to Apache Airflow and Apache Kafka. Learning from working examples in my architecture — with the agent as tutor — got me productive faster than documentation or YouTube alone.
 
-**Making tacit knowledge explicit pays off.** DevOps habits, automatic deployment, testing, documenting, versioning — all of it matters more when an agent is doing the implementation. That is an upfront investment. I expect a strong return. The diagram below is the model: declarative intent and design patterns at the top, AI-generated code in the middle, standard tools at the bottom.
+Making tacit knowledge explicit pays off. DevOps habits, automatic deployment, testing, documenting, versioning — all of it matters more when an agent is doing the implementation. The attached diagram captures that model.
 
-**Design the platform before the application.** I generated poller code quickly, but the first version stored state on the local filesystem. Fine on a laptop; wrong on a NAS with containers and scheduled runs. Moving execution history to PostgreSQL meant rework I could have avoided by deciding persistence and deploy paths up front.
+Design before implementation. I generated code quickly, but the first version stored state on the local filesystem. Fine on a laptop; wrong on a NAS with containers and concurrent jobs. Moving to PostgreSQL meant rework I could have avoided by deciding persistence up front.
 
-**Infrastructure needs reboot tests, not one browser check.** Unpinned admin passwords broke after every Docker restart. Hostname and port mismatches came back after server reboot. "It works once" is not enough — run `docker compose down`, reboot, browse again. Same split for deploy: `git pull` updates application code; compose env vars and container config need a separate infra sync. I learned that when PYTHONPATH was correct in Git but the running Airflow stack was not.
+Infrastructure needs reboot tests, not one browser check. Unpinned admin passwords and hostname/port mismatches came back after every Docker or server restart. "It works once" is not enough.
 
-**What is running today:** a poller that checks a public data source every hour. When data changes, it publishes a change event to Kafka; when it does not, it logs an unchanged event. Kafka separates those event types so you can see exactly when source data changed — and trigger extraction only when something actually changed.
+What is running today: a poller that checks a public data source every hour. When data changes, it publishes a change event to Kafka. Consumers can subscribe to those events to trigger extraction only when something actually changed.
 
 Full notes (infra, SSH, Airflow version mismatch, CI/CD, incidents):
 
-- <https://github.com/basvdberg/data-solution-2026/blob/main/lessons-learned-part1.md>
-- <https://github.com/basvdberg/data-solution-2026/blob/main/lessons-learned-part2.md>
+https://github.com/basvdberg/data-solution-2026/blob/main/lessons-learned-part1.md
+
+https://github.com/basvdberg/data-solution-2026/blob/main/lessons-learned-part2.md
 
 #DataEngineering #GenAI #ApacheAirflow #ApacheKafka #ProofOfConcept #DataArchitecture
-
-## Architecture diagram
-
-Attach this image when you create the LinkedIn post (PNG is easiest; SVG is also in this folder).
-
-![Gen AI and Data Engineering — declarative intent, generated code, standard tools](genai-data-engineering-architecture.png)
-
-| File | Use |
-|------|-----|
-| [genai-data-engineering-architecture.png](genai-data-engineering-architecture.png) | **LinkedIn upload** (1200 px wide) |
-| [genai-data-engineering-architecture.svg](genai-data-engineering-architecture.svg) | Scalable source |
-
-Source: [data-engineering-2026](https://github.com/basvdberg/data-engineering-2026/blob/main/docs/genai-data-engineering-architecture.svg)
 
 ## Project structure
 

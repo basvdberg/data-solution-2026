@@ -1,36 +1,89 @@
 ## Table of contents
 
 <!-- markdown-toc:start -->
-- [Release metadata](#release-metadata)
-- [Summary](#summary)
-- [Linked files](#linked-files)
+- [Release context](#release-context)
+- [What went well](#what-went-well)
+- [What did not go well](#what-did-not-go-well)
+- [Incidents this release](#incidents-this-release)
+- [Patterns (by category)](#patterns-by-category)
+- [Root causes (generalized)](#root-causes-generalized)
+- [Metrics](#metrics)
+- [Action items](#action-items)
+- [Promotions (approval gate)](#promotions-approval-gate)
+- [Lessons promoted](#lessons-promoted)
+- [Related artifacts](#related-artifacts)
 <!-- markdown-toc:end -->
 
-## Table of contents
+﻿# Retrospective — v2026.06.11.7
 
+Per-release sprint retrospective. Agent drafts; user approves promotions and action items.
 
-﻿## Table of contents
+## Release context
 
+| Field | Value |
+|-------|-------|
+| **Version** | v2026.06.11.7 |
+| **Date** | 2026-06-11 |
+| **Commit** | `<fill-after-commit>` |
+| **Validation** | pass / fail / partial — brief outcome |
 
-﻿# Release v2026.06.11.1 - Details
+## What went well
 
-## Release metadata
+-
 
-- Version: `v2026.06.11.1`
-- Development start: `2026-06-11T12:31:27+02:00`
-- Development end: `2026-06-11T12:32:09+02:00`
-- Release branch: `main`
-- Release commit: `95ba1361cfaf36f4fb343a81da098762aba3857e`
+## What did not go well
 
-## Summary
+-
 
-- Update scope and changes in `notes.md` in this folder.
+## Incidents this release
 
-## Linked files
+| ID | Title | Severity |
+|----|-------|----------|
+| | | |
 
-- Release note: [`notes.md`](notes.md)
-- Retrospective: [`retrospective.md`](retrospective.md)
-- Incident register: [`doc/operation/incident/`](../../../doc/operation/incident/readme.md)
+## Patterns (by category)
+
+| Category | Count | Example IDs | Theme |
+|----------|-------|-------------|-------|
+| | | | |
+
+## Root causes (generalized)
+
+1.
+
+## Metrics
+
+| Metric | Value |
+|--------|-------|
+| ERR entries | |
+| Repeat ERR (Count > 1) | |
+| Incidents (INC) | |
+| Validation checklist | |
+
+## Action items
+
+| Item | Owner | Destination |
+|------|-------|-------------|
+| | | skill / rule / checklist / runbook / lessons-learned |
+
+## Promotions (approval gate)
+
+- [ ] Skill or rule update
+- [ ] Release notes template / validation step
+- [ ] Infra or deploy runbook
+- [ ] Lessons learned / issue category heat map
+
+## Lessons promoted
+
+| Category | Theme | lessons-learned anchor |
+|----------|-------|------------------------|
+| | | |
+
+## Related artifacts
+
+- Release notes: [`notes.md`](notes.md)
+- Release details: [`readme.md`](readme.md)
+- Incident register: [`doc/operation/incident/`](../../doc/operation/incident/readme.md)
 
 ## Project structure
 
@@ -176,8 +229,8 @@
             - [Retrospective](../../09/v2026.06.09.9/retrospective.md)
         - 11
           - V2026.06.11.1
-            - [Notes](notes.md)
-            - [Retrospective](retrospective.md)
+            - [Notes](../v2026.06.11.1/notes.md)
+            - [Retrospective](../v2026.06.11.1/retrospective.md)
           - V2026.06.11.2
             - [Notes](../v2026.06.11.2/notes.md)
             - [Retrospective](../v2026.06.11.2/retrospective.md)
@@ -194,8 +247,8 @@
             - [Notes](../v2026.06.11.6/notes.md)
             - [Retrospective](../v2026.06.11.6/retrospective.md)
           - V2026.06.11.7
-            - [Notes](../v2026.06.11.7/notes.md)
-            - [Retrospective](../v2026.06.11.7/retrospective.md)
+            - [Notes](notes.md)
+            - [Retrospective](retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

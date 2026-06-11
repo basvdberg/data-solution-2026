@@ -1,4 +1,4 @@
-## Table of contents
+﻿## Table of contents
 
 <!-- markdown-toc:start -->
 - [Release metadata](#release-metadata)
@@ -6,21 +6,15 @@
 - [Linked files](#linked-files)
 <!-- markdown-toc:end -->
 
-## Table of contents
-
-
-﻿## Table of contents
-
-
-﻿# Release v2026.06.11.1 - Details
+﻿# Release v2026.06.11.7 - Details
 
 ## Release metadata
 
-- Version: `v2026.06.11.1`
-- Development start: `2026-06-11T12:31:27+02:00`
-- Development end: `2026-06-11T12:32:09+02:00`
+- Version: `v2026.06.11.7`
+- Development start: `2026-06-11T13:30:48+02:00`
+- Development end: `2026-06-11T13:31:32+02:00`
 - Release branch: `main`
-- Release commit: `95ba1361cfaf36f4fb343a81da098762aba3857e`
+- Release commit: `d668312ddee59ed40375c62aa671e6d85d1aaf0a`
 
 ## Summary
 
@@ -176,8 +170,8 @@
             - [Retrospective](../../09/v2026.06.09.9/retrospective.md)
         - 11
           - V2026.06.11.1
-            - [Notes](notes.md)
-            - [Retrospective](retrospective.md)
+            - [Notes](../v2026.06.11.1/notes.md)
+            - [Retrospective](../v2026.06.11.1/retrospective.md)
           - V2026.06.11.2
             - [Notes](../v2026.06.11.2/notes.md)
             - [Retrospective](../v2026.06.11.2/retrospective.md)
@@ -194,8 +188,8 @@
             - [Notes](../v2026.06.11.6/notes.md)
             - [Retrospective](../v2026.06.11.6/retrospective.md)
           - V2026.06.11.7
-            - [Notes](../v2026.06.11.7/notes.md)
-            - [Retrospective](../v2026.06.11.7/retrospective.md)
+            - [Notes](notes.md)
+            - [Retrospective](retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

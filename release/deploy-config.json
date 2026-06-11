@@ -23,7 +23,7 @@
                             "code/postgres/schema.sql"
                         ],
     "reason":  "Infra component(s) airflow, postgres changed since tag v2026.06.03.4: infra/airflow/.env.example, infra/airflow/docker-compose.standalone.yaml, infra/postgres/.env.example, infra/postgres/apply-shared-postgres-on-nas.sh, infra/postgres/create-app-user.sh, infra/postgres/migrate-database-name.sh, infra/postgres/migrate-poller-from-dedicated-postgres.sh, infra/postgres/remove-dedicated-postgres.sh, infra/postgres/run-applicable-migrations.sh",
-    "version":  "v2026.06.11.6",
+    "version":  "v2026.06.11.7",
     "since_tag":  "v2026.06.03.4",
-    "updated_at":  "2026-06-11T10:58:30Z"
+    "updated_at":  "2026-06-11T11:30:49Z"
 }
