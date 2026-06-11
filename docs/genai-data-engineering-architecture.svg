@@ -1,0 +1,156 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 1180" font-family="Segoe UI, system-ui, sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 22px; font-weight: 600; fill: #1f2328; }
+      .subtitle { font-size: 13px; fill: #656d76; }
+      .label { font-size: 15px; font-weight: 600; fill: #1f2328; }
+      .layer-title { font-size: 16px; font-weight: 600; fill: #1f2328; }
+      .body { font-size: 12px; fill: #656d76; }
+      .box-title { font-size: 12px; font-weight: 600; fill: #1f2328; }
+      .box-item { font-size: 11px; fill: #656d76; }
+      .chip { font-size: 11px; fill: #424a53; }
+      .accent { fill: #0969da; }
+      .accent-stroke { stroke: #0969da; }
+      .muted-stroke { stroke: #d0d7de; }
+      .layer-fill { fill: #f6f8fa; }
+      .layer-header { fill: #eaeef2; }
+      .box-fill { fill: #ffffff; }
+      .highlight-fill { fill: #ddf4ff; }
+      .badge-fill { fill: #f6f8fa; }
+    </style>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#656d76"/>
+    </marker>
+    <marker id="arrow-accent" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#0969da"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="410" y="36" text-anchor="middle" class="title">Gen AI and Data Engineering</text>
+  <text x="410" y="58" text-anchor="middle" class="subtitle">Declarative intent at the top, generated code in the middle, standard tools at the bottom</text>
+
+  <!-- Data Engineer -->
+  <g transform="translate(374, 78)">
+    <circle cx="36" cy="36" r="34" class="accent-stroke" stroke-width="2" fill="#f6f8fa"/>
+    <circle cx="36" cy="26" r="10" class="accent-stroke" stroke-width="2" fill="none"/>
+    <path d="M18 58c0-10 8-16 18-16s18 6 18 16" class="accent-stroke" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <rect x="28" y="40" width="16" height="12" rx="2" class="accent-stroke" stroke-width="1.5" fill="none"/>
+    <path d="M32 46h8M36 42v8" class="accent-stroke" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+  <text x="410" y="168" text-anchor="middle" class="label">Data Engineer</text>
+  <text x="410" y="186" text-anchor="middle" class="body">Defines intent, reviews output, owns the solution</text>
+
+  <!-- Arrow to layer 1 -->
+  <line x1="410" y1="198" x2="410" y2="228" stroke="#656d76" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Layer 1 -->
+  <g transform="translate(50, 238)">
+    <rect width="720" height="300" rx="10" class="accent-stroke" stroke-width="2" fill="#f6f8fa"/>
+    <rect width="720" height="44" rx="10" class="layer-header"/>
+    <rect y="34" width="720" height="10" class="layer-header"/>
+    <rect x="16" y="10" width="28" height="28" rx="6" fill="#0969da"/>
+    <text x="30" y="29" text-anchor="middle" fill="#ffffff" font-size="14" font-weight="600">1</text>
+    <text x="56" y="29" class="layer-title">Specification of intent</text>
+
+    <text x="20" y="72" class="body">Technology-agnostic, declarative description of what the solution must do — not how it is built.</text>
+
+    <!-- Generic patterns box -->
+    <rect x="20" y="88" width="220" height="148" rx="8" class="accent-stroke" stroke-width="1.5" fill="#ddf4ff"/>
+    <text x="32" y="108" class="box-title accent">Design patterns — Generic</text>
+    <text x="32" y="128" class="box-item">Separate what and how</text>
+    <text x="32" y="146" class="box-item">Functional decomposition</text>
+    <text x="32" y="164" class="box-item">Prefer simple decomposition</text>
+    <text x="32" y="182" class="box-item">Simplicity</text>
+
+    <!-- Data engineering patterns box -->
+    <rect x="250" y="88" width="220" height="148" rx="8" class="muted-stroke" stroke-width="1" fill="#ffffff"/>
+    <text x="262" y="108" class="box-title">Design patterns — Data engineering</text>
+    <text x="262" y="128" class="box-item">Data extractor</text>
+    <text x="262" y="146" class="box-item">Data object &amp; poller</text>
+    <text x="262" y="164" class="box-item">Data solution layers</text>
+    <text x="262" y="182" class="box-item">Event-based orchestration</text>
+
+    <!-- Documentation box -->
+    <rect x="480" y="88" width="220" height="148" rx="8" class="muted-stroke" stroke-width="1" fill="#ffffff"/>
+    <text x="492" y="108" class="box-title">Documentation &amp; standards</text>
+    <text x="492" y="128" class="box-item">Architecture decisions</text>
+    <text x="492" y="146" class="box-item">DSA metadata (transformations)</text>
+    <text x="492" y="164" class="box-item">Release notes &amp; runbooks</text>
+
+    <!-- Pills -->
+    <rect x="20" y="252" width="72" height="24" rx="12" fill="#0969da"/>
+    <text x="56" y="268" text-anchor="middle" fill="#ffffff" font-size="11">Declarative</text>
+    <rect x="100" y="252" width="130" height="24" rx="12" class="muted-stroke" stroke-width="1" fill="#ffffff"/>
+    <text x="165" y="268" text-anchor="middle" class="chip">Technology-agnostic</text>
+    <rect x="238" y="252" width="108" height="24" rx="12" class="muted-stroke" stroke-width="1" fill="#ffffff"/>
+    <text x="292" y="268" text-anchor="middle" class="chip">AI-ready vocabulary</text>
+  </g>
+
+  <!-- Gen AI bridge -->
+  <line x1="410" y1="548" x2="410" y2="578" class="accent-stroke" stroke-width="2" marker-end="url(#arrow-accent)"/>
+  <rect x="255" y="588" width="310" height="52" rx="8" class="accent-stroke" stroke-width="1.5" fill="#f6f8fa"/>
+  <text x="410" y="612" text-anchor="middle" class="label accent">Generative AI</text>
+  <text x="410" y="628" text-anchor="middle" class="body">Translates declarative intent into implementation</text>
+  <line x1="410" y1="650" x2="410" y2="680" class="accent-stroke" stroke-width="2" marker-end="url(#arrow-accent)"/>
+
+  <!-- Layer 2 -->
+  <g transform="translate(50, 690)">
+    <rect width="720" height="200" rx="10" class="muted-stroke" stroke-width="1" fill="#f6f8fa"/>
+    <rect width="720" height="44" rx="10" class="layer-header"/>
+    <rect y="34" width="720" height="10" class="layer-header"/>
+    <rect x="16" y="10" width="28" height="28" rx="6" fill="#eaeef2"/>
+    <text x="30" y="29" text-anchor="middle" class="label">2</text>
+    <text x="56" y="29" class="layer-title">Code and configuration</text>
+
+    <text x="20" y="72" class="body">Generated and reviewed implementation — the how on a concrete stack.</text>
+
+    <g class="chip">
+      <rect x="20" y="86" width="100" height="26" rx="6" class="muted-stroke" stroke-width="1" fill="#ffffff"/>
+      <text x="70" y="103" text-anchor="middle" font-size="11">Python modules</text>
+      <rect x="128" y="86" width="100" height="26" rx="6" class="muted-stroke" stroke-width="1" fill="#ffffff"/>
+      <text x="178" y="103" text-anchor="middle" font-size="11">SQL &amp; migrations</text>
+      <rect x="236" y="86" width="88" height="26" rx="6" class="muted-stroke" stroke-width="1" fill="#ffffff"/>
+      <text x="280" y="103" text-anchor="middle" font-size="11">Airflow DAGs</text>
+      <rect x="332" y="86" width="108" height="26" rx="6" class="muted-stroke" stroke-width="1" fill="#ffffff"/>
+      <text x="386" y="103" text-anchor="middle" font-size="11">Docker &amp; compose</text>
+      <rect x="448" y="86" width="108" height="26" rx="6" class="muted-stroke" stroke-width="1" fill="#ffffff"/>
+      <text x="502" y="103" text-anchor="middle" font-size="11">CI/CD workflows</text>
+      <rect x="564" y="86" width="88" height="26" rx="6" class="muted-stroke" stroke-width="1" fill="#ffffff"/>
+      <text x="608" y="103" text-anchor="middle" font-size="11">Tests &amp; hooks</text>
+      <rect x="20" y="120" width="118" height="26" rx="6" class="muted-stroke" stroke-width="1" fill="#ffffff"/>
+      <text x="79" y="137" text-anchor="middle" font-size="11">Environment config</text>
+    </g>
+
+    <text x="20" y="172" class="body">Hand-written code gives way to AI-generated code, steered by the specification above.</text>
+  </g>
+
+  <line x1="410" y1="900" x2="410" y2="930" stroke="#656d76" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Layer 3 -->
+  <g transform="translate(50, 940)">
+    <rect width="720" height="170" rx="10" class="muted-stroke" stroke-width="1" fill="#f6f8fa"/>
+    <rect width="720" height="44" rx="10" class="layer-header"/>
+    <rect y="34" width="720" height="10" class="layer-header"/>
+    <rect x="16" y="10" width="28" height="28" rx="6" fill="#eaeef2"/>
+    <text x="30" y="29" text-anchor="middle" class="label">3</text>
+    <text x="56" y="29" class="layer-title">Standard tools</text>
+
+    <text x="20" y="72" class="body">Proven, off-the-shelf platforms that execute the generated solution in production.</text>
+
+    <rect x="20" y="86" width="108" height="26" rx="6" class="muted-stroke" stroke-width="1" fill="#ffffff"/>
+    <text x="74" y="103" text-anchor="middle" class="chip">Apache Airflow</text>
+    <rect x="136" y="86" width="88" height="26" rx="6" class="muted-stroke" stroke-width="1" fill="#ffffff"/>
+    <text x="180" y="103" text-anchor="middle" class="chip">PostgreSQL</text>
+    <rect x="232" y="86" width="64" height="26" rx="6" class="muted-stroke" stroke-width="1" fill="#ffffff"/>
+    <text x="264" y="103" text-anchor="middle" class="chip">Docker</text>
+    <rect x="304" y="86" width="108" height="26" rx="6" class="muted-stroke" stroke-width="1" fill="#ffffff"/>
+    <text x="358" y="103" text-anchor="middle" class="chip">GitHub Actions</text>
+    <rect x="420" y="86" width="58" height="26" rx="6" class="muted-stroke" stroke-width="1" fill="#ffffff"/>
+    <text x="449" y="103" text-anchor="middle" class="chip">NGINX</text>
+    <rect x="486" y="86" width="78" height="26" rx="6" class="muted-stroke" stroke-width="1" fill="#ffffff"/>
+    <text x="525" y="103" text-anchor="middle" class="chip">Cursor IDE</text>
+  </g>
+
+  <text x="410" y="1140" text-anchor="middle" class="body">Design patterns from data-engineering-design-patterns</text>
+</svg>
