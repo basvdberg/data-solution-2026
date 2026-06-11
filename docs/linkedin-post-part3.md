@@ -3,8 +3,11 @@
 ## Table of contents
 
 <!-- markdown-toc:start -->
-- [Post](#post)
-- [Architecture diagram](#architecture-diagram)
+- [LinkedIn post (part 3)](#linkedin-post-part-3)
+  - [Table of contents](#table-of-contents)
+  - [Post](#post)
+  - [Architecture diagram](#architecture-diagram)
+  - [Project structure](#project-structure)
 <!-- markdown-toc:end -->
 
 ## Post
@@ -17,12 +20,6 @@ Working with an AI agent feels like having a **junior** assistant — working re
 
 A concrete example: I asked for Airflow DAG code assuming it would use the latest version. It followed Airflow 2 patterns while my server runs Airflow 3. The task looked stuck ("no logs available") while it crashed on an API that no longer exists. A single line in the prompt ("we run Airflow 3.2") would have avoided that.
 
-**Green does not mean done.** Another junior-programmer moment: the DAG ran green and the logs said data was written to Postgres. I queried the database — zero rows. The code logged success on the happy path without checking that the write actually succeeded. "DAG succeeded" and "data is there" are unrelated until you verify side effects.
-
-**Design the platform before the application.** I generated poller code quickly, but the first version stored state on the local filesystem. Fine on a laptop; wrong on a NAS with containers and scheduled runs. Moving execution history to PostgreSQL meant rework I could have avoided by deciding persistence and deploy paths up front.
-
-**Infrastructure needs reboot tests, not one browser check.** Unpinned admin passwords broke after every Docker restart. Hostname and port mismatches came back after server reboot. "It works once" is not enough — run `docker compose down`, reboot, browse again. Same split for deploy: `git pull` updates application code; compose env vars and container config need a separate infra sync. I learned that when PYTHONPATH was correct in Git but the running Airflow stack was not.
-
 **SSH troubleshooting ate more time than it should.** The agent runs commands on my local NAS over SSH. Non-interactive sessions had a minimal PATH (`docker` not found), nested quoting from PowerShell broke remote commands, and the same workarounds were rediscovered session after session. On QNAP, the active sshd config file was not the one we had patched — bare `ssh host 'docker …'` failed until we fixed the login shell once, permanently. Fixing the default path and codifying copy-paste patterns in a Cursor skill cleared a lot of noise — but the agent will not do that by itself.
 
 **Capture fixes or you pay twice.** A fix that lives only in chat is not organisational learning. I now log recurring errors during debugging, write incidents when impact is real, and run a retrospective after each release to promote patterns into skills, rules, and pipeline changes — for example, infra-aware deploy when only `infra/` files change, with progress alerts to my phone.
@@ -30,6 +27,10 @@ A concrete example: I asked for Airflow DAG code assuming it would use the lates
 **Learning by doing beat reading docs.** I was new to Apache Airflow and Apache Kafka. Learning from working examples in *my* architecture — with the agent as tutor — got me productive faster than documentation or YouTube alone.
 
 **Making tacit knowledge explicit pays off.** DevOps habits, automatic deployment, testing, documenting, versioning — all of it matters more when an agent is doing the implementation. That is an upfront investment. I expect a strong return. The diagram below is the model: declarative intent and design patterns at the top, AI-generated code in the middle, standard tools at the bottom.
+
+**Design the platform before the application.** I generated poller code quickly, but the first version stored state on the local filesystem. Fine on a laptop; wrong on a NAS with containers and scheduled runs. Moving execution history to PostgreSQL meant rework I could have avoided by deciding persistence and deploy paths up front.
+
+**Infrastructure needs reboot tests, not one browser check.** Unpinned admin passwords broke after every Docker restart. Hostname and port mismatches came back after server reboot. "It works once" is not enough — run `docker compose down`, reboot, browse again. Same split for deploy: `git pull` updates application code; compose env vars and container config need a separate infra sync. I learned that when PYTHONPATH was correct in Git but the running Airflow stack was not.
 
 **What is running today:** a poller that checks a public data source every hour. When data changes, it publishes a change event to Kafka; when it does not, it logs an unchanged event. Kafka separates those event types so you can see exactly when source data changed — and trigger extraction only when something actually changed.
 
