@@ -161,6 +161,8 @@ Prior incidents (INC-001–003) are from the 2026-06-03 infra PoC.
         - [INC-<NNN> — <short title>](../../../../../doc/operation/incident/incident-template.md)
       - [Issue categories](../../../../../doc/operation/issue-category.md)
     - [Implementation plan (Open-Meteo → event orchestration)](../../../../../doc/implementation-plan.md)
+  - Docs
+    - [LinkedIn post (part 3)](../../../../../docs/linkedin-post-part3.md)
   - Infra
     - Airflow
       - Dags
@@ -250,6 +252,10 @@ Prior incidents (INC-001–003) are from the 2026-06-03 infra PoC.
           - V2026.06.09.9
             - [Notes](../../09/v2026.06.09.9/notes.md)
             - [Retrospective](../../09/v2026.06.09.9/retrospective.md)
+        - 11
+          - V2026.06.11.1
+            - [Notes](../../11/v2026.06.11.1/notes.md)
+            - [Retrospective](../../11/v2026.06.11.1/retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

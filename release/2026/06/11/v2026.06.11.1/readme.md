@@ -1,92 +1,30 @@
-## Table of contents
+﻿## Table of contents
 
 <!-- markdown-toc:start -->
-- [Release context](#release-context)
-- [What went well](#what-went-well)
-- [What did not go well](#what-did-not-go-well)
-- [Incidents this release](#incidents-this-release)
-- [Patterns (by category)](#patterns-by-category)
-- [Root causes (generalized)](#root-causes-generalized)
-- [Metrics](#metrics)
-- [Action items](#action-items)
-- [Promotions (approval gate)](#promotions-approval-gate)
-- [Lessons promoted](#lessons-promoted)
-- [Related artifacts](#related-artifacts)
+- [Release metadata](#release-metadata)
+- [Summary](#summary)
+- [Linked files](#linked-files)
 <!-- markdown-toc:end -->
 
-## Table of contents
+﻿# Release v2026.06.11.1 - Details
 
+## Release metadata
 
-﻿# Retrospective — v2026.06.09.17
+- Version: `v2026.06.11.1`
+- Development start: `2026-06-11T12:31:27+02:00`
+- Development end: `2026-06-11T12:32:09+02:00`
+- Release branch: `main`
+- Release commit: `95ba1361cfaf36f4fb343a81da098762aba3857e`
 
-Per-release sprint retrospective. Agent drafts; user approves promotions and action items.
+## Summary
 
-## Release context
+- Update scope and changes in `notes.md` in this folder.
 
-| Field | Value |
-|-------|-------|
-| **Version** | v2026.06.09.17 |
-| **Date** | 2026-06-09 |
-| **Commit** | `<fill-after-commit>` |
-| **Validation** | pass / fail / partial — brief outcome |
+## Linked files
 
-## What went well
-
--
-
-## What did not go well
-
--
-
-## Incidents this release
-
-| ID | Title | Severity |
-|----|-------|----------|
-| | | |
-
-## Patterns (by category)
-
-| Category | Count | Example IDs | Theme |
-|----------|-------|-------------|-------|
-| | | | |
-
-## Root causes (generalized)
-
-1.
-
-## Metrics
-
-| Metric | Value |
-|--------|-------|
-| ERR entries | |
-| Repeat ERR (Count > 1) | |
-| Incidents (INC) | |
-| Validation checklist | |
-
-## Action items
-
-| Item | Owner | Destination |
-|------|-------|-------------|
-| | | skill / rule / checklist / runbook / lessons-learned |
-
-## Promotions (approval gate)
-
-- [ ] Skill or rule update
-- [ ] Release notes template / validation step
-- [ ] Infra or deploy runbook
-- [ ] Lessons learned / issue category heat map
-
-## Lessons promoted
-
-| Category | Theme | lessons-learned anchor |
-|----------|-------|------------------------|
-| | | |
-
-## Related artifacts
-
-- Release notes: [`notes.md`](notes.md)
-- Release details: [`readme.md`](readme.md)
-- Incident register: [`doc/operation/incident/`](../../doc/operation/incident/readme.md)
+- Release note: [`notes.md`](notes.md)
+- Retrospective: [`retrospective.md`](retrospective.md)
+- Incident register: [`doc/operation/incident/`](../../../doc/operation/incident/readme.md)
 
 ## Project structure
 
@@ -179,60 +117,60 @@ Per-release sprint retrospective. Agent drafts; user approves promotions and act
             - [Retrospective](../../08/v2026.06.08.2/retrospective.md)
         - 09
           - V2026.06.09.1
-            - [Notes](../v2026.06.09.1/notes.md)
-            - [Retrospective](../v2026.06.09.1/retrospective.md)
+            - [Notes](../../09/v2026.06.09.1/notes.md)
+            - [Retrospective](../../09/v2026.06.09.1/retrospective.md)
           - V2026.06.09.10
-            - [Notes](../v2026.06.09.10/notes.md)
-            - [Retrospective](../v2026.06.09.10/retrospective.md)
+            - [Notes](../../09/v2026.06.09.10/notes.md)
+            - [Retrospective](../../09/v2026.06.09.10/retrospective.md)
           - V2026.06.09.11
-            - [Notes](../v2026.06.09.11/notes.md)
-            - [Retrospective](../v2026.06.09.11/retrospective.md)
+            - [Notes](../../09/v2026.06.09.11/notes.md)
+            - [Retrospective](../../09/v2026.06.09.11/retrospective.md)
           - V2026.06.09.12
-            - [Notes](../v2026.06.09.12/notes.md)
-            - [Retrospective](../v2026.06.09.12/retrospective.md)
+            - [Notes](../../09/v2026.06.09.12/notes.md)
+            - [Retrospective](../../09/v2026.06.09.12/retrospective.md)
           - V2026.06.09.13
-            - [Notes](../v2026.06.09.13/notes.md)
-            - [Retrospective](../v2026.06.09.13/retrospective.md)
+            - [Notes](../../09/v2026.06.09.13/notes.md)
+            - [Retrospective](../../09/v2026.06.09.13/retrospective.md)
           - V2026.06.09.14
-            - [Notes](../v2026.06.09.14/notes.md)
-            - [Retrospective](../v2026.06.09.14/retrospective.md)
+            - [Notes](../../09/v2026.06.09.14/notes.md)
+            - [Retrospective](../../09/v2026.06.09.14/retrospective.md)
           - V2026.06.09.15
-            - [Notes](../v2026.06.09.15/notes.md)
-            - [Retrospective](../v2026.06.09.15/retrospective.md)
+            - [Notes](../../09/v2026.06.09.15/notes.md)
+            - [Retrospective](../../09/v2026.06.09.15/retrospective.md)
           - V2026.06.09.16
-            - [Notes](../v2026.06.09.16/notes.md)
-            - [Retrospective](../v2026.06.09.16/retrospective.md)
+            - [Notes](../../09/v2026.06.09.16/notes.md)
+            - [Retrospective](../../09/v2026.06.09.16/retrospective.md)
           - V2026.06.09.17
-            - [Notes](notes.md)
-            - [Retrospective](retrospective.md)
+            - [Notes](../../09/v2026.06.09.17/notes.md)
+            - [Retrospective](../../09/v2026.06.09.17/retrospective.md)
           - V2026.06.09.2
-            - [Notes](../v2026.06.09.2/notes.md)
-            - [Retrospective](../v2026.06.09.2/retrospective.md)
+            - [Notes](../../09/v2026.06.09.2/notes.md)
+            - [Retrospective](../../09/v2026.06.09.2/retrospective.md)
           - V2026.06.09.3
-            - [Notes](../v2026.06.09.3/notes.md)
-            - [Retrospective](../v2026.06.09.3/retrospective.md)
+            - [Notes](../../09/v2026.06.09.3/notes.md)
+            - [Retrospective](../../09/v2026.06.09.3/retrospective.md)
           - V2026.06.09.4
-            - [Notes](../v2026.06.09.4/notes.md)
-            - [Retrospective](../v2026.06.09.4/retrospective.md)
+            - [Notes](../../09/v2026.06.09.4/notes.md)
+            - [Retrospective](../../09/v2026.06.09.4/retrospective.md)
           - V2026.06.09.5
-            - [Notes](../v2026.06.09.5/notes.md)
-            - [Retrospective](../v2026.06.09.5/retrospective.md)
+            - [Notes](../../09/v2026.06.09.5/notes.md)
+            - [Retrospective](../../09/v2026.06.09.5/retrospective.md)
           - V2026.06.09.6
-            - [Notes](../v2026.06.09.6/notes.md)
-            - [Retrospective](../v2026.06.09.6/retrospective.md)
+            - [Notes](../../09/v2026.06.09.6/notes.md)
+            - [Retrospective](../../09/v2026.06.09.6/retrospective.md)
           - V2026.06.09.7
-            - [Notes](../v2026.06.09.7/notes.md)
-            - [Retrospective](../v2026.06.09.7/retrospective.md)
+            - [Notes](../../09/v2026.06.09.7/notes.md)
+            - [Retrospective](../../09/v2026.06.09.7/retrospective.md)
           - V2026.06.09.8
-            - [Notes](../v2026.06.09.8/notes.md)
-            - [Retrospective](../v2026.06.09.8/retrospective.md)
+            - [Notes](../../09/v2026.06.09.8/notes.md)
+            - [Retrospective](../../09/v2026.06.09.8/retrospective.md)
           - V2026.06.09.9
-            - [Notes](../v2026.06.09.9/notes.md)
-            - [Retrospective](../v2026.06.09.9/retrospective.md)
+            - [Notes](../../09/v2026.06.09.9/notes.md)
+            - [Retrospective](../../09/v2026.06.09.9/retrospective.md)
         - 11
           - V2026.06.11.1
-            - [Notes](../../11/v2026.06.11.1/notes.md)
-            - [Retrospective](../../11/v2026.06.11.1/retrospective.md)
+            - [Notes](notes.md)
+            - [Retrospective](retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

@@ -158,6 +158,8 @@ Additional operational notes.
         - [INC-<NNN> — <short title>](../../../../../doc/operation/incident/incident-template.md)
       - [Issue categories](../../../../../doc/operation/issue-category.md)
     - [Implementation plan (Open-Meteo → event orchestration)](../../../../../doc/implementation-plan.md)
+  - Docs
+    - [LinkedIn post (part 3)](../../../../../docs/linkedin-post-part3.md)
   - Infra
     - Airflow
       - Dags
@@ -247,6 +249,10 @@ Additional operational notes.
           - V2026.06.09.9
             - [Notes](notes.md)
             - [Retrospective](retrospective.md)
+        - 11
+          - V2026.06.11.1
+            - [Notes](../../11/v2026.06.11.1/notes.md)
+            - [Retrospective](../../11/v2026.06.11.1/retrospective.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
   - Setting

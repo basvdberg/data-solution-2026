@@ -123,6 +123,8 @@ Concrete behaviors for the next occurrence (agent and human).
         - [INC-<NNN> — <short title>](incident-template.md)
       - [Issue categories](../issue-category.md)
     - [Implementation plan (Open-Meteo → event orchestration)](../../implementation-plan.md)
+  - Docs
+    - [LinkedIn post (part 3)](../../../docs/linkedin-post-part3.md)
   - Infra
     - Airflow
       - Dags
@@ -212,6 +214,10 @@ Concrete behaviors for the next occurrence (agent and human).
           - V2026.06.09.9
             - [Notes](../../../release/2026/06/09/v2026.06.09.9/notes.md)
             - [Retrospective](../../../release/2026/06/09/v2026.06.09.9/retrospective.md)
+        - 11
+          - V2026.06.11.1
+            - [Notes](../../../release/2026/06/11/v2026.06.11.1/notes.md)
+            - [Retrospective](../../../release/2026/06/11/v2026.06.11.1/retrospective.md)
     - [Release <version>](../../../release/release-notes-template.md)
     - [Retrospective — <version>](../../../release/retrospective-template.md)
   - Setting

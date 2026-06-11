@@ -154,6 +154,8 @@ Poll topic mapping lives in [`code/extractor_and_poller/poller/kafka_topic.py`](
         - [INC-<NNN> — <short title>](../operation/incident/incident-template.md)
       - [Issue categories](../operation/issue-category.md)
     - [Implementation plan (Open-Meteo → event orchestration)](../implementation-plan.md)
+  - Docs
+    - [LinkedIn post (part 3)](../../docs/linkedin-post-part3.md)
   - Infra
     - Airflow
       - Dags
@@ -243,6 +245,10 @@ Poll topic mapping lives in [`code/extractor_and_poller/poller/kafka_topic.py`](
           - V2026.06.09.9
             - [Notes](../../release/2026/06/09/v2026.06.09.9/notes.md)
             - [Retrospective](../../release/2026/06/09/v2026.06.09.9/retrospective.md)
+        - 11
+          - V2026.06.11.1
+            - [Notes](../../release/2026/06/11/v2026.06.11.1/notes.md)
+            - [Retrospective](../../release/2026/06/11/v2026.06.11.1/retrospective.md)
     - [Release <version>](../../release/release-notes-template.md)
     - [Retrospective — <version>](../../release/retrospective-template.md)
   - Setting
