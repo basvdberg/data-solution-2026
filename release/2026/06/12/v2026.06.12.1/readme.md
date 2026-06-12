@@ -17,15 +17,18 @@
 ﻿## Table of contents
 
 
+﻿## Table of contents
+
+
 ﻿# Release v2026.06.12.1 - Details
 
 ## Release metadata
 
 - Version: `v2026.06.12.1`
 - Development start: `2026-06-12T15:11:25+02:00`
-- Development end: `2026-06-12T15:13:29+02:00`
+- Development end: `2026-06-12T15:14:07+02:00`
 - Release branch: `main`
-- Release commit: `5d982bc95fa9817005fcb845f6be57ea84abae59`
+- Release commit: `00dc227ef66b7c1747e2e8be6d1a59e7ebf1fbcd`
 
 ## Sequential summary of applied changes
 
