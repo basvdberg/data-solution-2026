@@ -5,15 +5,18 @@
 - [Sequential summary of applied changes](#sequential-summary-of-applied-changes)
 <!-- markdown-toc:end -->
 
+﻿## Table of contents
+
+
 ﻿# Release v2026.06.12.1 - Details
 
 ## Release metadata
 
 - Version: `v2026.06.12.1`
 - Development start: `2026-06-12T15:11:25+02:00`
-- Development end: `2026-06-12T15:11:29+02:00`
+- Development end: `2026-06-12T15:12:01+02:00`
 - Release branch: `main`
-- Release commit: `e2378520dc1c9e173245e887827188febe3ce403`
+- Release commit: `6b64f5dc473670cd7ff4332dafbc77ab25f6ff7d`
 
 ## Sequential summary of applied changes
 
