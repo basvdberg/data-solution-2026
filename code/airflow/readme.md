@@ -6,57 +6,67 @@
 - [DAGs](#dags)
 - [Configuration](#configuration)
 - [Poller DAG](#poller-dag)
+- [Extract DAG](#extract-dag)
+- [Kafka handlers](#kafka-handlers)
 <!-- markdown-toc:end -->
 
-**Target runtime:** Apache Airflow **3.2.0** (`apache/airflow:3.2.0` in [`infra/airflow/docker-compose.standalone.yaml`](../../infra/airflow/docker-compose.standalone.yaml)). DAGs import from `airflow.sdk`; operators from `airflow.providers.standard.*`.
+**Target runtime:** Apache Airflow **3.2.0** (`apache/airflow:3.2.0` in [`infra/airflow/docker-compose.standalone.yaml`](../../infra/airflow/docker-compose.standalone.yaml)). DAGs import from `airflow.sdk`; Kafka via `apache-airflow-providers-apache-kafka` and `apache-airflow-providers-common-messaging`.
 
 ## DAGs
 
 Python files under [dags/](dags/) are loaded by the Airflow scheduler from `/opt/airflow/dags` in the container.
 
+| DAG id | Schedule | Role |
+|--------|----------|------|
+| `openmeteo_data_object_poller` | `@hourly` | Probe marker, persist Postgres, publish Kafka |
+| `openmeteo_daily_temperature_extract` | Asset `ds_poll_data_object_change` | Extract on `data_object_change` events |
+
 ## Configuration
 
-The poller DAG always runs with `--publish kafka`. Kafka bootstrap servers come from container env `KAFKA_HOST` (set automatically by [deploy-infra-on-nas.sh](../../infra/scripts/deploy-infra-on-nas.sh) from [`.env.example`](../../infra/airflow/.env.example)).
+Kafka bootstrap from container env `KAFKA_HOST` (see [`.env.example`](../../infra/airflow/.env.example)). Airflow Connection `kafka_default` is set via `AIRFLOW_CONN_KAFKA_DEFAULT` in compose.
 
-Optional Airflow Variable (override only):
+Optional Airflow Variable:
 
 | Variable | Default | Value semantics |
 |----------|---------|-----------------|
 | `data_object_id` | `source/openmeteo/daily-temperature` | Source data object id probed by the poller |
 
-Poller state is stored in Postgres (table `poller`). Postgres connection uses `POSTGRES_HOST`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `DATA_SOLUTION_DB` from `~/apache-airflow/.env` (also applied by deploy-infra). See [Implementation plan](../../doc/implementation-plan.md).
-
-Local CLI debugging may still use `--publish none` or `--publish stdout`; production Airflow does not use a transport toggle variable.
+`PYTHONPATH` in the Airflow container: `/opt/data-solution/code:/opt/data-solution/code/airflow:/opt/data-solution`.
 
 ## Poller DAG
 
 | Property | Value |
 |----------|--------|
 | File | `dags/openmeteo_data_object_poller.py` |
-| `dag_id` | `openmeteo_data_object_poller` |
-| Schedule | `@hourly` (paused on creation until smoke passes) |
+| Tasks | `probe_and_persist` → `publish_poll_event` |
+| Publish | `ProduceToTopicOperator` (`kafka_config_id=kafka_default`) |
 
-The DAG task is a `PythonOperator` that calls `extractor_and_poller.poller.__main__.main()` with the same arguments as the CLI (no duplicated poller logic).
+Task `probe_and_persist` calls [`include/poll_run.py`](include/poll_run.py) (probe + Postgres, no Kafka in poller CLI). Task `publish_poll_event` publishes the JSON envelope to `ds.poll.data_object_change` or `ds.poll.data_object_progress`.
 
-Equivalent manual run inside the Airflow container:
+## Extract DAG
 
-```bash
-python -m extractor_and_poller.poller \
-  --data-object source/openmeteo/daily-temperature \
-  --publish kafka
-```
+| Property | Value |
+|----------|--------|
+| File | `dags/openmeteo_daily_temperature_extract.py` |
+| Trigger | `AssetWatcher` + `MessageQueueTrigger` on `ds.poll.data_object_change` |
+| Retries | 5 with exponential backoff (2–30 min) |
 
-`PYTHONPATH` is set in the Airflow container (`/opt/data-solution/code:/opt/data-solution`).
+The extract task reads `triggering_asset_events` for `{mapping_id, marker, event_id}` and calls the extractor CLI. Manual triggers with DAG conf still work for replay.
 
-The task runs as `PythonOperator` so it **inherits** container env vars (`POSTGRES_HOST`, `POSTGRES_USER`, etc.). Do not use a custom operator `env` dict that only sets `PYTHONPATH`—that replaces the whole environment and breaks Postgres (defaults to `localhost:5432`).
+## Kafka handlers
 
-**Manual trigger while a run is active:** the DAG has `max_active_runs=1`, so Airflow **queues** a new manual run until the current run finishes. That is expected. While queued, the DAG run shows state **queued** in the UI and there are **no task logs** yet — logs appear only when the run moves to **running**. To cancel, clear or fail the queued DAG run from the UI.
+Importable modules under [`include/`](include/):
 
-**Task logs:** the DAG has no custom logging; output comes from the poller CLI. When run under Airflow, `configure_logging()` does **not** replace Airflow's task log handlers (see `extractor_and_poller.common.logging_setup.running_in_airflow_task`).
+| Module | Purpose |
+|--------|---------|
+| `kafka_handlers.py` | `poll_change_apply_function` — validate change events for Asset Watcher |
+| `kafka_topics.py` | Topic name constants |
+| `poller_kafka.py` | Producer function for `ProduceToTopicOperator` |
+| `poll_run.py` | Single probe + Postgres persist for poller DAG |
 
-Confirm `~/apache-airflow/.env` on the local server includes `POSTGRES_HOST=postgres:5432` and `DATA_SOLUTION_DB=data-solution-2026` (see `infra/airflow/.env.example`). After changing `.env`, restart Airflow: `docker compose -f docker-compose.standalone.yaml up -d` in `~/apache-airflow`.
+Monitoring: [Event orchestration monitoring](../../doc/operation/event-orchestration-monitoring.md).
 
-**DAG still shows BashOperator?** The bind-mounted DAG file comes from `~/apps/data-solution-2026`. If the NAS clone is behind `origin/main`, run `bash ~/apps/data-solution-2026/release/scripts/deploy-on-nas.sh`, then `docker exec airflow-standalone airflow dags reserialize`, and trigger a new run (old task attempts keep the operator they started with).
+Implementation checklist: [Implementation plan](../../doc/implementation/implementation-plan.md).
 
 ## Project structure
 
@@ -65,10 +75,10 @@ Confirm `~/apache-airflow/.env` on the local server includes `POSTGRES_HOST=post
   - Code
     - Airflow
       - Dags
+      - Include
       - Plugins
     - Extractor_And_Poller
       - Common
-      - Controller
       - Extract
       - Openmeteo
         - Extractor
@@ -91,14 +101,18 @@ Confirm `~/apache-airflow/.env` on the local server includes `POSTGRES_HOST=post
     - Staging
       - Openmeteo
   - Doc
-    - Data Solution
-      - Data Object Mapping
+    - Data Object Mapping
     - Design
       - [Architecture](../../doc/design/architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](../../doc/design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](../../doc/design/event-based-orchestration-plan.md)
       - [Kafka topic naming](../../doc/design/kafka-topic-naming.md)
       - [Meta data design](../../doc/design/meta-data-design.md)
+    - Image
+    - Implementation
+      - [Implementation plan (Open-Meteo → event orchestration)](../../doc/implementation/implementation-plan.md)
+    - Linked In
+      - [Linkedin Post Part3V2](../../doc/linked-in/linkedin-post-part3v2.md)
     - Operation
       - Incident
         - [INC-001 — NAS non-interactive SSH environment](../../doc/operation/incident/inc-001-nas-ssh-environment.md)
@@ -106,11 +120,8 @@ Confirm `~/apache-airflow/.env` on the local server includes `POSTGRES_HOST=post
         - [INC-003 — Agent rediscovery and false-done verification](../../doc/operation/incident/inc-003-agent-process-gaps.md)
         - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](../../doc/operation/incident/inc-004-airflow-pythonpath-drift.md)
         - [INC-<NNN> — <short title>](../../doc/operation/incident/incident-template.md)
+      - [Event orchestration monitoring](../../doc/operation/event-orchestration-monitoring.md)
       - [Issue categories](../../doc/operation/issue-category.md)
-    - [Implementation plan (Open-Meteo → event orchestration)](../../doc/implementation-plan.md)
-  - Docs
-    - [LinkedIn post (part 3)](../../docs/linkedin-post-part3.md)
-    - [Linkedin Post Part3V2](../../docs/linkedin-post-part3v2.md)
   - Infra
     - Airflow
       - Dags
@@ -141,91 +152,11 @@ Confirm `~/apache-airflow/.env` on the local server includes `POSTGRES_HOST=post
           - V2026.06.05.6
             - [Notes](../../release/2026/06/05/v2026.06.05.6/notes.md)
             - [Retrospective](../../release/2026/06/05/v2026.06.05.6/retrospective.md)
-        - 08
-          - V2026.06.08.1
-            - [Notes](../../release/2026/06/08/v2026.06.08.1/notes.md)
-            - [Retrospective](../../release/2026/06/08/v2026.06.08.1/retrospective.md)
-          - V2026.06.08.2
-            - [Notes](../../release/2026/06/08/v2026.06.08.2/notes.md)
-            - [Retrospective](../../release/2026/06/08/v2026.06.08.2/retrospective.md)
-        - 09
-          - V2026.06.09.1
-            - [Notes](../../release/2026/06/09/v2026.06.09.1/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.1/retrospective.md)
-          - V2026.06.09.10
-            - [Notes](../../release/2026/06/09/v2026.06.09.10/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.10/retrospective.md)
-          - V2026.06.09.11
-            - [Notes](../../release/2026/06/09/v2026.06.09.11/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.11/retrospective.md)
-          - V2026.06.09.12
-            - [Notes](../../release/2026/06/09/v2026.06.09.12/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.12/retrospective.md)
-          - V2026.06.09.13
-            - [Notes](../../release/2026/06/09/v2026.06.09.13/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.13/retrospective.md)
-          - V2026.06.09.14
-            - [Notes](../../release/2026/06/09/v2026.06.09.14/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.14/retrospective.md)
-          - V2026.06.09.15
-            - [Notes](../../release/2026/06/09/v2026.06.09.15/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.15/retrospective.md)
-          - V2026.06.09.16
-            - [Notes](../../release/2026/06/09/v2026.06.09.16/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.16/retrospective.md)
-          - V2026.06.09.17
-            - [Notes](../../release/2026/06/09/v2026.06.09.17/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.17/retrospective.md)
-          - V2026.06.09.2
-            - [Notes](../../release/2026/06/09/v2026.06.09.2/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.2/retrospective.md)
-          - V2026.06.09.3
-            - [Notes](../../release/2026/06/09/v2026.06.09.3/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.3/retrospective.md)
-          - V2026.06.09.4
-            - [Notes](../../release/2026/06/09/v2026.06.09.4/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.4/retrospective.md)
-          - V2026.06.09.5
-            - [Notes](../../release/2026/06/09/v2026.06.09.5/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.5/retrospective.md)
-          - V2026.06.09.6
-            - [Notes](../../release/2026/06/09/v2026.06.09.6/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.6/retrospective.md)
-          - V2026.06.09.7
-            - [Notes](../../release/2026/06/09/v2026.06.09.7/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.7/retrospective.md)
-          - V2026.06.09.8
-            - [Notes](../../release/2026/06/09/v2026.06.09.8/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.8/retrospective.md)
-          - V2026.06.09.9
-            - [Notes](../../release/2026/06/09/v2026.06.09.9/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.9/retrospective.md)
-        - 11
-          - V2026.06.11.1
-            - [Notes](../../release/2026/06/11/v2026.06.11.1/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.1/retrospective.md)
-          - V2026.06.11.2
-            - [Notes](../../release/2026/06/11/v2026.06.11.2/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.2/retrospective.md)
-          - V2026.06.11.3
-            - [Notes](../../release/2026/06/11/v2026.06.11.3/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.3/retrospective.md)
-          - V2026.06.11.4
-            - [Notes](../../release/2026/06/11/v2026.06.11.4/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.4/retrospective.md)
-          - V2026.06.11.5
-            - [Notes](../../release/2026/06/11/v2026.06.11.5/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.5/retrospective.md)
-          - V2026.06.11.6
-            - [Notes](../../release/2026/06/11/v2026.06.11.6/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.6/retrospective.md)
-          - V2026.06.11.7
-            - [Notes](../../release/2026/06/11/v2026.06.11.7/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.7/retrospective.md)
+        - 12
+          - V2026.06.12.1
+            - [Release v2026.06.12.1](../../release/2026/06/12/v2026.06.12.1/notes.md)
     - [Release <version>](../../release/release-notes-template.md)
     - [Retrospective — <version>](../../release/retrospective-template.md)
-  - Setting
-  - Template
   - [Getting started](../../getting-started.md)
   - [Lessons learned](../../lessons-learned-part1.md)
   - [Lessons learned (part 2)](../../lessons-learned-part2.md)

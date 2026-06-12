@@ -8,6 +8,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 . (Join-Path $PSScriptRoot "release-paths.ps1")
+. (Join-Path $PSScriptRoot "test-release-notes-ready.ps1")
 
 function Test-CommandExists {
     param([string]$Name)
@@ -68,18 +69,25 @@ if (-not (Test-Path $notesPath)) {
 
 Write-Host "publish-release: version $version at $CommitSha"
 
+if (-not (Test-ReleaseNotesReady -NotesPath $notesPath)) {
+    Write-Host "publish-release: notes not ready; skipping tag and GitHub release."
+    exit 0
+}
+
 if ($WhatIf) {
     exit 0
 }
 
+$tagCreated = $false
 if (-not (Test-TagExists -Version $version -RepoRoot $repoRoot)) {
     git -C $repoRoot tag -a $version $CommitSha -m "Release $version"
     Write-Host "publish-release: created tag $version"
+    $tagCreated = $true
 } else {
     Write-Host "publish-release: tag $version already exists"
 }
 
-if (-not $SkipTagPush) {
+if ($tagCreated -and -not $SkipTagPush) {
     git -C $repoRoot push origin "refs/tags/$version" 2>&1 | Out-Host
     if ($LASTEXITCODE -ne 0) {
         Write-Host "publish-release: tag push failed (tag may already exist on remote)."
@@ -103,4 +111,14 @@ gh release create $version `
     --title "Release $version" `
     --notes-file $notesPath
 
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "publish-release: GitHub release create failed."
+    exit $LASTEXITCODE
+}
+
 Write-Host "publish-release: created GitHub release $version"
+
+$closeScript = Join-Path $PSScriptRoot "close-release.ps1"
+if (Test-Path $closeScript) {
+    & $closeScript -PublishedVersion $version
+}

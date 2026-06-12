@@ -67,37 +67,39 @@ Use files under `release/` (see [release/readme.md](../../release/readme.md)):
 
 - `release/VERSION`: next or current release version.
 - `release/release-notes-template.md`: operator-facing template ([Keep a Changelog](https://keepachangelog.com/) sections).
-- `release/YYYY/MM/DD/<version>/`: one folder per release — `notes.md` (published to GitHub Releases), `readme.md` (details), `prompts.md`, `retrospective.md`.
+- `release/YYYY/MM/DD/<version>/`: one folder per release — `notes.md` (required, published to GitHub Releases when ready); `readme.md`, `prompts.md`, and `retrospective.md` are optional and created only when they have meaningful content.
 - `release/scripts/`: deploy, publish, and version-bump automation.
 - `doc/operation/incident/`: blameless postmortems (INC-NNN) for significant failures.
 
 ### Simple release flow on main
 
-Releases are automated when you commit and push on `main`:
+Commits on `main` accumulate in the **open release** pointed to by `release/VERSION`. A new version folder is opened only after a successful GitHub Release (or when you force one).
 
-1. **Pre-commit** (`cursor-config` → `pre_commit.py` → `release/scripts/new-release.ps1`):
-   - Bumps `release/VERSION` (`vYYYY.MM.DD.N`, same-day `N` increments).
-   - Scaffolds `release/YYYY/MM/DD/<version>/` (`notes.md`, `readme.md`, `prompts.md`, `retrospective.md`).
-   - Skipped when only release-metadata files are staged, on non-`main` branches, or when `SKIP_RELEASE=1`.
-2. **Commit**: edit the new release note scope/changes if needed; hooks refresh TOC, prompts, and release details.
-3. **Push to `main`**: starts the CI/CD cycle:
-   - **ntfy** immediately: “CI/CD started” (GitHub Actions) and “Push to main” (pre-push deploy hook, if installed).
-   - **GitHub Actions**: tests → publish tag/release.
-   - **Deploy watcher** (`wait-and-trigger-pull.ps1`, `-SkipPublish`):
-     - Waits for the commit on `origin/main` and CI success.
-     - Triggers NAS deploy via SSH (`deploy-on-nas.sh`).
-4. **ntfy** on deploy success or failure (deploy watcher).
-5. Optional: commit post-commit staged metadata (`chore: refresh release details`) or include in the next feature commit.
+1. **Pre-commit** (`cursor-config` → `pre_commit.py`):
+   - `ensure-open-release.ps1` — creates a minimal `notes.md` stub for `release/VERSION` if missing (not a full template tree).
+   - Skipped on non-`main` branches, when only release-metadata files are staged, or when `SKIP_RELEASE=1`.
+   - Hooks refresh TOC, prompts (when transcript sessions exist), and release details (`readme.md` when needed).
+2. **Commit**: edit `release/YYYY/MM/DD/<version>/notes.md` scope and changes in place across multiple commits.
+3. **Push to `main`**: CI and NAS deploy always run. **GitHub Release** only when `notes.md` is publish-ready (real scope, change bullets, commit SHA filled) — see `release/scripts/test-release-notes-ready.ps1`.
+4. **Post-publish** (`close-release.ps1`): bumps `VERSION` and opens the next minimal `notes.md` stub.
+5. **Retrospective** (optional): agent creates `retrospective.md` from template when you run the release-retrospective skill.
 
 Manual override:
 
 ```powershell
-# Skip version bump for one commit
+# Skip release hooks for one commit
 $env:SKIP_RELEASE = "1"
 git commit -m "chore: docs only"
 
+# Force-open the next version before commit
+$env:NEW_RELEASE = "1"
+git commit -m "feat: start new release"
+
 # Dry-run next version
 powershell -File release/scripts/new-release.ps1 -WhatIf
+
+# Remove unpublished scaffold folders
+powershell -File release/scripts/prune-scaffold-releases.ps1 -Force
 ```
 
 Legacy manual tagging (only if automation is disabled):
@@ -206,7 +208,7 @@ After NAS pull deploy:
 2. DAG `openmeteo_data_object_poller` is bind-mounted from `code/airflow/dags/` (paused on creation; `catchup=false`, `max_active_runs=1`).
 3. The DAG task always runs the poller with `--publish kafka`; broker address from `KAFKA_HOST`.
 4. Optional: Airflow Variable `data_object_id` to override the default probe target.
-5. Trigger one manual DAG run; verify Postgres row, `event_published transport=kafka` in logs, and a message in Kafka UI.
+5. Trigger one manual DAG run; verify Postgres row, `publish_poll_event` task success, and a message in Kafka UI.
 6. Unpause the schedule after smoke validation.
 
 ## Rollback
@@ -237,10 +239,10 @@ git checkout <previous-tag>
   - Code
     - Airflow
       - Dags
+      - Include
       - Plugins
     - Extractor_And_Poller
       - Common
-      - Controller
       - Extract
       - Openmeteo
         - Extractor
@@ -263,14 +265,18 @@ git checkout <previous-tag>
     - Staging
       - Openmeteo
   - Doc
-    - Data Solution
-      - Data Object Mapping
+    - Data Object Mapping
     - Design
       - [Architecture](architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](ci-cd.md)
       - [Event-based orchestration plan (single data object)](event-based-orchestration-plan.md)
       - [Kafka topic naming](kafka-topic-naming.md)
       - [Meta data design](meta-data-design.md)
+    - Image
+    - Implementation
+      - [Implementation plan (Open-Meteo → event orchestration)](../implementation/implementation-plan.md)
+    - Linked In
+      - [Linkedin Post Part3V2](../linked-in/linkedin-post-part3v2.md)
     - Operation
       - Incident
         - [INC-001 — NAS non-interactive SSH environment](../operation/incident/inc-001-nas-ssh-environment.md)
@@ -278,11 +284,8 @@ git checkout <previous-tag>
         - [INC-003 — Agent rediscovery and false-done verification](../operation/incident/inc-003-agent-process-gaps.md)
         - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](../operation/incident/inc-004-airflow-pythonpath-drift.md)
         - [INC-<NNN> — <short title>](../operation/incident/incident-template.md)
+      - [Event orchestration monitoring](../operation/event-orchestration-monitoring.md)
       - [Issue categories](../operation/issue-category.md)
-    - [Implementation plan (Open-Meteo → event orchestration)](../implementation-plan.md)
-  - Docs
-    - [LinkedIn post (part 3)](../../docs/linkedin-post-part3.md)
-    - [Linkedin Post Part3V2](../../docs/linkedin-post-part3v2.md)
   - Infra
     - Airflow
       - Dags
@@ -313,91 +316,11 @@ git checkout <previous-tag>
           - V2026.06.05.6
             - [Notes](../../release/2026/06/05/v2026.06.05.6/notes.md)
             - [Retrospective](../../release/2026/06/05/v2026.06.05.6/retrospective.md)
-        - 08
-          - V2026.06.08.1
-            - [Notes](../../release/2026/06/08/v2026.06.08.1/notes.md)
-            - [Retrospective](../../release/2026/06/08/v2026.06.08.1/retrospective.md)
-          - V2026.06.08.2
-            - [Notes](../../release/2026/06/08/v2026.06.08.2/notes.md)
-            - [Retrospective](../../release/2026/06/08/v2026.06.08.2/retrospective.md)
-        - 09
-          - V2026.06.09.1
-            - [Notes](../../release/2026/06/09/v2026.06.09.1/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.1/retrospective.md)
-          - V2026.06.09.10
-            - [Notes](../../release/2026/06/09/v2026.06.09.10/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.10/retrospective.md)
-          - V2026.06.09.11
-            - [Notes](../../release/2026/06/09/v2026.06.09.11/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.11/retrospective.md)
-          - V2026.06.09.12
-            - [Notes](../../release/2026/06/09/v2026.06.09.12/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.12/retrospective.md)
-          - V2026.06.09.13
-            - [Notes](../../release/2026/06/09/v2026.06.09.13/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.13/retrospective.md)
-          - V2026.06.09.14
-            - [Notes](../../release/2026/06/09/v2026.06.09.14/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.14/retrospective.md)
-          - V2026.06.09.15
-            - [Notes](../../release/2026/06/09/v2026.06.09.15/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.15/retrospective.md)
-          - V2026.06.09.16
-            - [Notes](../../release/2026/06/09/v2026.06.09.16/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.16/retrospective.md)
-          - V2026.06.09.17
-            - [Notes](../../release/2026/06/09/v2026.06.09.17/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.17/retrospective.md)
-          - V2026.06.09.2
-            - [Notes](../../release/2026/06/09/v2026.06.09.2/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.2/retrospective.md)
-          - V2026.06.09.3
-            - [Notes](../../release/2026/06/09/v2026.06.09.3/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.3/retrospective.md)
-          - V2026.06.09.4
-            - [Notes](../../release/2026/06/09/v2026.06.09.4/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.4/retrospective.md)
-          - V2026.06.09.5
-            - [Notes](../../release/2026/06/09/v2026.06.09.5/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.5/retrospective.md)
-          - V2026.06.09.6
-            - [Notes](../../release/2026/06/09/v2026.06.09.6/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.6/retrospective.md)
-          - V2026.06.09.7
-            - [Notes](../../release/2026/06/09/v2026.06.09.7/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.7/retrospective.md)
-          - V2026.06.09.8
-            - [Notes](../../release/2026/06/09/v2026.06.09.8/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.8/retrospective.md)
-          - V2026.06.09.9
-            - [Notes](../../release/2026/06/09/v2026.06.09.9/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.9/retrospective.md)
-        - 11
-          - V2026.06.11.1
-            - [Notes](../../release/2026/06/11/v2026.06.11.1/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.1/retrospective.md)
-          - V2026.06.11.2
-            - [Notes](../../release/2026/06/11/v2026.06.11.2/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.2/retrospective.md)
-          - V2026.06.11.3
-            - [Notes](../../release/2026/06/11/v2026.06.11.3/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.3/retrospective.md)
-          - V2026.06.11.4
-            - [Notes](../../release/2026/06/11/v2026.06.11.4/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.4/retrospective.md)
-          - V2026.06.11.5
-            - [Notes](../../release/2026/06/11/v2026.06.11.5/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.5/retrospective.md)
-          - V2026.06.11.6
-            - [Notes](../../release/2026/06/11/v2026.06.11.6/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.6/retrospective.md)
-          - V2026.06.11.7
-            - [Notes](../../release/2026/06/11/v2026.06.11.7/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.7/retrospective.md)
+        - 12
+          - V2026.06.12.1
+            - [Release v2026.06.12.1](../../release/2026/06/12/v2026.06.12.1/notes.md)
     - [Release <version>](../../release/release-notes-template.md)
     - [Retrospective — <version>](../../release/retrospective-template.md)
-  - Setting
-  - Template
   - [Getting started](../../getting-started.md)
   - [Lessons learned](../../lessons-learned-part1.md)
   - [Lessons learned (part 2)](../../lessons-learned-part2.md)

@@ -1,18 +1,13 @@
-"""Tests for poller event publishers."""
+"""Tests for poller event envelopes."""
 
 from __future__ import annotations
 
 import json
 import unittest
 from datetime import datetime, timezone
-from unittest.mock import MagicMock, patch
 
 from extractor_and_poller.poller.change_probe import PollResult
-from extractor_and_poller.poller.events import (
-    KafkaPublisher,
-    kafka_event_payload,
-    kafka_message_value,
-)
+from extractor_and_poller.poller.events import kafka_event_payload, kafka_message_value
 from extractor_and_poller.poller.kafka_topic import (
     EVENT_TYPE_PROGRESS,
     POLL_TOPIC_CHANGE,
@@ -68,24 +63,6 @@ class TestPollerEvents(unittest.TestCase):
         self.assertEqual(payload["old_marker"], "2026-05-21")
         self.assertEqual(payload["new_marker"], "2026-05-26")
         self.assertIn("event_time_utc", payload)
-
-    @patch("extractor_and_poller.poller.events.KafkaPublisher._build_producer")
-    def test_kafka_publisher_sends_json_envelope_as_value(self, mock_build) -> None:
-        producer = MagicMock()
-        future = MagicMock()
-        producer.send.return_value = future
-        mock_build.return_value = producer
-
-        publisher = KafkaPublisher("localhost:9092")
-        result = _sample_result()
-        publisher.publish(result)
-
-        producer.send.assert_called_once_with(
-            POLL_TOPIC_CHANGE,
-            key="source/openmeteo/daily-temperature",
-            value=kafka_message_value(result),
-        )
-        future.get.assert_called_once_with(timeout=10)
 
 
 if __name__ == "__main__":

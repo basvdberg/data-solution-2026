@@ -11,7 +11,7 @@
   - [Phase 2 - Kafka publisher](#phase-2-kafka-publisher)
   - [Phase 3 - Airflow poller DAG](#phase-3-airflow-poller-dag)
 - [Change-event orchestration plan](#change-event-orchestration-plan)
-  - [Phase 4 - Event controller](#phase-4-event-controller)
+  - [Phase 4 - Native Airflow Kafka subscription](#phase-4-native-airflow-kafka-subscription)
   - [Phase 5 - Extract DAG and idempotency](#phase-5-extract-dag-and-idempotency)
 - [Postgres schema plan](#postgres-schema-plan)
 - [Configuration plan](#configuration-plan)
@@ -48,7 +48,7 @@ Runtime roles:
 
 - **Poller**: periodically probes source marker and emits events
 - **Kafka**: event bus with poll topics `ds.poll.data_object_change` and `ds.poll.data_object_progress` (see [Kafka topic naming](kafka-topic-naming.md))
-- **Event controller**: consumes change events and triggers extract orchestration
+- **Airflow Asset Watcher**: subscribes to change events and schedules extract orchestration
 - **Airflow**: runs DAGs for polling and extraction
 - **Postgres**: stores poller baseline marker and event history
 - **Extractor**: pulls Open-Meteo data and lands Parquet in `data/staging/openmeteo/daily-temperature/`
@@ -61,8 +61,8 @@ Flow:
 4. Poller emits:
    - `data_object_change` if marker changed → topic `ds.poll.data_object_change`
    - `data_object_progress` if marker unchanged → topic `ds.poll.data_object_progress`
-5. Event controller consumes `ds.poll.data_object_change`.
-6. Event controller triggers extract DAG run with mapping id and marker context.
+5. Airflow Asset Watcher on extract DAG consumes `ds.poll.data_object_change`.
+6. Extract DAG runs with mapping id, marker, and event_id from the Kafka message.
 7. Extract DAG runs extractor and writes landing file(s).
 8. DAG emits success/failure operational event and updates observability metrics.
 
@@ -106,7 +106,7 @@ Acceptance:
 
 Deliverables:
 
-- Add producer module: Kafka message **value** is the JSON poll envelope (`data_object_id`, `event_type`, `event_time_utc`, `old_marker`, `new_marker`).
+- Poller DAG `ProduceToTopicOperator` publishes JSON poll envelope (`data_object_id`, `event_type`, `event_time_utc`, `old_marker`, `new_marker`).
 - Publish to `ds.poll.data_object_change` and `ds.poll.data_object_progress` (key: `data_object_id`).
 
 Acceptance:
@@ -133,18 +133,20 @@ Acceptance:
 
 ## Change-event orchestration plan
 
-### Phase 4 - Event controller
+### Phase 4 - Native Airflow Kafka subscription
 
 Deliverables:
 
-- Add Kafka consumer service for topic `ds.poll.data_object_change`.
-- Validate incoming event schema before triggering DAG.
-- Trigger Airflow extract DAG with event payload (mapping id + marker + event_id).
+- Extract DAG `schedule=[poll_change_asset]` with `AssetWatcher` + `MessageQueueTrigger` on `ds.poll.data_object_change`.
+- Handler module [`code/airflow/include/kafka_handlers.py`](../../code/airflow/include/kafka_handlers.py) validates incoming JSON and resolves mapping id.
+- Airflow Connection `kafka_default` and providers `apache-airflow-providers-apache-kafka`, `apache-airflow-providers-common-messaging`.
+- Remove custom `extractor_and_poller.controller` package.
 
 Acceptance:
 
-- Every valid change event creates one extract DAG run.
+- Every valid change event creates one extract DAG run (triggered by asset).
 - Invalid payloads are rejected and logged with reason.
+- No separate controller process runs on the NAS.
 
 ### Phase 5 - Extract DAG and idempotency
 
@@ -245,8 +247,8 @@ Runtime rule:
 
 1. Enable poller DAG in Airflow with unchanged-only observation.
 2. Enable `ds.poll.data_object_change` publication.
-3. Deploy event controller in passive logging mode.
-4. Enable active Airflow triggers from controller.
+3. Deploy extract DAG with asset watcher (verify triggerer healthy).
+4. Enable asset-scheduled extract runs on change events.
 5. Enable idempotency guard and duplicate-event test.
 6. Mark orchestration as production-ready for this single data object.
 
@@ -265,10 +267,10 @@ Runtime rule:
   - Code
     - Airflow
       - Dags
+      - Include
       - Plugins
     - Extractor_And_Poller
       - Common
-      - Controller
       - Extract
       - Openmeteo
         - Extractor
@@ -291,14 +293,18 @@ Runtime rule:
     - Staging
       - Openmeteo
   - Doc
-    - Data Solution
-      - Data Object Mapping
+    - Data Object Mapping
     - Design
       - [Architecture](architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](ci-cd.md)
       - [Event-based orchestration plan (single data object)](event-based-orchestration-plan.md)
       - [Kafka topic naming](kafka-topic-naming.md)
       - [Meta data design](meta-data-design.md)
+    - Image
+    - Implementation
+      - [Implementation plan (Open-Meteo → event orchestration)](../implementation/implementation-plan.md)
+    - Linked In
+      - [Linkedin Post Part3V2](../linked-in/linkedin-post-part3v2.md)
     - Operation
       - Incident
         - [INC-001 — NAS non-interactive SSH environment](../operation/incident/inc-001-nas-ssh-environment.md)
@@ -306,11 +312,8 @@ Runtime rule:
         - [INC-003 — Agent rediscovery and false-done verification](../operation/incident/inc-003-agent-process-gaps.md)
         - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](../operation/incident/inc-004-airflow-pythonpath-drift.md)
         - [INC-<NNN> — <short title>](../operation/incident/incident-template.md)
+      - [Event orchestration monitoring](../operation/event-orchestration-monitoring.md)
       - [Issue categories](../operation/issue-category.md)
-    - [Implementation plan (Open-Meteo → event orchestration)](../implementation-plan.md)
-  - Docs
-    - [LinkedIn post (part 3)](../../docs/linkedin-post-part3.md)
-    - [Linkedin Post Part3V2](../../docs/linkedin-post-part3v2.md)
   - Infra
     - Airflow
       - Dags
@@ -341,91 +344,11 @@ Runtime rule:
           - V2026.06.05.6
             - [Notes](../../release/2026/06/05/v2026.06.05.6/notes.md)
             - [Retrospective](../../release/2026/06/05/v2026.06.05.6/retrospective.md)
-        - 08
-          - V2026.06.08.1
-            - [Notes](../../release/2026/06/08/v2026.06.08.1/notes.md)
-            - [Retrospective](../../release/2026/06/08/v2026.06.08.1/retrospective.md)
-          - V2026.06.08.2
-            - [Notes](../../release/2026/06/08/v2026.06.08.2/notes.md)
-            - [Retrospective](../../release/2026/06/08/v2026.06.08.2/retrospective.md)
-        - 09
-          - V2026.06.09.1
-            - [Notes](../../release/2026/06/09/v2026.06.09.1/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.1/retrospective.md)
-          - V2026.06.09.10
-            - [Notes](../../release/2026/06/09/v2026.06.09.10/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.10/retrospective.md)
-          - V2026.06.09.11
-            - [Notes](../../release/2026/06/09/v2026.06.09.11/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.11/retrospective.md)
-          - V2026.06.09.12
-            - [Notes](../../release/2026/06/09/v2026.06.09.12/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.12/retrospective.md)
-          - V2026.06.09.13
-            - [Notes](../../release/2026/06/09/v2026.06.09.13/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.13/retrospective.md)
-          - V2026.06.09.14
-            - [Notes](../../release/2026/06/09/v2026.06.09.14/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.14/retrospective.md)
-          - V2026.06.09.15
-            - [Notes](../../release/2026/06/09/v2026.06.09.15/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.15/retrospective.md)
-          - V2026.06.09.16
-            - [Notes](../../release/2026/06/09/v2026.06.09.16/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.16/retrospective.md)
-          - V2026.06.09.17
-            - [Notes](../../release/2026/06/09/v2026.06.09.17/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.17/retrospective.md)
-          - V2026.06.09.2
-            - [Notes](../../release/2026/06/09/v2026.06.09.2/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.2/retrospective.md)
-          - V2026.06.09.3
-            - [Notes](../../release/2026/06/09/v2026.06.09.3/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.3/retrospective.md)
-          - V2026.06.09.4
-            - [Notes](../../release/2026/06/09/v2026.06.09.4/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.4/retrospective.md)
-          - V2026.06.09.5
-            - [Notes](../../release/2026/06/09/v2026.06.09.5/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.5/retrospective.md)
-          - V2026.06.09.6
-            - [Notes](../../release/2026/06/09/v2026.06.09.6/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.6/retrospective.md)
-          - V2026.06.09.7
-            - [Notes](../../release/2026/06/09/v2026.06.09.7/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.7/retrospective.md)
-          - V2026.06.09.8
-            - [Notes](../../release/2026/06/09/v2026.06.09.8/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.8/retrospective.md)
-          - V2026.06.09.9
-            - [Notes](../../release/2026/06/09/v2026.06.09.9/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.9/retrospective.md)
-        - 11
-          - V2026.06.11.1
-            - [Notes](../../release/2026/06/11/v2026.06.11.1/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.1/retrospective.md)
-          - V2026.06.11.2
-            - [Notes](../../release/2026/06/11/v2026.06.11.2/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.2/retrospective.md)
-          - V2026.06.11.3
-            - [Notes](../../release/2026/06/11/v2026.06.11.3/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.3/retrospective.md)
-          - V2026.06.11.4
-            - [Notes](../../release/2026/06/11/v2026.06.11.4/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.4/retrospective.md)
-          - V2026.06.11.5
-            - [Notes](../../release/2026/06/11/v2026.06.11.5/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.5/retrospective.md)
-          - V2026.06.11.6
-            - [Notes](../../release/2026/06/11/v2026.06.11.6/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.6/retrospective.md)
-          - V2026.06.11.7
-            - [Notes](../../release/2026/06/11/v2026.06.11.7/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.7/retrospective.md)
+        - 12
+          - V2026.06.12.1
+            - [Release v2026.06.12.1](../../release/2026/06/12/v2026.06.12.1/notes.md)
     - [Release <version>](../../release/release-notes-template.md)
     - [Retrospective — <version>](../../release/retrospective-template.md)
-  - Setting
-  - Template
   - [Getting started](../../getting-started.md)
   - [Lessons learned](../../lessons-learned-part1.md)
   - [Lessons learned (part 2)](../../lessons-learned-part2.md)

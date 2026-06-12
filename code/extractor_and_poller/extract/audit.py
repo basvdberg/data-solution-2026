@@ -27,9 +27,14 @@ class ExtractRunAudit:
         return psycopg.connect(dsn)
 
     def already_processed(self, event_id: str) -> bool:
+        """Return True when a prior run for this event_id completed successfully."""
         with self._conn.cursor() as cur:
             cur.execute(
-                "select 1 from extract_run_audit where event_id = %s limit 1",
+                """
+                select 1 from extract_run_audit
+                where event_id = %s and status = 'success'
+                limit 1
+                """,
                 (event_id,),
             )
             return cur.fetchone() is not None
@@ -41,8 +46,39 @@ class ExtractRunAudit:
         mapping_id: str,
         marker: str,
     ) -> str:
-        run_id = str(uuid4())
+        now = datetime.now(timezone.utc)
         with self._conn.cursor() as cur:
+            cur.execute(
+                """
+                select run_id, status
+                from extract_run_audit
+                where event_id = %s
+                limit 1
+                """,
+                (event_id,),
+            )
+            row = cur.fetchone()
+            if row is not None:
+                run_id, status = row[0], row[1]
+                if status == "success":
+                    return str(run_id)
+                cur.execute(
+                    """
+                    update extract_run_audit
+                    set status = %s,
+                        marker = %s,
+                        started_at_utc = %s,
+                        finished_at_utc = null,
+                        output_table = null,
+                        row_count = null
+                    where run_id = %s
+                    """,
+                    ("running", marker, now, run_id),
+                )
+                self._conn.commit()
+                return str(run_id)
+
+            run_id = str(uuid4())
             cur.execute(
                 """
                 insert into extract_run_audit (
@@ -61,7 +97,7 @@ class ExtractRunAudit:
                     mapping_id,
                     marker,
                     "running",
-                    datetime.now(timezone.utc),
+                    now,
                 ),
             )
         self._conn.commit()

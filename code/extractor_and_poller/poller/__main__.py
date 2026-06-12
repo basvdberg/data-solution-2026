@@ -68,14 +68,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--publish",
-        choices=("none", "stdout", "kafka"),
+        choices=("none", "stdout"),
         default="none",
-        help="publish poll events to selected transport",
-    )
-    parser.add_argument(
-        "--kafka-bootstrap-servers",
-        default=None,
-        help="Kafka bootstrap servers, e.g. localhost:9092",
+        help="publish poll events to stdout for local debugging (production uses Airflow ProduceToTopicOperator)",
     )
     args = parser.parse_args(argv)
 
@@ -90,19 +85,11 @@ def main(argv: list[str] | None = None) -> int:
 
     from extractor_and_poller.common import config as cfg_module
     from extractor_and_poller.poller import change_probe
-    from extractor_and_poller.poller.events import (
-        EventPublisher,
-        KafkaPublisher,
-        StdoutPublisher,
-    )
+    from extractor_and_poller.poller.events import EventPublisher, StdoutPublisher
     from extractor_and_poller.poller.state import PostgresStateStore, default_postgres_dsn
 
     if args.postgres_dsn is None:
         args.postgres_dsn = default_postgres_dsn()
-    if args.kafka_bootstrap_servers is None:
-        from extractor_and_poller.poller.events import default_kafka_bootstrap
-
-        args.kafka_bootstrap_servers = default_kafka_bootstrap()
 
     log.info("Loading poller config from %s", args.config)
     config = cfg_module.load(args.config)
@@ -131,9 +118,6 @@ def main(argv: list[str] | None = None) -> int:
 
         if args.publish == "stdout":
             publisher = StdoutPublisher()
-        elif args.publish == "kafka":
-            log.info("Kafka publisher bootstrap=%s", args.kafka_bootstrap_servers)
-            publisher = KafkaPublisher(args.kafka_bootstrap_servers)
 
         mappings = config.enabled_mappings()
         if args.mapping:
@@ -202,10 +186,6 @@ def main(argv: list[str] | None = None) -> int:
                 "Persisted %d poller row(s) to Postgres table public.poller",
                 rows_persisted,
             )
-        if isinstance(publisher, KafkaPublisher):
-            publisher.close()
-            log.info("Closed Kafka publisher")
-
         return 1 if any_changed else 0
 
 

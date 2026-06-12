@@ -1,55 +1,50 @@
-"""Open-Meteo data object poller — scheduled probe and optional event publish."""
+"""Open-Meteo data object poller — scheduled probe and Kafka publish via Airflow provider."""
 
 from __future__ import annotations
 
 import logging
 import os
 from datetime import datetime, timedelta
+from pathlib import Path
 
 from airflow.exceptions import AirflowException
+from airflow.providers.apache.kafka.operators.produce import ProduceToTopicOperator
 from airflow.providers.standard.operators.python import PythonOperator
 from airflow.sdk import DAG, Variable
 
 DAG_ID = "openmeteo_data_object_poller"
 DEFAULT_DATA_OBJECT_ID = "source/openmeteo/daily-temperature"
-DEFAULT_PUBLISH = "kafka"
+DEFAULT_CONFIG = (
+    Path(__file__).resolve().parents[3]
+    / "data-object-mapping"
+    / "staging"
+    / "openmeteo"
+    / "daily-temperature.json"
+)
 
 log = logging.getLogger(__name__)
 
 
-def _poller_cli_argv() -> list[str]:
-    """Build poller CLI args; Kafka publish and ``KAFKA_HOST`` env are the production default."""
-    return [
-        "--data-object",
-        Variable.get("data_object_id", default=DEFAULT_DATA_OBJECT_ID),
-        "--publish",
-        DEFAULT_PUBLISH,
-    ]
+def run_probe_and_persist() -> dict[str, str]:
+    """Probe source marker, persist to Postgres, return Kafka publish metadata for XCom."""
+    from include.poll_run import probe_and_persist
 
-
-def run_openmeteo_poller() -> None:
-    """Delegate to the poller CLI ``main()`` (same args as manual ``python -m``)."""
-    argv = _poller_cli_argv()
+    data_object_id = Variable.get("data_object_id", default=DEFAULT_DATA_OBJECT_ID)
     log.info(
-        "Airflow task starting openmeteo poller dag_id=%s run_id=%s logical_date=%s argv=%s",
+        "Airflow task starting probe dag_id=%s run_id=%s data_object=%s",
         os.environ.get("AIRFLOW_CTX_DAG_ID"),
         os.environ.get("AIRFLOW_CTX_DAG_RUN_ID"),
-        os.environ.get("AIRFLOW_CTX_LOGICAL_DATE"),
-        argv,
+        data_object_id,
     )
-
-    from extractor_and_poller.poller.__main__ import main
-
-    exit_code = main(argv)
-
-    if exit_code == 2:
-        raise AirflowException("poller exited with code 2 (configuration or validation error)")
-    if exit_code == 3:
-        raise AirflowException(
-            "poller exited with code 3 (probe ran but no rows were persisted to Postgres)"
+    try:
+        return probe_and_persist(
+            config_path=str(DEFAULT_CONFIG),
+            data_object_id=data_object_id,
         )
-    if exit_code not in (0, 1):
-        raise AirflowException(f"poller exited with unexpected code {exit_code}")
+    except ValueError as exc:
+        raise AirflowException(f"poller configuration or validation error: {exc}") from exc
+    except RuntimeError as exc:
+        raise AirflowException(str(exc)) from exc
 
 
 default_args = {
@@ -65,8 +60,7 @@ with DAG(
     dag_id=DAG_ID,
     description=(
         "Probe Open-Meteo daily-temperature source marker; persist state in Postgres and "
-        "publish events to Kafka. Manual triggers while a run is active are queued "
-        "(max_active_runs=1); task logs appear when the run starts."
+        "publish events to Kafka via ProduceToTopicOperator."
     ),
     default_args=default_args,
     schedule="@hourly",
@@ -76,7 +70,20 @@ with DAG(
     is_paused_upon_creation=True,
     tags=["openmeteo", "poller", "data-object"],
 ) as dag:
-    PythonOperator(
-        task_id="poll_openmeteo_daily_temperature",
-        python_callable=run_openmeteo_poller,
+    probe_task = PythonOperator(
+        task_id="probe_and_persist",
+        python_callable=run_probe_and_persist,
     )
+
+    publish_task = ProduceToTopicOperator(
+        task_id="publish_poll_event",
+        kafka_config_id="kafka_default",
+        topic="{{ ti.xcom_pull(task_ids='probe_and_persist')['topic'] }}",
+        producer_function="include.poller_kafka.produce_poll_event",
+        producer_function_kwargs={
+            "data_object_id": "{{ ti.xcom_pull(task_ids='probe_and_persist')['data_object_id'] }}",
+            "envelope_json": "{{ ti.xcom_pull(task_ids='probe_and_persist')['envelope_json'] }}",
+        },
+    )
+
+    probe_task >> publish_task

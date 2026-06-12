@@ -24,12 +24,13 @@ python -m extractor_and_poller.openmeteo.extractor --mapping daily-temperature
 Event-oriented poller options:
 
 ```powershell
-# Publish events: stdout = full JSON envelope; Kafka = data_object_id on ds.poll.* topics
+# Publish events to stdout for local debugging (production uses Airflow ProduceToTopicOperator)
 python -m extractor_and_poller.poller --data-object source/openmeteo/daily-temperature --publish stdout
-python -m extractor_and_poller.poller --data-object source/openmeteo/daily-temperature --publish kafka
 ```
 
 Kafka topic names: [Kafka topic naming](../../doc/design/kafka-topic-naming.md) (`ds.poll.data_object_change`, `ds.poll.data_object_progress`).
+
+**Kafka subscribe + extract trigger** is handled natively by the extract DAG Asset Watcher — see [Implementation plan — Step 3](../../doc/implementation/implementation-plan.md#step-3-react-to-change-events-native-airflow-kafka).
 
 The `openmeteo/` subfolder holds `extractor/` and `poller/` probes. Shared helpers live under `common/`; the generic poller CLI is in `poller/`.
 
@@ -50,10 +51,10 @@ Airflow DAGs: [`code/airflow/`](../airflow/readme.md).
   - Code
     - Airflow
       - Dags
+      - Include
       - Plugins
     - Extractor_And_Poller
       - Common
-      - Controller
       - Extract
       - Openmeteo
         - Extractor
@@ -76,14 +77,18 @@ Airflow DAGs: [`code/airflow/`](../airflow/readme.md).
     - Staging
       - Openmeteo
   - Doc
-    - Data Solution
-      - Data Object Mapping
+    - Data Object Mapping
     - Design
       - [Architecture](../../doc/design/architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](../../doc/design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](../../doc/design/event-based-orchestration-plan.md)
       - [Kafka topic naming](../../doc/design/kafka-topic-naming.md)
       - [Meta data design](../../doc/design/meta-data-design.md)
+    - Image
+    - Implementation
+      - [Implementation plan (Open-Meteo → event orchestration)](../../doc/implementation/implementation-plan.md)
+    - Linked In
+      - [Linkedin Post Part3V2](../../doc/linked-in/linkedin-post-part3v2.md)
     - Operation
       - Incident
         - [INC-001 — NAS non-interactive SSH environment](../../doc/operation/incident/inc-001-nas-ssh-environment.md)
@@ -91,11 +96,8 @@ Airflow DAGs: [`code/airflow/`](../airflow/readme.md).
         - [INC-003 — Agent rediscovery and false-done verification](../../doc/operation/incident/inc-003-agent-process-gaps.md)
         - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](../../doc/operation/incident/inc-004-airflow-pythonpath-drift.md)
         - [INC-<NNN> — <short title>](../../doc/operation/incident/incident-template.md)
+      - [Event orchestration monitoring](../../doc/operation/event-orchestration-monitoring.md)
       - [Issue categories](../../doc/operation/issue-category.md)
-    - [Implementation plan (Open-Meteo → event orchestration)](../../doc/implementation-plan.md)
-  - Docs
-    - [LinkedIn post (part 3)](../../docs/linkedin-post-part3.md)
-    - [Linkedin Post Part3V2](../../docs/linkedin-post-part3v2.md)
   - Infra
     - Airflow
       - Dags
@@ -126,91 +128,11 @@ Airflow DAGs: [`code/airflow/`](../airflow/readme.md).
           - V2026.06.05.6
             - [Notes](../../release/2026/06/05/v2026.06.05.6/notes.md)
             - [Retrospective](../../release/2026/06/05/v2026.06.05.6/retrospective.md)
-        - 08
-          - V2026.06.08.1
-            - [Notes](../../release/2026/06/08/v2026.06.08.1/notes.md)
-            - [Retrospective](../../release/2026/06/08/v2026.06.08.1/retrospective.md)
-          - V2026.06.08.2
-            - [Notes](../../release/2026/06/08/v2026.06.08.2/notes.md)
-            - [Retrospective](../../release/2026/06/08/v2026.06.08.2/retrospective.md)
-        - 09
-          - V2026.06.09.1
-            - [Notes](../../release/2026/06/09/v2026.06.09.1/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.1/retrospective.md)
-          - V2026.06.09.10
-            - [Notes](../../release/2026/06/09/v2026.06.09.10/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.10/retrospective.md)
-          - V2026.06.09.11
-            - [Notes](../../release/2026/06/09/v2026.06.09.11/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.11/retrospective.md)
-          - V2026.06.09.12
-            - [Notes](../../release/2026/06/09/v2026.06.09.12/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.12/retrospective.md)
-          - V2026.06.09.13
-            - [Notes](../../release/2026/06/09/v2026.06.09.13/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.13/retrospective.md)
-          - V2026.06.09.14
-            - [Notes](../../release/2026/06/09/v2026.06.09.14/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.14/retrospective.md)
-          - V2026.06.09.15
-            - [Notes](../../release/2026/06/09/v2026.06.09.15/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.15/retrospective.md)
-          - V2026.06.09.16
-            - [Notes](../../release/2026/06/09/v2026.06.09.16/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.16/retrospective.md)
-          - V2026.06.09.17
-            - [Notes](../../release/2026/06/09/v2026.06.09.17/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.17/retrospective.md)
-          - V2026.06.09.2
-            - [Notes](../../release/2026/06/09/v2026.06.09.2/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.2/retrospective.md)
-          - V2026.06.09.3
-            - [Notes](../../release/2026/06/09/v2026.06.09.3/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.3/retrospective.md)
-          - V2026.06.09.4
-            - [Notes](../../release/2026/06/09/v2026.06.09.4/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.4/retrospective.md)
-          - V2026.06.09.5
-            - [Notes](../../release/2026/06/09/v2026.06.09.5/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.5/retrospective.md)
-          - V2026.06.09.6
-            - [Notes](../../release/2026/06/09/v2026.06.09.6/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.6/retrospective.md)
-          - V2026.06.09.7
-            - [Notes](../../release/2026/06/09/v2026.06.09.7/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.7/retrospective.md)
-          - V2026.06.09.8
-            - [Notes](../../release/2026/06/09/v2026.06.09.8/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.8/retrospective.md)
-          - V2026.06.09.9
-            - [Notes](../../release/2026/06/09/v2026.06.09.9/notes.md)
-            - [Retrospective](../../release/2026/06/09/v2026.06.09.9/retrospective.md)
-        - 11
-          - V2026.06.11.1
-            - [Notes](../../release/2026/06/11/v2026.06.11.1/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.1/retrospective.md)
-          - V2026.06.11.2
-            - [Notes](../../release/2026/06/11/v2026.06.11.2/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.2/retrospective.md)
-          - V2026.06.11.3
-            - [Notes](../../release/2026/06/11/v2026.06.11.3/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.3/retrospective.md)
-          - V2026.06.11.4
-            - [Notes](../../release/2026/06/11/v2026.06.11.4/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.4/retrospective.md)
-          - V2026.06.11.5
-            - [Notes](../../release/2026/06/11/v2026.06.11.5/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.5/retrospective.md)
-          - V2026.06.11.6
-            - [Notes](../../release/2026/06/11/v2026.06.11.6/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.6/retrospective.md)
-          - V2026.06.11.7
-            - [Notes](../../release/2026/06/11/v2026.06.11.7/notes.md)
-            - [Retrospective](../../release/2026/06/11/v2026.06.11.7/retrospective.md)
+        - 12
+          - V2026.06.12.1
+            - [Release v2026.06.12.1](../../release/2026/06/12/v2026.06.12.1/notes.md)
     - [Release <version>](../../release/release-notes-template.md)
     - [Retrospective — <version>](../../release/retrospective-template.md)
-  - Setting
-  - Template
   - [Getting started](../../getting-started.md)
   - [Lessons learned](../../lessons-learned-part1.md)
   - [Lessons learned (part 2)](../../lessons-learned-part2.md)

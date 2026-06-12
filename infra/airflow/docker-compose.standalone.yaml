@@ -35,13 +35,14 @@ services:
       # Docker/QNAP often yields empty getfqdn(); without a hostname the UI builds http://:8793/log/...
       AIRFLOW__CORE__HOSTNAME_CALLABLE: airflow.utils.net.get_host_ip_address
       AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "true"
-      PYTHONPATH: /opt/data-solution/code:/opt/data-solution
+      PYTHONPATH: /opt/data-solution/code:/opt/data-solution/code/airflow:/opt/data-solution
+      AIRFLOW_CONN_KAFKA_DEFAULT: '{"conn_type": "kafka", "extra": {"bootstrap.servers": "kafka:9092"}}'
       POSTGRES_HOST: ${POSTGRES_HOST:-basnas_postgress:5432}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       DATA_SOLUTION_DB: ${DATA_SOLUTION_DB:-${POSTGRES_DB:-data-solution-2026}}
       KAFKA_HOST: ${KAFKA_HOST:-kafka:9092}
-      _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-requests>=2.32,<3 pandas>=2.2,<3 pyarrow>=16 jsonschema>=4 kafka-python psycopg[binary]}
+      _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-requests>=2.32,<3 pandas>=2.2,<3 pyarrow>=16 jsonschema>=4 psycopg[binary] apache-airflow-providers-apache-kafka apache-airflow-providers-common-messaging}
     restart: unless-stopped
     networks:
       - default
