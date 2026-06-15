@@ -8,7 +8,7 @@ from dataclasses import asdict
 from typing import Protocol
 
 from extractor_and_poller.poller.change_probe import PollResult
-from extractor_and_poller.poller.kafka_topic import kafka_topic_for_event
+from extractor_and_poller.poller.poll_events import EVENT_TYPE_CHANGE
 
 log = logging.getLogger(__name__)
 
@@ -24,8 +24,8 @@ def event_payload(result: PollResult) -> dict[str, str | None]:
     return payload
 
 
-def kafka_event_payload(result: PollResult) -> dict[str, str | None]:
-    """Poll event envelope for Kafka consumers (matches Postgres marker column names)."""
+def poll_event_payload(result: PollResult) -> dict[str, str | None]:
+    """Poll event envelope for orchestration consumers (matches Postgres marker columns)."""
     return {
         "data_object_id": result.data_object_id,
         "event_type": result.event_type,
@@ -36,9 +36,9 @@ def kafka_event_payload(result: PollResult) -> dict[str, str | None]:
     }
 
 
-def kafka_message_value(result: PollResult) -> str:
-    """Serialize the poll event envelope as JSON for Kafka message values."""
-    return json.dumps(kafka_event_payload(result), sort_keys=True)
+def poll_event_json(result: PollResult) -> str:
+    """Serialize the poll event envelope as JSON."""
+    return json.dumps(poll_event_payload(result), sort_keys=True)
 
 
 class StdoutPublisher:
@@ -47,10 +47,11 @@ class StdoutPublisher:
     def publish(self, result: PollResult) -> None:
         payload = event_payload(result)
         log.info(
-            "event_published transport=stdout topic=%s event_type=%s key=%s idempotency_key=%s",
-            kafka_topic_for_event(result.event_type),
+            "event_published transport=stdout event_type=%s key=%s idempotency_key=%s",
             result.event_type,
             result.data_object_id,
             result.idempotency_key,
         )
+        if result.event_type == EVENT_TYPE_CHANGE:
+            log.info("change_asset_uri would update for data_object_id=%s", result.data_object_id)
         print("publish\t" + json.dumps(payload, sort_keys=True))

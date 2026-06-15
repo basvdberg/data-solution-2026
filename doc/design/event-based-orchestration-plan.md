@@ -5,13 +5,14 @@
 <!-- markdown-toc:start -->
 - [Scope](#scope)
 - [Target architecture](#target-architecture)
+- [Scheduling contracts](#scheduling-contracts)
 - [Event contract (minimum)](#event-contract-minimum)
 - [Data poller implementation plan](#data-poller-implementation-plan)
   - [Phase 1 - Poller hardening](#phase-1-poller-hardening)
-  - [Phase 2 - Kafka publisher](#phase-2-kafka-publisher)
+  - [Phase 2 - Airflow Asset emit](#phase-2-airflow-asset-emit)
   - [Phase 3 - Airflow poller DAG](#phase-3-airflow-poller-dag)
 - [Change-event orchestration plan](#change-event-orchestration-plan)
-  - [Phase 4 - Native Airflow Kafka subscription](#phase-4-native-airflow-kafka-subscription)
+  - [Phase 4 - Native Airflow asset scheduling](#phase-4-native-airflow-asset-scheduling)
   - [Phase 5 - Extract DAG and idempotency](#phase-5-extract-dag-and-idempotency)
 - [Postgres schema plan](#postgres-schema-plan)
 - [Configuration plan](#configuration-plan)
@@ -31,9 +32,10 @@ Implement event-based orchestration for one mapping: `data-object-mapping/stagin
 In scope:
 
 - Data poller (change detection)
-- Kafka event publication and consumption
+- Airflow Asset emit and consume (no message broker)
 - Airflow orchestration for extract on change
 - Postgres persistence for state and event audit
+- `refreshContract` on source and staging data objects
 - Operational checks and acceptance tests
 
 Out of scope:
@@ -46,44 +48,53 @@ Out of scope:
 
 Runtime roles:
 
-- **Poller**: periodically probes source marker and emits events
-- **Kafka**: event bus with poll topics `ds.poll.data_object_change` and `ds.poll.data_object_progress` (see [Kafka topic naming](kafka-topic-naming.md))
-- **Airflow Asset Watcher**: subscribes to change events and schedules extract orchestration
-- **Airflow**: runs DAGs for polling and extraction
+- **Poller**: periodically probes source marker and emits change signals
+- **Airflow Assets**: orchestration signals (`ds://{data-object-id}/change`)
+- **Airflow**: runs DAGs for polling and extraction; asset schedule triggers extract
 - **Postgres**: stores poller baseline marker and event history
 - **Extractor**: pulls Open-Meteo data and lands Parquet in `data/staging/openmeteo/daily-temperature/`
 
 Flow:
 
-1. Airflow schedules poller task.
+1. Airflow schedules poller task (`@hourly` per source `refreshContract`).
 2. Poller computes current marker for `daily-temperature`.
 3. Poller compares marker to previous marker in Postgres.
-4. Poller emits:
-   - `data_object_change` if marker changed → topic `ds.poll.data_object_change`
-   - `data_object_progress` if marker unchanged → topic `ds.poll.data_object_progress`
-5. Airflow Asset Watcher on extract DAG consumes `ds.poll.data_object_change`.
-6. Extract DAG runs with mapping id, marker, and event_id from the Kafka message.
+4. Poller records outcome:
+   - `data_object_change` if marker changed → update Airflow Asset `ds://source/openmeteo/daily-temperature/change`
+   - `data_object_progress` if marker unchanged → Postgres row only
+5. Extract DAG `schedule=[source_change_asset]` runs when the asset updates.
+6. Extract DAG runs with mapping id, marker, and event_id from asset event **extra**.
 7. Extract DAG runs extractor and writes landing file(s).
 8. DAG emits success/failure operational event and updates observability metrics.
 
+## Scheduling contracts
+
+Per [Data object scheduling](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/data-object-scheduling.md):
+
+| Data object | `refreshContract` | Airflow implementation |
+|-------------|-------------------|------------------------|
+| `source/openmeteo/daily-temperature` | `time` — `@hourly` | Poller DAG `schedule=@hourly` |
+| `staging/openmeteo/daily-temperature` | `dependency` — `change_detected` on source | Extract DAG `schedule=[source_change_asset]` |
+
+Metadata lives in [`data-object/source/openmeteo/daily-temperature.json`](../../data-object/source/openmeteo/daily-temperature.json) and [`data-object/staging/openmeteo/daily-temperature.json`](../../data-object/staging/openmeteo/daily-temperature.json). See [Meta data design](meta-data-design.md).
+
 ## Event contract (minimum)
 
-Kafka message **value** is a JSON envelope (topics `ds.poll.data_object_change` and `ds.poll.data_object_progress`; partition key is `data_object_id`):
+Asset event **extra** (and Postgres `poller` rows) carry:
 
 - `data_object_id` (`source/openmeteo/daily-temperature`)
 - `event_type` (`data_object_change` or `data_object_progress`)
-- `event_time_utc` (ISO-8601)
-- `old_marker` (string or null)
-- `new_marker` (string)
+- `event_time_utc` (ISO-8601 in stdout envelopes; Postgres `polled_at_utc`)
+- `old_marker` / `new_marker` (Postgres columns; `marker` in asset extra)
+- `event_id`, `run_id` (correlation)
+- `mapping_id` (extract CLI slug)
 
-Postgres table `poller` stores the same markers plus correlation fields (`event_id`, `run_id`); query `poller_latest_first` for newest rows first.
+Stdout publish (`--publish stdout`) emits an extended envelope for local debugging (adds `source_data_object_id`, `target_data_object_id`, and `current_marker` / `previous_marker` field names from `PollResult`).
 
-Stdout publish (`--publish stdout`) emits an extended envelope for local debugging (adds `event_id`, `run_id`, `source_data_object_id`, `target_data_object_id`, and `current_marker` / `previous_marker` field names from `PollResult`).
+Airflow Assets (see [Airflow asset naming](airflow-asset-naming.md)):
 
-Kafka topics (see [Kafka topic naming](kafka-topic-naming.md)):
-
-- `ds.poll.data_object_change` (key: `data_object_id`, value: JSON envelope above)
-- `ds.poll.data_object_progress` (key: `data_object_id`, value: JSON envelope above)
+- `ds://source/openmeteo/daily-temperature/change` — updated on `data_object_change` only
+- `data_object_progress` — no asset update
 
 ## Data poller implementation plan
 
@@ -102,50 +113,49 @@ Acceptance:
 - Re-running without marker changes produces only `data_object_progress`.
 - Poller can recover from restart without losing baseline marker.
 
-### Phase 2 - Kafka publisher
+### Phase 2 - Airflow Asset emit
 
 Deliverables:
 
-- Poller DAG `ProduceToTopicOperator` publishes JSON poll envelope (`data_object_id`, `event_type`, `event_time_utc`, `old_marker`, `new_marker`).
-- Publish to `ds.poll.data_object_change` and `ds.poll.data_object_progress` (key: `data_object_id`).
+- Poller DAG task `emit_change_asset` updates asset `ds://source/openmeteo/daily-temperature/change` with extra `{data_object_id, event_type, marker, event_id, mapping_id}`.
+- Branch skips asset emit on `data_object_progress`.
 
 Acceptance:
 
-- Successful publish for both event types is visible with a JSON value containing the envelope fields.
-- Temporary Kafka outage results in controlled failure (no silent success).
+- Successful asset emit on change is visible in Airflow asset event history.
+- Progress polls do not update the change asset or trigger extract.
 
 ### Phase 3 - Airflow poller DAG
 
 Deliverables:
 
-- Poller DAG in `code/airflow/dags/` (for example `openmeteo_data_object_poller.py`), scheduled at fixed cadence (for example every hour).
+- Poller DAG in `code/airflow/dags/` (`openmeteo_data_object_poller.py`), scheduled at fixed cadence (`@hourly`).
 - Task sequence:
-  1) load mapping config,
-  2) probe and compare,
-  3) write marker state,
-  4) publish event.
+  1) probe and compare,
+  2) write marker state,
+  3) branch on event type,
+  4) emit change asset or record progress.
 - Add retries and timeout guardrails.
 
 Acceptance:
 
-- DAG emits one poll event per run for the mapping.
-- DAG logs include marker values and publish status.
+- DAG emits one poll outcome per run for the mapping.
+- DAG logs include marker values and asset emit status.
 
 ## Change-event orchestration plan
 
-### Phase 4 - Native Airflow Kafka subscription
+### Phase 4 - Native Airflow asset scheduling
 
 Deliverables:
 
-- Extract DAG `schedule=[poll_change_asset]` with `AssetWatcher` + `MessageQueueTrigger` on `ds.poll.data_object_change`.
-- Handler module [`code/airflow/include/kafka_handlers.py`](../../code/airflow/include/kafka_handlers.py) validates incoming JSON and resolves mapping id.
-- Airflow Connection `kafka_default` and providers `apache-airflow-providers-apache-kafka`, `apache-airflow-providers-common-messaging`.
-- Remove custom `extractor_and_poller.controller` package.
+- Extract DAG `schedule=[source_change_asset]` (no message queue).
+- Handler module [`code/airflow/include/asset_conf.py`](../../code/airflow/include/asset_conf.py) resolves extract conf from asset event extra.
+- No Kafka providers or separate controller process.
 
 Acceptance:
 
-- Every valid change event creates one extract DAG run (triggered by asset).
-- Invalid payloads are rejected and logged with reason.
+- Every valid change asset event creates one extract DAG run.
+- Progress polls do not trigger extract.
 - No separate controller process runs on the NAS.
 
 ### Phase 5 - Extract DAG and idempotency
@@ -194,7 +204,6 @@ Create or evolve these tables:
 
 Add environment-driven configuration for local/NAS parity:
 
-- `KAFKA_HOST` (for tunnel: `localhost:19092`)
 - `POSTGRES_HOST` (for tunnel: `localhost:15432`)
 - `AIRFLOW_HOST` (for tunnel/UI: `localhost:18080`)
 
@@ -206,13 +215,11 @@ Use the same variable names in both environments and only change their values.
 
 Tunnel/local values:
 
-- `KAFKA_HOST=localhost:19092`
 - `POSTGRES_HOST=localhost:15432`
 - `AIRFLOW_HOST=localhost:18080`
 
 Production values:
 
-- `KAFKA_HOST=<kafka-host-or-ip>:9092`
 - `POSTGRES_HOST=<postgres-host-or-ip>:5432`
 - `AIRFLOW_HOST=<airflow-host-or-ip>:8080`
 
@@ -226,37 +233,36 @@ Runtime rule:
 ### Unit tests
 
 - Marker comparison rules (changed vs unchanged)
-- Event envelope validation
-- Consumer input validation and idempotency checks
+- Asset extra → extract conf validation
+- Idempotency checks
 
 ### Integration tests
 
-- Poller -> Kafka publish with test broker
-- Change event -> Airflow trigger
+- Poller → asset emit on change
+- Asset update → extract DAG trigger
 - Extract run writes parquet and audit rows
 
 ### End-to-end smoke (NAS runtime)
 
 1. Trigger poller DAG manually.
-2. Verify one event in topic.
+2. Verify `poller` row and asset event on change.
 3. Verify extract DAG triggered on change only.
 4. Verify parquet landed under staging path.
 5. Verify Postgres tables updated.
 
 ## Rollout steps
 
-1. Enable poller DAG in Airflow with unchanged-only observation.
-2. Enable `ds.poll.data_object_change` publication.
-3. Deploy extract DAG with asset watcher (verify triggerer healthy).
-4. Enable asset-scheduled extract runs on change events.
-5. Enable idempotency guard and duplicate-event test.
-6. Mark orchestration as production-ready for this single data object.
+1. Enable poller DAG in Airflow with progress-only observation.
+2. Deploy extract DAG with asset schedule.
+3. Enable asset-scheduled extract runs on change events.
+4. Enable idempotency guard and duplicate-event test.
+5. Mark orchestration as production-ready for this single data object.
 
 ## Definition of done
 
 - Poller baseline state is stored in Postgres and survives restart.
-- Both Kafka topics receive valid events with stable schema.
-- Change events trigger extract DAG automatically.
+- Change polls update the source change asset with stable extra schema.
+- Change asset events trigger extract DAG automatically.
 - Duplicate events do not produce duplicate extraction output.
 - Runbook and troubleshooting notes exist in `doc/`.
 
@@ -295,10 +301,10 @@ Runtime rule:
   - Doc
     - Data Object Mapping
     - Design
+      - [Airflow asset naming](airflow-asset-naming.md)
       - [Architecture](architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](ci-cd.md)
       - [Event-based orchestration plan (single data object)](event-based-orchestration-plan.md)
-      - [Kafka topic naming](kafka-topic-naming.md)
       - [Meta data design](meta-data-design.md)
     - Image
     - Implementation
@@ -352,6 +358,7 @@ Runtime rule:
   - [Getting started](../../getting-started.md)
   - [Lessons learned](../../lessons-learned-part1.md)
   - [Lessons learned (part 2)](../../lessons-learned-part2.md)
+  - [Lessons learned (part 3)](../../lessons-learned-part3.md)
 - Related repositories
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026) — Course and learning materials
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns) — Design pattern catalogue

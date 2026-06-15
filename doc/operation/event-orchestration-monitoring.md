@@ -13,7 +13,7 @@
 
 ## Scope
 
-End-to-end path: **poller DAG** → **Kafka** → **extract DAG (asset watcher)** → **Postgres staging + audit**.
+End-to-end path: **poller DAG** → **Airflow change asset** → **extract DAG** → **Postgres staging + audit**.
 
 DAG ids: `openmeteo_data_object_poller`, `openmeteo_daily_temperature_extract`.
 
@@ -23,8 +23,8 @@ DAG ids: `openmeteo_data_object_poller`, `openmeteo_daily_temperature_extract`.
 |-------|-------|-----|----------|
 | Poller schedule | Hourly runs | Airflow UI | 1 success/hour for poller DAG |
 | Poller persistence | Marker rows | `SELECT * FROM poller_latest_first LIMIT 5` | New row each run |
-| Kafka publish | Messages on topics | Kafka UI | 1 msg/run on change or progress topic |
-| Asset subscription | Extract triggered | Airflow UI — extract DAG “Triggered by asset” | Run only on `data_object_change` |
+| Change asset | Asset event on change | Airflow UI — Assets / extract DAG “Triggered by asset” | Event only on `data_object_change` |
+| Extract triggered | Downstream run | Airflow UI — extract DAG | Run only when change asset updates |
 | Extract success | Audit + staging | `SELECT * FROM extract_run_audit ORDER BY started_at_utc DESC LIMIT 5` | `status='success'`, `row_count > 0` |
 
 ## Error-path checks
@@ -32,12 +32,12 @@ DAG ids: `openmeteo_data_object_poller`, `openmeteo_daily_temperature_extract`.
 | Failure | Symptom | Detection | Response |
 |---------|---------|-----------|----------|
 | Poller probe error | Task `probe_and_persist` failed | Airflow task log | Fix mapping/config; re-run poller DAG |
-| Kafka publish error | Task `publish_poll_event` failed | Airflow task log | Check Kafka stack (`docker ps`); infra runbook |
-| Invalid Kafka message | No extract run | Triggerer log `Rejected Kafka message` | Inspect message in Kafka UI |
+| Asset emit error | Task `emit_change_asset` failed | Airflow task log | Check task log; re-run poller DAG |
+| Invalid asset extra | No extract run | Extract task log `Rejected asset event` | Inspect poller XCom / asset event extra |
 | Extract transient error | Task `up_for_retry` | Airflow UI | Wait for retries (up to 5) |
 | Extract exhausted retries | DAG run `failed` | Airflow UI + `extract_run_audit.status='failed'` | Manual replay (below) |
 | Duplicate event | Skipped extract | Log `Skipping duplicate extract for event_id=` | Expected idempotency |
-| Triggerer unhealthy | No asset-triggered runs | Airflow health / startup logs | Restart `airflow-standalone` container |
+| Scheduler unhealthy | No asset-triggered runs | Airflow health / startup logs | Restart `airflow-standalone` container |
 
 ## Periodic runbook
 
@@ -45,7 +45,7 @@ DAG ids: `openmeteo_data_object_poller`, `openmeteo_daily_temperature_extract`.
 
 1. Airflow UI: failed poller or extract runs in last 24h.
 2. Postgres: `SELECT count(*) FROM extract_run_audit WHERE status='failed' AND started_at_utc > now() - interval '24 hours'`
-3. Kafka UI: recent messages on `ds.poll.data_object_progress` (proves poller is alive).
+3. Postgres: `SELECT count(*) FROM poller WHERE event_type='data_object_progress' AND polled_at_utc > now() - interval '24 hours'` (proves poller is alive).
 
 **Weekly**
 
@@ -57,8 +57,8 @@ DAG ids: `openmeteo_data_object_poller`, `openmeteo_daily_temperature_extract`.
 | Pattern | Meaning |
 |---------|---------|
 | `Persisted poller row` | Probe + Postgres OK |
-| `Accepted data_object_change` | Asset watcher accepted event |
-| `Rejected Kafka message` | Invalid or progress message ignored |
+| `Accepted data_object_change` | Extract conf resolved from asset extra |
+| `Rejected asset event` | Invalid or empty asset extra |
 | `Skipping duplicate extract for event_id=` | Successful idempotency |
 | `extractor exited with` | Extract failure (may retry) |
 
@@ -88,7 +88,7 @@ LIMIT 10;
 
 3. Idempotency skips only prior **success** rows for the same `event_id`; failed rows are retried in-place on the next attempt.
 
-Related: [Implementation plan — Step 3](../implementation/implementation-plan.md#step-3-react-to-change-events-native-airflow-kafka), [Issue categories](issue-category.md).
+Related: [Implementation plan — Step 3](../implementation/implementation-plan.md#step-3-react-to-change-assets-native-airflow-scheduling), [Issue categories](issue-category.md).
 
 ## Project structure
 
@@ -125,10 +125,10 @@ Related: [Implementation plan — Step 3](../implementation/implementation-plan.
   - Doc
     - Data Object Mapping
     - Design
+      - [Airflow asset naming](../design/airflow-asset-naming.md)
       - [Architecture](../design/architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](../design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](../design/event-based-orchestration-plan.md)
-      - [Kafka topic naming](../design/kafka-topic-naming.md)
       - [Meta data design](../design/meta-data-design.md)
     - Image
     - Implementation
@@ -182,6 +182,7 @@ Related: [Implementation plan — Step 3](../implementation/implementation-plan.
   - [Getting started](../../getting-started.md)
   - [Lessons learned](../../lessons-learned-part1.md)
   - [Lessons learned (part 2)](../../lessons-learned-part2.md)
+  - [Lessons learned (part 3)](../../lessons-learned-part3.md)
 - Related repositories
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026) — Course and learning materials
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns) — Design pattern catalogue

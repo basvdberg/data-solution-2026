@@ -176,3 +176,18 @@ Promote significant entries to postmortems in [`doc/operation/incident/`](../doc
 | **Solution** | If you still see this on an old branch: `deploy-infra-on-nas.sh` to sync compose `PYTHONPATH`, or pull the version without `dag_run_guard`. Verify `airflow dags list-import-errors` is empty. |
 | **Prevention** | Run `airflow dags list-import-errors` after deploy. Promoted to [INC-004](../doc/operation/incident/inc-004-airflow-pythonpath-drift.md). |
 | **Count** | 1 |
+
+## Session: 2026-06-15
+
+### ERR-014 — Airflow UI shows no DAGs; stale dags bind mount
+
+| Field | Value |
+|-------|-------|
+| **When** | 2026-06-15 |
+| **Context** | NAS Airflow after local server restart / storage remount |
+| **Command** | `docker exec airflow-standalone ls /opt/airflow/dags` vs `ls ~/apps/data-solution-2026/code/airflow/dags` |
+| **Error** | Host has DAG `.py` files; container mount shows `total 0`; UI empty DAG list |
+| **Description** | Docker bind mount for `${DATA_SOLUTION_ROOT}/code/airflow/dags` went stale while `airflow-standalone` kept running. Dag processor saw no files; metadata DB still had old serialized DAGs from CLI but UI showed nothing. |
+| **Solution** | `cd ~/apache-airflow && docker compose -f docker-compose.standalone.yaml up -d --force-recreate`. Wait 3–5 min for pip + dag processor (first parse can take ~6 min on NAS). Verify: `ls` inside container shows 2 files; `airflow dags list` shows both DAGs. |
+| **Prevention** | After reboot or “no DAGs” report: compare host vs container `ls /opt/airflow/dags` before chasing import errors. Recreate container if mount is empty. |
+| **Count** | 1 |

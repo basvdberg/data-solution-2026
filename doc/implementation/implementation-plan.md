@@ -9,9 +9,9 @@
 - [Prerequisites](#prerequisites)
 - [Implementation steps](#implementation-steps)
   - [Step 1 — Poller in Airflow (verify)](#step-1-poller-in-airflow-verify)
-  - [Step 2 — Kafka publish (verify)](#step-2-kafka-publish-verify)
-  - [Step 3 — React to change events (native Airflow Kafka)](#step-3-react-to-change-events-native-airflow-kafka)
-    - [3.1 What subscribes to Kafka](#31-what-subscribes-to-kafka)
+  - [Step 2 — Airflow Asset emit (verify)](#step-2-airflow-asset-emit-verify)
+  - [Step 3 — React to change assets (native Airflow scheduling)](#step-3-react-to-change-assets-native-airflow-scheduling)
+    - [3.1 What consumes the change asset](#31-what-consumes-the-change-asset)
     - [3.2 Local smoke (dev machine)](#32-local-smoke-dev-machine)
     - [3.3 Runtime config (local server)](#33-runtime-config-local-server)
     - [3.4 Acceptance](#34-acceptance)
@@ -22,7 +22,7 @@
 
 ## Goal
 
-Move from a **locally runnable** Open-Meteo poller and extractor to **scheduled, event-driven orchestration** on the local server: Airflow runs the poller, Kafka carries change signals, and Airflow runs extract only when the source marker advances.
+Move from a **locally runnable** Open-Meteo poller and extractor to **scheduled, event-driven orchestration** on the local server: Airflow runs the poller, **Airflow Assets** carry change signals, and Airflow runs extract only when the source marker advances.
 
 This document is the **action checklist** for implementation. Technical detail for contracts, Postgres tables, and phases lives in [Event-based orchestration plan](design/event-based-orchestration-plan.md).
 
@@ -36,17 +36,18 @@ Single data object for the PoC:
 | Mapping CLI alias | `daily-temperature` |
 | Source data object | `source/openmeteo/daily-temperature` |
 | Staging target | `staging/openmeteo/daily-temperature` |
+| Change asset URI | `ds://source/openmeteo/daily-temperature/change` |
 | Poller DAG id | `openmeteo_data_object_poller` |
 | Extract DAG id | `openmeteo_daily_temperature_extract` |
 
-Out of scope: additional sources, multi-mapping routing, and a dedicated controller Docker service (PoC uses native Airflow Kafka providers inside the Airflow container).
+Out of scope: additional sources, multi-mapping routing, and a dedicated controller Docker service.
 
 ## Related documentation
 
 | Topic | Document |
 |-------|----------|
 | Target architecture and event contract | [Event-based orchestration plan](design/event-based-orchestration-plan.md) |
-| Airflow / Kafka / Postgres on the local server | [Infrastructure](../infra/readme.md) |
+| Airflow / Postgres on the local server | [Infrastructure](../infra/readme.md) |
 | Deploy to the local server (commit + push `main`) | [CI/CD workflow](design/ci-cd.md) |
 | Poller CLI and options | [Extractor and poller](../code/extractor_and_poller/readme.md) |
 | Airflow DAGs and variables | [code/airflow](../code/airflow/readme.md) |
@@ -54,7 +55,7 @@ Out of scope: additional sources, multi-mapping routing, and a dedicated control
 
 ## Prerequisites
 
-Complete local-server setup before Step 1: Postgres metadata, Kafka, and Airflow standalone stacks running with `.env` secrets configured. Follow [Infrastructure](../infra/readme.md) for ordered setup, SSH troubleshooting, and `deploy-infra-on-nas.sh`. For dev-machine commands, see [Getting started](../getting-started.md).
+Complete local-server setup before Step 1: Postgres metadata and Airflow standalone stack running with `.env` secrets configured. Follow [Infrastructure](../infra/readme.md) for ordered setup, SSH troubleshooting, and `deploy-infra-on-nas.sh`. For dev-machine commands, see [Getting started](../getting-started.md).
 
 ---
 
@@ -72,37 +73,38 @@ Troubleshooting (PYTHONPATH, infra sync, Postgres env): [code/airflow/readme.md]
 
 ---
 
-### Step 2 — Kafka publish (verify)
+### Step 2 — Airflow Asset emit (verify)
 
-**Status:** implemented — verify after infra deploy (`KAFKA_HOST`, `kafka_default` network).
+**Status:** implemented — verify after deploy.
 
-- [ ] Poller DAG task `publish_poll_event` succeeds (`ProduceToTopicOperator`).
-- [ ] Kafka UI lists `ds.poll.data_object_change` and/or `ds.poll.data_object_progress` with key `data_object_id`.
+- [ ] Poller DAG task `emit_change_asset` succeeds when marker changes.
+- [ ] Airflow UI shows asset event for `ds://source/openmeteo/daily-temperature/change`.
+- [ ] Unchanged marker run skips `emit_change_asset` (branch to `record_progress`).
 
-Topic naming: [Kafka topic naming](design/kafka-topic-naming.md).
+Asset naming: [Airflow asset naming](design/airflow-asset-naming.md).
 
 ---
 
-### Step 3 — React to change events (native Airflow Kafka)
+### Step 3 — React to change assets (native Airflow scheduling)
 
 **Status:** implemented — deploy and validate on the local server.
 
-**Objective:** Subscribe to `ds.poll.data_object_change` with native Airflow Kafka providers and run the extract DAG when a valid change event arrives.
+**Objective:** Schedule extract DAG on `ds://source/openmeteo/daily-temperature/change` and run extract when asset extra contains a valid change signal.
 
-#### 3.1 What subscribes to Kafka
+#### 3.1 What consumes the change asset
 
-- **Extract DAG** [`openmeteo_daily_temperature_extract.py`](../code/airflow/dags/openmeteo_daily_temperature_extract.py) uses `schedule=[poll_change_asset]` with an `AssetWatcher` + `MessageQueueTrigger`.
-- **Topic:** `ds.poll.data_object_change`
-- **Handler:** [`code/airflow/include/kafka_handlers.py`](../code/airflow/include/kafka_handlers.py) — `poll_change_apply_function` validates JSON, rejects progress events, resolves `mapping_id`, returns extract conf.
-- **No separate process** — the Airflow triggerer watches Kafka; no `extractor_and_poller.controller` CLI.
+- **Extract DAG** [`openmeteo_daily_temperature_extract.py`](../code/airflow/dags/openmeteo_daily_temperature_extract.py) uses `schedule=[source_change_asset]`.
+- **Asset URI:** `ds://source/openmeteo/daily-temperature/change`
+- **Conf resolver:** [`code/airflow/include/asset_conf.py`](../code/airflow/include/asset_conf.py) — `extract_conf_from_asset_extra()` reads `{mapping_id, marker, event_id}` from `triggering_asset_events`.
+- **No separate process** — scheduler triggers extract DAG on asset update.
 
-Poller publish uses `ProduceToTopicOperator` in [`openmeteo_data_object_poller.py`](../code/airflow/dags/openmeteo_data_object_poller.py).
+Poller emit uses `emit_change_asset` with `outlets=[source_change_asset]` in [`openmeteo_data_object_poller.py`](../code/airflow/dags/openmeteo_data_object_poller.py).
 
 #### 3.2 Local smoke (dev machine)
 
 ```powershell
 cd "c:\Dev2\Data Engineering 2.0\data-solution-2026"
-python -m unittest code.extractor_and_poller.tests.test_kafka_handlers
+python -m unittest code.extractor_and_poller.tests.test_asset_conf code.extractor_and_poller.tests.test_poller_events
 ```
 
 #### 3.3 Runtime config (local server)
@@ -111,23 +113,20 @@ Set in `~/apache-airflow/.env` (see [infra/airflow/.env.example](../infra/airflo
 
 | Variable | Example | Purpose |
 |----------|---------|---------|
-| `KAFKA_HOST` | `kafka:9092` | Kafka bootstrap for Asset Watcher queue URL |
+| `POSTGRES_HOST` | `basnas_postgress:5432` | Poller and extract metadata |
+| `DATA_SOLUTION_ROOT` | clone path on NAS | DAG and code mounts |
 
-Airflow Connection `kafka_default` is created via `AIRFLOW_CONN_KAFKA_DEFAULT` in compose (bootstrap `kafka:9092`).
-
-Providers installed at container start: `apache-airflow-providers-apache-kafka`, `apache-airflow-providers-common-messaging`.
-
-Prerequisite: both DAGs load without import errors (`airflow dags list-import-errors` empty). Triggerer must be healthy (part of standalone mode).
+Prerequisite: both DAGs load without import errors (`airflow dags list-import-errors` empty).
 
 #### 3.4 Acceptance
 
-1. Poller publishes to `ds.poll.data_object_change` (Step 2 green).
-2. Extract DAG shows runs **triggered by asset** `ds_poll_data_object_change`.
+1. Poller emits change asset on marker change (Step 2 green).
+2. Extract DAG shows runs **triggered by asset** `ds://source/openmeteo/daily-temperature/change`.
 3. On marker change, one `openmeteo_daily_temperature_extract` run starts with conf `{mapping_id, marker, event_id}`.
-4. Invalid payloads log `Rejected Kafka message` in triggerer/worker logs — no extract run.
+4. Progress polls do not trigger extract.
 5. Extract task retries up to **5 times** on transient failure.
 
-**Step 3 done when:** one real or synthetic change event creates exactly one extract DAG run.
+**Step 3 done when:** one real change poll creates exactly one extract DAG run.
 
 #### 3.5 Recovery and monitoring
 
@@ -143,7 +142,7 @@ Prerequisite: both DAGs load without import errors (`airflow dags list-import-er
 Remaining work after asset-triggered extract runs reliably:
 
 - **Extract + idempotency** — extract DAG calls `python -m extractor_and_poller.openmeteo.extractor --mapping daily-temperature`; write `extract_run_audit` rows and skip duplicate successful `event_id`. See [Phase 5 — Extract DAG and idempotency](design/event-based-orchestration-plan.md#phase-5---extract-dag-and-idempotency).
-- **End-to-end smoke** — poller → Kafka → asset watcher → extract → Postgres staging. Document failures in [lessons-learned.md](../lessons-learned-part1.md).
+- **End-to-end smoke** — poller → asset → extract → Postgres staging. Document failures in [lessons-learned.md](../lessons-learned-part1.md).
 - **Rollout** — commit and push to `main`; CI/CD and NAS deploy via [CI/CD workflow](design/ci-cd.md) (post-push hook → `deploy-on-nas.sh`). Record DAG ids in [release notes](../release/release-notes-template.md).
 
 ---
@@ -153,8 +152,8 @@ Remaining work after asset-triggered extract runs reliably:
 The PoC orchestration path is complete when all of the following are true:
 
 - [ ] **Step 1:** Poller runs in Airflow with Postgres state.
-- [ ] **Step 2:** Poll results publish to Kafka with a stable envelope.
-- [ ] **Step 3:** Change events trigger extract orchestration (no manual extract for routine loads).
+- [ ] **Step 2:** Poll results emit change assets with stable extra schema.
+- [ ] **Step 3:** Change assets trigger extract orchestration (no manual extract for routine loads).
 - [ ] **After Step 3:** Extract is idempotent per `event_id` and lands staging Parquet; end-to-end smoke documented in a release note.
 
 For schema-level acceptance criteria, use [Definition of done](design/event-based-orchestration-plan.md#definition-of-done) in the event-based orchestration plan.
@@ -194,10 +193,10 @@ For schema-level acceptance criteria, use [Definition of done](design/event-base
   - Doc
     - Data Object Mapping
     - Design
+      - [Airflow asset naming](../design/airflow-asset-naming.md)
       - [Architecture](../design/architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](../design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](../design/event-based-orchestration-plan.md)
-      - [Kafka topic naming](../design/kafka-topic-naming.md)
       - [Meta data design](../design/meta-data-design.md)
     - Image
     - Implementation
@@ -251,6 +250,7 @@ For schema-level acceptance criteria, use [Definition of done](design/event-base
   - [Getting started](../../getting-started.md)
   - [Lessons learned](../../lessons-learned-part1.md)
   - [Lessons learned (part 2)](../../lessons-learned-part2.md)
+  - [Lessons learned (part 3)](../../lessons-learned-part3.md)
 - Related repositories
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026) — Course and learning materials
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns) — Design pattern catalogue

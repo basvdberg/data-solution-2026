@@ -13,7 +13,7 @@
 The flow, left to right:
 
 1. **Git holds the configuration.** `data-object-mapping/staging/openmeteo/` describes the source; staging targets and loads are defined in the same DSA metadata. Design patterns set the shape of the orchestration.
-2. **Airflow + Kafka run ingestion.** A scheduled **poller** DAG probes the source and publishes only to the event bus: `ds.poll.data_object_change` when the marker moved, `ds.poll.data_object_progress` when it did not. The extract DAG Asset Watcher reacts to **change** events and runs **extract** tasks; the extractor writes Parquet under `data/staging/`. The poller never runs the extractor. **PostgreSQL** stores all runtime metadata (poller history in table `poller`, future event and extract audit tables); configuration stays in Git. Topic naming: [Kafka topic naming](kafka-topic-naming.md).
+2. **Airflow Assets run ingestion.** A scheduled **poller** DAG probes the source and, on marker change, updates an Airflow **Asset** (`ds://source/openmeteo/daily-temperature/change`). The extract DAG is scheduled on that asset and runs **extract** tasks; the extractor writes Parquet under `data/staging/`. The poller never runs the extractor. Unchanged polls record `data_object_progress` in **PostgreSQL** only. **PostgreSQL** stores all runtime metadata (poller history in table `poller`, future extract audit tables); configuration stays in Git. Asset naming: [Airflow asset naming](airflow-asset-naming.md). Scheduling contracts: `refreshContract` on data objects per [Data object scheduling](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/data-object-scheduling.md).
 3. **ADL generates staging artefacts.** Reading the same DSA metadata, ADL renders the Handlebars templates in `template/` into DDL and load SQL under `output/`, which load the Parquet landing files into the **100 Landing Area**.
 
 This solution follows the [separate what and how](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/separate-what-and-how.md) design pattern: DSA metadata files specify *what* must happen, while Airflow DAGs and the extractor/poller libraries under `code/`, and ADL-generated load procedures under `output/`, specify *how* it is executed.
@@ -53,10 +53,10 @@ This solution follows the [separate what and how](https://github.com/basvdberg/d
   - Doc
     - Data Object Mapping
     - Design
+      - [Airflow asset naming](airflow-asset-naming.md)
       - [Architecture](architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](ci-cd.md)
       - [Event-based orchestration plan (single data object)](event-based-orchestration-plan.md)
-      - [Kafka topic naming](kafka-topic-naming.md)
       - [Meta data design](meta-data-design.md)
     - Image
     - Implementation
@@ -110,6 +110,7 @@ This solution follows the [separate what and how](https://github.com/basvdberg/d
   - [Getting started](../../getting-started.md)
   - [Lessons learned](../../lessons-learned-part1.md)
   - [Lessons learned (part 2)](../../lessons-learned-part2.md)
+  - [Lessons learned (part 3)](../../lessons-learned-part3.md)
 - Related repositories
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026) — Course and learning materials
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns) — Design pattern catalogue

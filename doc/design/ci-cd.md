@@ -267,10 +267,10 @@ git checkout <previous-tag>
   - Doc
     - Data Object Mapping
     - Design
+      - [Airflow asset naming](airflow-asset-naming.md)
       - [Architecture](architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](ci-cd.md)
       - [Event-based orchestration plan (single data object)](event-based-orchestration-plan.md)
-      - [Kafka topic naming](kafka-topic-naming.md)
       - [Meta data design](meta-data-design.md)
     - Image
     - Implementation
@@ -324,6 +324,7 @@ git checkout <previous-tag>
   - [Getting started](../../getting-started.md)
   - [Lessons learned](../../lessons-learned-part1.md)
   - [Lessons learned (part 2)](../../lessons-learned-part2.md)
+  - [Lessons learned (part 3)](../../lessons-learned-part3.md)
 - Related repositories
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026) — Course and learning materials
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns) — Design pattern catalogue

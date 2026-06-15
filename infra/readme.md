@@ -14,20 +14,18 @@
   - [Non-interactive SSH: git fails with libcharset.so.1](#non-interactive-ssh-git-fails-with-libcharsetso1)
   - [SSH: docker: command not found](#ssh-docker-command-not-found)
   - [Task logs show http://:8793/... No host supplied](#task-logs-show-http8793-no-host-supplied)
-- [Kafka](#kafka)
 - [Related docs](#related-docs)
 <!-- markdown-toc:end -->
 
 ## Purpose
 
-Version-controlled Docker Compose for the PoC runtime on the local server: **Apache Airflow** (orchestration), **Apache Kafka** (change events), and **PostgreSQL** (runtime metadata). Application libraries live under `code/extractor_and_poller/`; these stacks host the services. SSH and service URLs: [local-server.env.example](local-server.env.example).
+Version-controlled Docker Compose for the PoC runtime on the local server: **Apache Airflow** (orchestration) and **PostgreSQL** (runtime metadata). Application libraries live under `code/extractor_and_poller/`; these stacks host the services. SSH and service URLs: [local-server.env.example](local-server.env.example).
 
 Source of truth on NAS today:
 
 | Service | NAS path (historical) | Compose file in this repo |
 |---------|----------------------|---------------------------|
 | Airflow | `~/apache-airflow/` | [airflow/docker-compose.standalone.yaml](airflow/docker-compose.standalone.yaml) |
-| Kafka | `~/kafka/` | [kafka/docker-compose.yml](kafka/docker-compose.yml) |
 | Postgres (shared) | `basnas_postgress` on host **5432** | [postgres/](postgres/) (setup scripts only) |
 
 ## Layout
@@ -36,12 +34,12 @@ Source of truth on NAS today:
 infra/
   readme.md
   scripts/
-    deploy-infra-on-nas.sh           # sync to ~/apache-airflow, ~/kafka, ~/data-solution-postgres
+    deploy-infra-on-nas.sh           # sync to ~/apache-airflow, ~/data-solution-postgres
   airflow/
     docker-compose.standalone.yaml   # active Airflow stack (standalone)
     .env.example
   kafka/
-    docker-compose.yml               # Kafka + Kafka UI
+    readme.md                        # deprecated — broker removed from PoC
   postgres/
     create-app-user.sh               # schema + app role on basnas_postgress
 
@@ -57,9 +55,9 @@ The large upstream multi-service Airflow template (`docker-compose.yaml` with Ce
 
 ### Sync script (recommended)
 
-Copies compose files from `infra/` into legacy NAS folders (`~/apache-airflow`, `~/kafka`), keeps existing `.env` / `logs` / Kafka data, sets `DATA_SOLUTION_ROOT`, and restarts stacks.
+Copies compose files from `infra/` into legacy NAS folders (`~/apache-airflow`), keeps existing `.env` / `logs`, sets `DATA_SOLUTION_ROOT`, and restarts stacks.
 
-Routine pushes to `main` run infra sync automatically when [release/deploy-config.json](../release/deploy-config.json) has `sync_infra: true` (pre-commit sets this when stack files under `infra/airflow`, `infra/kafka`, or `infra/postgres` change since the last release tag). Only the listed `infra_components` are copied and restarted — a Kafka-only change does not recreate Airflow. Force a full sync manually:
+Routine pushes to `main` run infra sync automatically when [release/deploy-config.json](../release/deploy-config.json) has `sync_infra: true` (pre-commit sets this when stack files under `infra/airflow` or `infra/postgres` change since the last release tag). Force a full sync manually:
 
 ```bash
 RUN_INFRA_SYNC=1 bash ~/apps/data-solution-2026/release/scripts/deploy-on-nas.sh
@@ -71,9 +69,8 @@ Options:
 |----------|---------|---------|
 | `APP_ROOT` | `~/apps/data-solution-2026` | Repo clone |
 | `AIRFLOW_DEST` | `~/apache-airflow` | Airflow compose target |
-| `KAFKA_DEST` | `~/kafka` | Kafka compose target |
 | `POSTGRES_DEST` | `~/data-solution-postgres` | Postgres config + setup scripts (no compose) |
-| `INFRA_COMPONENTS` | from `deploy-config.json` | Comma-separated subset: `airflow`, `kafka`, `postgres` |
+| `INFRA_COMPONENTS` | from `deploy-config.json` | Comma-separated subset: `airflow`, `postgres` |
 | `RUN_COMPOSE` | `1` | Run `docker compose up -d` after sync |
 | `DRY_RUN` | `0` | Print actions only |
 
@@ -91,17 +88,13 @@ cp -n .env.example ~/data-solution-postgres/.env
 # Edit .env: POSTGRES_PASSWORD = basnas_postgress admin password
 bash create-app-user.sh
 
-cd ~/apps/data-solution-2026/infra/kafka
-cp -n .env.example .env 2>/dev/null || true
-docker compose up -d
-
 cd ~/apps/data-solution-2026/infra/airflow
 cp -n .env.example .env
 # Set DATA_SOLUTION_ROOT to the clone root on NAS
 docker compose -f docker-compose.standalone.yaml up -d
 ```
 
-HTTPS UI: `${LOCAL_SERVER_URL_AIRFLOW}` and `${LOCAL_SERVER_URL_KAFKA}` (values in [local-server.env.example](local-server.env.example); NGINX setup in [local server deploy skill](https://github.com/basvdberg/cursor-config/tree/main/skills/deploy-basnas-container)).
+HTTPS UI: `${LOCAL_SERVER_URL_AIRFLOW}` (values in [local-server.env.example](local-server.env.example); NGINX setup in [local server deploy skill](https://github.com/basvdberg/cursor-config/tree/main/skills/deploy-basnas-container)).
 
 ## Airflow
 
@@ -113,8 +106,7 @@ HTTPS UI: `${LOCAL_SERVER_URL_AIRFLOW}` and `${LOCAL_SERVER_URL_KAFKA}` (values 
 - Joins external network `immich_default` so tasks reach `basnas_postgress:5432` (table `poller`).
 - Install runtime deps via `_PIP_ADDITIONAL_REQUIREMENTS` in `.env` (includes `psycopg[binary]`).
 - `PYTHONUNBUFFERED=1` and `AIRFLOW__LOGGING__TASK_LOG_TO_STDOUT=true` in compose so task subprocess logs reach the UI without buffering delay.
-
-Optional: uncomment the `kafka` external network in [docker-compose.standalone.yaml](airflow/docker-compose.standalone.yaml) after Kafka is up so tasks can reach `kafka:9092`.
+- Event-based orchestration uses **Airflow Assets** (no separate message broker); see [airflow-asset-naming.md](../doc/design/airflow-asset-naming.md).
 
 ## Postgres
 
@@ -215,11 +207,6 @@ docker exec airflow-standalone ls /opt/airflow/logs/dag_id=openmeteo_data_object
 docker exec airflow-standalone cat '/opt/airflow/logs/dag_id=openmeteo_data_object_poller/run_id=.../task_id=poll_openmeteo_daily_temperature/attempt=2.log'
 ```
 
-## Kafka
-
-- Broker: `apache/kafka:3.8.0` on ports `9092` / `9093`.
-- UI: `provectuslabs/kafka-ui` on host port `8085`.
-
 ## Related docs
 
 - [Generated runtime code](../code/readme.md)
@@ -262,10 +249,10 @@ docker exec airflow-standalone cat '/opt/airflow/logs/dag_id=openmeteo_data_obje
   - Doc
     - Data Object Mapping
     - Design
+      - [Airflow asset naming](../doc/design/airflow-asset-naming.md)
       - [Architecture](../doc/design/architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](../doc/design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](../doc/design/event-based-orchestration-plan.md)
-      - [Kafka topic naming](../doc/design/kafka-topic-naming.md)
       - [Meta data design](../doc/design/meta-data-design.md)
     - Image
     - Implementation
@@ -319,6 +306,7 @@ docker exec airflow-standalone cat '/opt/airflow/logs/dag_id=openmeteo_data_obje
   - [Getting started](../getting-started.md)
   - [Lessons learned](../lessons-learned-part1.md)
   - [Lessons learned (part 2)](../lessons-learned-part2.md)
+  - [Lessons learned (part 3)](../lessons-learned-part3.md)
 - Related repositories
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026) — Course and learning materials
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns) — Design pattern catalogue

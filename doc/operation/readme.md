@@ -15,7 +15,7 @@ Cross-release operational knowledge: incidents, categories, and links to per-rel
 
 | Path | Purpose |
 |------|---------|
-| [event-orchestration-monitoring.md](event-orchestration-monitoring.md) | Health checks, error signals, and manual recovery for poller → Kafka → extract |
+| [event-orchestration-monitoring.md](event-orchestration-monitoring.md) | Health checks, error signals, and manual recovery for poller → Airflow asset → extract |
 | [issue-category.md](issue-category.md) | Taxonomy for classifying incidents and retro patterns |
 | [incident/readme.md](incident/readme.md) | Incident register (INC-NNN) |
 | [incident/incident-template.md](incident/incident-template.md) | Scaffold for new postmortems |
@@ -83,10 +83,10 @@ ERR (tactical, session)  →  INC (significant event)  →  retro (per release) 
   - Doc
     - Data Object Mapping
     - Design
+      - [Airflow asset naming](../design/airflow-asset-naming.md)
       - [Architecture](../design/architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](../design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](../design/event-based-orchestration-plan.md)
-      - [Kafka topic naming](../design/kafka-topic-naming.md)
       - [Meta data design](../design/meta-data-design.md)
     - Image
     - Implementation
@@ -140,6 +140,7 @@ ERR (tactical, session)  →  INC (significant event)  →  retro (per release) 
   - [Getting started](../../getting-started.md)
   - [Lessons learned](../../lessons-learned-part1.md)
   - [Lessons learned (part 2)](../../lessons-learned-part2.md)
+  - [Lessons learned (part 3)](../../lessons-learned-part3.md)
 - Related repositories
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026) — Course and learning materials
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns) — Design pattern catalogue

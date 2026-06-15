@@ -7,10 +7,10 @@
 - [Configuration](#configuration)
 - [Poller DAG](#poller-dag)
 - [Extract DAG](#extract-dag)
-- [Kafka handlers](#kafka-handlers)
+- [Asset helpers](#asset-helpers)
 <!-- markdown-toc:end -->
 
-**Target runtime:** Apache Airflow **3.2.0** (`apache/airflow:3.2.0` in [`infra/airflow/docker-compose.standalone.yaml`](../../infra/airflow/docker-compose.standalone.yaml)). DAGs import from `airflow.sdk`; Kafka via `apache-airflow-providers-apache-kafka` and `apache-airflow-providers-common-messaging`.
+**Target runtime:** Apache Airflow **3.2.0** (`apache/airflow:3.2.0` in [`infra/airflow/docker-compose.standalone.yaml`](../../infra/airflow/docker-compose.standalone.yaml)). DAGs import from `airflow.sdk`.
 
 ## DAGs
 
@@ -18,12 +18,10 @@ Python files under [dags/](dags/) are loaded by the Airflow scheduler from `/opt
 
 | DAG id | Schedule | Role |
 |--------|----------|------|
-| `openmeteo_data_object_poller` | `@hourly` | Probe marker, persist Postgres, publish Kafka |
-| `openmeteo_daily_temperature_extract` | Asset `ds_poll_data_object_change` | Extract on `data_object_change` events |
+| `openmeteo_data_object_poller` | `@hourly` | Probe marker, persist Postgres, emit change asset |
+| `openmeteo_daily_temperature_extract` | Asset `ds://source/openmeteo/daily-temperature/change` | Extract on `data_object_change` |
 
 ## Configuration
-
-Kafka bootstrap from container env `KAFKA_HOST` (see [`.env.example`](../../infra/airflow/.env.example)). Airflow Connection `kafka_default` is set via `AIRFLOW_CONN_KAFKA_DEFAULT` in compose.
 
 Optional Airflow Variable:
 
@@ -38,30 +36,30 @@ Optional Airflow Variable:
 | Property | Value |
 |----------|--------|
 | File | `dags/openmeteo_data_object_poller.py` |
-| Tasks | `probe_and_persist` → `publish_poll_event` |
-| Publish | `ProduceToTopicOperator` (`kafka_config_id=kafka_default`) |
+| Tasks | `probe_and_persist` → `branch_on_event_type` → `emit_change_asset` or `record_progress` |
+| Asset emit | `emit_change_asset` with `outlets=[source_change_asset]` |
 
-Task `probe_and_persist` calls [`include/poll_run.py`](include/poll_run.py) (probe + Postgres, no Kafka in poller CLI). Task `publish_poll_event` publishes the JSON envelope to `ds.poll.data_object_change` or `ds.poll.data_object_progress`.
+Task `probe_and_persist` calls [`include/poll_run.py`](include/poll_run.py) (probe + Postgres). On `data_object_change`, `emit_change_asset` updates the source change asset with extract conf in event extra.
 
 ## Extract DAG
 
 | Property | Value |
 |----------|--------|
 | File | `dags/openmeteo_daily_temperature_extract.py` |
-| Trigger | `AssetWatcher` + `MessageQueueTrigger` on `ds.poll.data_object_change` |
+| Trigger | `schedule=[source_change_asset]` |
 | Retries | 5 with exponential backoff (2–30 min) |
 
 The extract task reads `triggering_asset_events` for `{mapping_id, marker, event_id}` and calls the extractor CLI. Manual triggers with DAG conf still work for replay.
 
-## Kafka handlers
+## Asset helpers
 
 Importable modules under [`include/`](include/):
 
 | Module | Purpose |
 |--------|---------|
-| `kafka_handlers.py` | `poll_change_apply_function` — validate change events for Asset Watcher |
-| `kafka_topics.py` | Topic name constants |
-| `poller_kafka.py` | Producer function for `ProduceToTopicOperator` |
+| `asset_conf.py` | `extract_conf_from_asset_extra` — build extract conf from asset event extra |
+| `data_object_asset_uris.py` | `change_asset_uri()` — URI without Airflow import |
+| `data_object_assets.py` | `change_asset()` — Airflow `Asset` builder |
 | `poll_run.py` | Single probe + Postgres persist for poller DAG |
 
 Monitoring: [Event orchestration monitoring](../../doc/operation/event-orchestration-monitoring.md).
@@ -103,10 +101,10 @@ Implementation checklist: [Implementation plan](../../doc/implementation/impleme
   - Doc
     - Data Object Mapping
     - Design
+      - [Airflow asset naming](../../doc/design/airflow-asset-naming.md)
       - [Architecture](../../doc/design/architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](../../doc/design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](../../doc/design/event-based-orchestration-plan.md)
-      - [Kafka topic naming](../../doc/design/kafka-topic-naming.md)
       - [Meta data design](../../doc/design/meta-data-design.md)
     - Image
     - Implementation
@@ -160,6 +158,7 @@ Implementation checklist: [Implementation plan](../../doc/implementation/impleme
   - [Getting started](../../getting-started.md)
   - [Lessons learned](../../lessons-learned-part1.md)
   - [Lessons learned (part 2)](../../lessons-learned-part2.md)
+  - [Lessons learned (part 3)](../../lessons-learned-part3.md)
 - Related repositories
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026) — Course and learning materials
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns) — Design pattern catalogue

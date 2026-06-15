@@ -55,4 +55,9 @@
       "dataType": "double"
     }
   ],
+  "refreshContract": {
+    "triggerMode": "time",
+    "timeTrigger": { "schedule": "@hourly" },
+    "refreshScope": "all"
+  }
 }

@@ -28,7 +28,7 @@ A **staging layer** for daily mean temperature across the Netherlands.
 | Metadata | [DSA](https://github.com/data-solution-automation-engine/data-warehouse-automation-metadata-schema) connections, data objects, and mappings |
 | Extraction | GenAI-generated Python poller and extractor (`code/extractor_and_poller/`) |
 | Runtime metadata | PostgreSQL table `poller` (markers and poll history) |
-| Orchestration | Apache Airflow and Apache Kafka (`code/` DAGs; hosted on local NAS for this PoC) |
+| Orchestration | Apache Airflow with native Assets (`code/` DAGs; hosted on local NAS for this PoC) |
 
 ## 📈 Progress
 
@@ -36,14 +36,14 @@ A **staging layer** for daily mean temperature across the Netherlands.
 
 **Done**
 
-- Infrastructure on the local server: Airflow and Kafka deployed and tuned via GenAI over SSH.
+- Infrastructure on the local server: Airflow deployed and tuned via GenAI over SSH (Kafka removed — see [lessons learned part 3](lessons-learned-part3.md)).
 - Design patterns created and modified to specify intent. See [design patterns changed](#design-patterns-changed).
 - After discovering that the KNMI API was actually quite old and not providing any recent data updates, we switched to a new public data API, which was relatively easy because of the new way of working.
 - Open-Meteo extractor and poller implemented.
 
 **Next**
 
-- Event-based orchestration for source-to-staging: poller publishes change events on Kafka; Airflow reacts and triggers extract (see [event-based orchestration plan](doc/design/event-based-orchestration-plan.md)).
+- Event-based orchestration for source-to-staging: poller emits change assets; Airflow triggers extract (see [event-based orchestration plan](doc/design/event-based-orchestration-plan.md)).
 
 **Lessons so far** ([full notes](lessons-learned-part1.md)).
 
@@ -53,11 +53,11 @@ A **staging layer** for daily mean temperature across the Netherlands.
 |-------|----------|
 | Run locally | [Getting started](getting-started.md) |
 | Generated runtime (DAGs) | [code/](code/readme.md) |
-| Docker (Airflow, Kafka) | [Infrastructure](infra/readme.md) |
+| Docker (Airflow) | [Infrastructure](infra/readme.md) |
 | Architecture and flow | [Architecture](doc/design/architecture.md) |
 | DSA layout in Git | [Meta data design](doc/design/meta-data-design.md) |
 | Event orchestration | [Event-based orchestration plan](doc/design/event-based-orchestration-plan.md) |
-| Kafka topics | [Kafka topic naming](doc/design/kafka-topic-naming.md) |
+| Airflow assets | [Airflow asset naming](doc/design/airflow-asset-naming.md) |
 | Implementation checklist | [Implementation plan](doc/implementation-plan.md) |
 | Observations | [Lessons learned](lessons-learned-part1.md) |
 | LinkedIn (lessons learned) | [LinkedIn post (part 3)](docs/linkedin-post-part3.md) |
@@ -88,7 +88,8 @@ Since the [May 19 LinkedIn post](https://github.com/basvdberg/data-engineering-2
 | Pattern | Summary |
 |--------|---------|
 | [Data solution](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/data-solution.md) | Linked to new data-engineering patterns and PoC vocabulary. |
-| [Event-based orchestration](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/event-based-orchestration.md) | Aligned with poller events, extractor tasks, and Kafka/Airflow flow used here. |
+| [Data object scheduling](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/data-object-scheduling.md) | `refreshContract` on source and staging data objects. |
+| [Event-based orchestration](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/event-based-orchestration.md) | Aligned with poller events, extractor tasks, and Airflow asset flow used here. |
 | [Historic bitemporal table](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/historic-bitemporal-table.md) | Cross-links and structure refresh alongside the catalogue. |
 
 ## Project structure
@@ -126,10 +127,10 @@ Since the [May 19 LinkedIn post](https://github.com/basvdberg/data-engineering-2
   - Doc
     - Data Object Mapping
     - Design
+      - [Airflow asset naming](doc/design/airflow-asset-naming.md)
       - [Architecture](doc/design/architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](doc/design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](doc/design/event-based-orchestration-plan.md)
-      - [Kafka topic naming](doc/design/kafka-topic-naming.md)
       - [Meta data design](doc/design/meta-data-design.md)
     - Image
     - Implementation
@@ -183,6 +184,7 @@ Since the [May 19 LinkedIn post](https://github.com/basvdberg/data-engineering-2
   - [Getting started](getting-started.md)
   - [Lessons learned](lessons-learned-part1.md)
   - [Lessons learned (part 2)](lessons-learned-part2.md)
+  - [Lessons learned (part 3)](lessons-learned-part3.md)
 - Related repositories
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026) — Course and learning materials
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns) — Design pattern catalogue

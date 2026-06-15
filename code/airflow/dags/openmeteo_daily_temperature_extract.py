@@ -1,4 +1,4 @@
-"""Open-Meteo extract — triggered by Kafka data_object_change via Airflow Asset Watcher."""
+"""Open-Meteo extract — triggered by source change Airflow Asset."""
 
 from __future__ import annotations
 
@@ -7,46 +7,37 @@ import os
 from datetime import datetime, timedelta
 
 from airflow.exceptions import AirflowException
-from airflow.providers.common.messaging.triggers.msg_queue import MessageQueueTrigger
 from airflow.providers.standard.operators.python import PythonOperator
-from airflow.sdk import Asset, AssetWatcher, DAG
+from airflow.sdk import DAG
 
-from include.kafka_topics import POLL_TOPIC_CHANGE
+from include.asset_conf import extract_conf_from_asset_extra
+from include.data_object_assets import change_asset
 
 DAG_ID = "openmeteo_daily_temperature_extract"
 DEFAULT_MAPPING = "daily-temperature"
-KAFKA_HOST = os.getenv("KAFKA_HOST", "kafka:9092")
-KAFKA_QUEUE = f"kafka://{KAFKA_HOST}/{POLL_TOPIC_CHANGE}"
+DEFAULT_DATA_OBJECT_ID = "source/openmeteo/daily-temperature"
 
 log = logging.getLogger(__name__)
-
-poll_change_asset = Asset(
-    "ds_poll_data_object_change",
-    watchers=[
-        AssetWatcher(
-            name="poll_change_watcher",
-            trigger=MessageQueueTrigger(
-                queue=KAFKA_QUEUE,
-                apply_function="include.kafka_handlers.poll_change_apply_function",
-            ),
-        )
-    ],
-)
+source_change_asset = change_asset(DEFAULT_DATA_OBJECT_ID)
 
 
 def _extract_conf_from_context(context: dict) -> dict:
-    """Build extractor conf from manual trigger conf or asset watcher events."""
+    """Build extractor conf from manual trigger conf or asset event extra."""
     dag_run = context.get("dag_run")
     conf: dict = dict((dag_run.conf or {}) if dag_run else {})
 
     triggering = context.get("triggering_asset_events") or {}
-    asset_events = triggering.get(poll_change_asset) or []
+    asset_events = triggering.get(source_change_asset) or []
     if asset_events:
-        event_payload = asset_events[-1]
-        if isinstance(event_payload, dict):
-            conf = {**conf, **event_payload}
+        latest = asset_events[-1]
+        extra = getattr(latest, "extra", None)
+        if extra is None and isinstance(latest, dict):
+            extra = latest.get("extra")
+        asset_conf = extract_conf_from_asset_extra(extra)
+        if asset_conf:
+            conf = {**conf, **asset_conf}
         else:
-            log.warning("Unexpected asset event payload type: %s", type(event_payload))
+            log.warning("Asset-triggered run but extra did not yield extract conf: %s", extra)
 
     return conf
 
@@ -91,11 +82,10 @@ with DAG(
     dag_id=DAG_ID,
     description=(
         "Extract Open-Meteo daily-temperature into Postgres staging "
-        "(staging.openmeteo_daily_temperature). Triggered by Kafka data_object_change "
-        "events via native Airflow Asset Watcher."
+        "(staging.openmeteo_daily_temperature). Triggered by source change Airflow Asset."
     ),
     default_args=default_args,
-    schedule=[poll_change_asset],
+    schedule=[source_change_asset],
     start_date=datetime(2026, 6, 1),
     catchup=False,
     max_active_runs=3,

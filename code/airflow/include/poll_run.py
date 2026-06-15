@@ -6,9 +6,8 @@ import logging
 
 from extractor_and_poller.common import config as cfg_module
 from extractor_and_poller.poller import change_probe
-from extractor_and_poller.poller.events import kafka_event_payload, kafka_message_value
-from extractor_and_poller.poller.kafka_topic import kafka_topic_for_event
 from extractor_and_poller.poller.state import PostgresStateStore, default_postgres_dsn
+from include.asset_conf import mapping_for_data_object
 
 log = logging.getLogger(__name__)
 
@@ -19,7 +18,7 @@ def probe_and_persist(
     data_object_id: str,
     postgres_dsn: str | None = None,
 ) -> dict[str, str]:
-    """Probe one data object, persist to Postgres, return Kafka publish metadata."""
+    """Probe one data object, persist to Postgres, return probe metadata for downstream tasks."""
     postgres_dsn = postgres_dsn or default_postgres_dsn()
     config = cfg_module.load(config_path)
     mappings = [
@@ -57,11 +56,11 @@ def probe_and_persist(
     if result is None:
         raise RuntimeError("Poller probe completed but no rows were persisted to Postgres")
 
+    mapping_id = mapping_for_data_object(config_path, data_object_id) or ""
     return {
-        "topic": kafka_topic_for_event(result.event_type),
         "data_object_id": result.data_object_id,
-        "envelope_json": kafka_message_value(result),
         "event_type": result.event_type,
         "event_id": result.event_id,
         "new_marker": result.current_marker,
+        "mapping_id": mapping_id,
     }

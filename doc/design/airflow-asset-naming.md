@@ -1,108 +1,89 @@
-# Kafka topic naming
+# Airflow asset naming
 
 ## Table of contents
 
 <!-- markdown-toc:start -->
 - [Pattern](#pattern)
 - [Formatting rules](#formatting-rules)
-- [Poll events (implemented)](#poll-events-implemented)
-- [Extract events (planned)](#extract-events-planned)
-- [Load events (planned)](#load-events-planned)
-- [Ops events (planned)](#ops-events-planned)
-- [Invalid events (planned)](#invalid-events-planned)
-- [Message conventions](#message-conventions)
+- [Poll signals (implemented)](#poll-signals-implemented)
+- [Extract signals (planned)](#extract-signals-planned)
+- [Load signals (planned)](#load-signals-planned)
+- [Event extra conventions](#event-extra-conventions)
 - [Code reference](#code-reference)
 <!-- markdown-toc:end -->
 
 ## Pattern
 
-Topic names use three segments:
+Asset URIs use the solution scheme and the data object id:
 
 ```text
-{scope}.{category}.{event}
+ds://{data-object-id}/{signal}
 ```
 
 | Segment | Purpose | Example |
 |---------|---------|---------|
-| `scope` | Solution boundary on a shared broker | `ds` (data-solution-2026) |
-| `category` | Orchestration stage or concern | `poll`, `extract`, `load` |
-| `event` | Stable business signal; matches `event_type` in Postgres and stdout envelopes | `data_object_change` |
+| `ds` | Solution boundary (data-solution-2026) | `ds` |
+| `data-object-id` | Repo-relative data object id | `source/openmeteo/daily-temperature` |
+| `signal` | Stable orchestration signal | `change` |
 
-Do **not** embed source paths (`source/openmeteo/...`) in topic names. Use the message **key** (`data_object_id`) for per-object routing.
+This applies the [Simplicity](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/generic/simplicity.md) pattern: one orchestration runtime (Airflow) instead of a separate message broker.
 
 ## Formatting rules
 
-- Segments separated by `.` (Kafka-friendly grouping and ACL prefixes).
-- Event tokens use **snake_case** to match `event_type`, Postgres columns, and Python constants.
-- Category names are **singular nouns** (`poll`, not `polling`).
-- Environment (`prod`, `dev`) is omitted on the dedicated NAS broker; use a separate cluster or scope prefix when environments share Kafka.
+- Scheme is always `ds://` for this PoC.
+- Data object ids use forward slashes and match DSA metadata paths (no `data-object/` prefix).
+- Signal tokens use **lowercase** nouns (`change`, not `data_object_change` in the URI).
+- `event_type` in Postgres and poll envelopes remains **snake_case** (`data_object_change`, `data_object_progress`).
 
-## Poll events (implemented)
+## Poll signals (implemented)
 
 Signals from the data object poller. See [event-based orchestration plan](event-based-orchestration-plan.md).
 
-| Design pattern term | `event_type` | Kafka topic | Triggers downstream? |
-|---------------------|--------------|-------------|----------------------|
-| Data object change | `data_object_change` | `ds.poll.data_object_change` | Yes → extract |
-| Data object progress | `data_object_progress` | `ds.poll.data_object_progress` | No (liveness / audit) |
+| Design pattern term | `event_type` | Airflow Asset URI | Triggers downstream? |
+|---------------------|--------------|-------------------|----------------------|
+| Data object change | `data_object_change` | `ds://source/openmeteo/daily-temperature/change` | Yes → extract DAG |
+| Data object progress | `data_object_progress` | *(none — Postgres audit only)* | No (liveness / audit) |
 
-`data_object_progress` replaces the earlier working name `data_object_unchanged` to align with the [event-based orchestration](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/event-based-orchestration.md) pattern vocabulary.
+On `data_object_change`, the poller DAG task `emit_change_asset` updates the asset with **extra** metadata for the extract DAG. On `data_object_progress`, only a `poller` table row is written.
 
-## Extract events (planned)
+## Extract signals (planned)
 
-Lifecycle events from the extract DAG after a change event.
+When staging publish completes, emit a **publish success** asset for downstream dependency triggers:
 
-| Signal | Kafka topic |
-|--------|-------------|
-| Extract started | `ds.extract.start` |
-| Extract succeeded | `ds.extract.success` |
-| Extract failed | `ds.extract.failed` |
+| Signal | Asset URI (example) |
+|--------|---------------------|
+| Staging publish success | `ds://staging/openmeteo/daily-temperature/publish` |
 
-Partition key: target staging `data_object_id` (for example `staging/openmeteo/daily-temperature`).
+## Load signals (planned)
 
-## Load events (planned)
+When Parquet lands and ADL load runs into the 100 Landing Area:
 
-When Parquet lands and ADL load runs into the 100 Landing Area.
+| Signal | Asset URI (example) |
+|--------|---------------------|
+| Load succeeded | `ds://staging/openmeteo/daily-temperature/load` |
 
-| Signal | Kafka topic |
-|--------|-------------|
-| Load requested | `ds.load.request` |
-| Load succeeded | `ds.load.success` |
-| Load failed | `ds.load.failed` |
+## Event extra conventions
 
-## Ops events (planned)
+Asset event **extra** carries per-run orchestration conf (JSON-serializable):
 
-Cross-cutting control-plane signals.
+| Field | Purpose |
+|-------|---------|
+| `data_object_id` | Source object that changed |
+| `event_type` | `data_object_change` |
+| `marker` | New change marker (`new_marker` in Postgres) |
+| `event_id` | Idempotency key for extract |
+| `mapping_id` | Mapping CLI slug (for example `daily-temperature`) |
 
-| Signal | Kafka topic |
-|--------|-------------|
-| Controller enqueued task | `ds.ops.task_queued` |
-| Idempotent skip (replay) | `ds.ops.task_skipped` |
-| Health heartbeat | `ds.ops.heartbeat` |
-
-## Invalid events (planned)
-
-Schema violations and poison messages (quarantine and dead-letter).
-
-| Signal | Kafka topic |
-|--------|-------------|
-| Contract violation | `ds.invalid.quarantine` |
-| Exhausted retries | `ds.invalid.dead_letter` |
-
-Route by `source_topic` and `event_id` in the payload rather than multiplying DLQ topic names per upstream category.
-
-## Message conventions
-
-| Concern | Convention |
-|---------|------------|
-| **Key** | `data_object_id` |
-| **Value (poll)** | JSON envelope: `data_object_id`, `event_type`, `event_time_utc`, `old_marker`, `new_marker`; Postgres `poller` also stores `event_id` and `run_id` |
-| **Retention** | Shorter for `ds.poll.data_object_progress`; longer for change and extract topics (replay) |
-| **ACL / subscribe** | Consumers use category prefix (`ds.poll.*`, `ds.extract.*`) |
+Postgres table `poller` stores the same markers plus `event_id` and `run_id`; query `poller_latest_first` for newest rows first.
 
 ## Code reference
 
-Poll topic mapping lives in [`code/extractor_and_poller/poller/kafka_topic.py`](../../code/extractor_and_poller/poller/kafka_topic.py) (poller CLI) and [`code/airflow/include/kafka_topics.py`](../../code/airflow/include/kafka_topics.py) (Airflow DAGs). The poller DAG `ProduceToTopicOperator` resolves `event_type` → topic via `kafka_topic_for_event()`.
+| Module | Purpose |
+|--------|---------|
+| [`code/airflow/include/data_object_asset_uris.py`](../../code/airflow/include/data_object_asset_uris.py) | `change_asset_uri()` — URI without Airflow import |
+| [`code/airflow/include/data_object_assets.py`](../../code/airflow/include/data_object_assets.py) | `change_asset()` — Airflow `Asset` builder |
+| [`code/airflow/include/asset_conf.py`](../../code/airflow/include/asset_conf.py) | `extract_conf_from_asset_extra()` — consumer conf |
+| [`code/extractor_and_poller/poller/poll_events.py`](../../code/extractor_and_poller/poller/poll_events.py) | `event_type` constants |
 
 ## Project structure
 
@@ -139,10 +120,10 @@ Poll topic mapping lives in [`code/extractor_and_poller/poller/kafka_topic.py`](
   - Doc
     - Data Object Mapping
     - Design
+      - [Airflow asset naming](airflow-asset-naming.md)
       - [Architecture](architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](ci-cd.md)
       - [Event-based orchestration plan (single data object)](event-based-orchestration-plan.md)
-      - [Kafka topic naming](kafka-topic-naming.md)
       - [Meta data design](meta-data-design.md)
     - Image
     - Implementation
@@ -196,6 +177,7 @@ Poll topic mapping lives in [`code/extractor_and_poller/poller/kafka_topic.py`](
   - [Getting started](../../getting-started.md)
   - [Lessons learned](../../lessons-learned-part1.md)
   - [Lessons learned (part 2)](../../lessons-learned-part2.md)
+  - [Lessons learned (part 3)](../../lessons-learned-part3.md)
 - Related repositories
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026) — Course and learning materials
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns) — Design pattern catalogue

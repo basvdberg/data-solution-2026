@@ -1,8 +1,7 @@
-"""Tests for native Airflow Kafka handlers."""
+"""Tests for extract conf from Airflow asset event extra."""
 
 from __future__ import annotations
 
-import json
 import sys
 import unittest
 from pathlib import Path
@@ -12,30 +11,20 @@ AIRFLOW_INCLUDE = Path(__file__).resolve().parents[2] / "airflow"
 if str(AIRFLOW_INCLUDE) not in sys.path:
     sys.path.insert(0, str(AIRFLOW_INCLUDE))
 
-from include.kafka_handlers import mapping_for_data_object, poll_change_apply_function
+from include.asset_conf import extract_conf_from_asset_extra, mapping_for_data_object
 
 
-class TestPollChangeApplyFunction(unittest.TestCase):
-    def test_accepts_change_event(self) -> None:
-        payload = {
+class TestExtractConfFromAssetExtra(unittest.TestCase):
+    def test_accepts_change_extra(self) -> None:
+        extra = {
             "data_object_id": "source/openmeteo/daily-temperature",
             "event_type": "data_object_change",
-            "event_time_utc": "2026-05-26T00:00:00+00:00",
-            "old_marker": "2026-05-21",
-            "new_marker": "2026-05-26",
+            "marker": "2026-05-26",
             "event_id": "evt-1",
+            "mapping_id": "daily-temperature",
         }
-        message = MagicMock()
-        message.value.return_value = json.dumps(payload).encode("utf-8")
-
-        with patch(
-            "include.kafka_handlers.mapping_for_data_object",
-            return_value="daily-temperature",
-        ):
-            result = poll_change_apply_function(message)
-
         self.assertEqual(
-            result,
+            extract_conf_from_asset_extra(extra),
             {
                 "mapping_id": "daily-temperature",
                 "marker": "2026-05-26",
@@ -44,21 +33,31 @@ class TestPollChangeApplyFunction(unittest.TestCase):
             },
         )
 
-    def test_ignores_progress_event(self) -> None:
-        payload = {
+    def test_resolves_mapping_when_missing(self) -> None:
+        extra = {
+            "data_object_id": "source/openmeteo/daily-temperature",
+            "event_type": "data_object_change",
+            "marker": "2026-05-26",
+            "event_id": "evt-1",
+        }
+        with patch(
+            "include.asset_conf.mapping_for_data_object",
+            return_value="daily-temperature",
+        ):
+            result = extract_conf_from_asset_extra(extra)
+        self.assertEqual(result["mapping_id"], "daily-temperature")
+
+    def test_ignores_progress_extra(self) -> None:
+        extra = {
             "data_object_id": "source/openmeteo/daily-temperature",
             "event_type": "data_object_progress",
-            "event_time_utc": "2026-05-26T00:00:00+00:00",
-            "new_marker": "2026-05-26",
+            "marker": "2026-05-26",
         }
-        message = MagicMock()
-        message.value.return_value = json.dumps(payload).encode("utf-8")
-        self.assertIsNone(poll_change_apply_function(message))
+        self.assertIsNone(extract_conf_from_asset_extra(extra))
 
-    def test_rejects_invalid_json(self) -> None:
-        message = MagicMock()
-        message.value.return_value = b"not-json"
-        self.assertIsNone(poll_change_apply_function(message))
+    def test_rejects_empty_extra(self) -> None:
+        self.assertIsNone(extract_conf_from_asset_extra(None))
+        self.assertIsNone(extract_conf_from_asset_extra({}))
 
 
 class TestMappingForDataObject(unittest.TestCase):

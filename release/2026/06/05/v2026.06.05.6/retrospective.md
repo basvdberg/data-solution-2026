@@ -146,10 +146,10 @@ Prior incidents (INC-001–003) are from the 2026-06-03 infra PoC.
   - Doc
     - Data Object Mapping
     - Design
+      - [Airflow asset naming](../../../../../doc/design/airflow-asset-naming.md)
       - [Architecture](../../../../../doc/design/architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](../../../../../doc/design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](../../../../../doc/design/event-based-orchestration-plan.md)
-      - [Kafka topic naming](../../../../../doc/design/kafka-topic-naming.md)
       - [Meta data design](../../../../../doc/design/meta-data-design.md)
     - Image
     - Implementation
@@ -203,6 +203,7 @@ Prior incidents (INC-001–003) are from the 2026-06-03 infra PoC.
   - [Getting started](../../../../../getting-started.md)
   - [Lessons learned](../../../../../lessons-learned-part1.md)
   - [Lessons learned (part 2)](../../../../../lessons-learned-part2.md)
+  - [Lessons learned (part 3)](../../../../../lessons-learned-part3.md)
 - Related repositories
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026) — Course and learning materials
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns) — Design pattern catalogue

@@ -8,33 +8,15 @@
 ﻿## Table of contents
 
 
-﻿## Table of contents
-
-
-﻿## Table of contents
-
-
-﻿## Table of contents
-
-
-﻿## Table of contents
-
-
-﻿## Table of contents
-
-
-﻿## Table of contents
-
-
-﻿# Release v2026.06.12.1 - Details
+# Release v2026.06.12.1 - Details
 
 ## Release metadata
 
 - Version: `v2026.06.12.1`
 - Development start: `2026-06-12T15:11:25+02:00`
-- Development end: `2026-06-12T15:15:28+02:00`
+- Development end: `2026-06-15T16:16:06+02:00`
 - Release branch: `main`
-- Release commit: `ed0868844e0933148945044c77bd853c25b6c816`
+- Release commit: `aa53a07b95481efcb9b73d20d9c872844cf35371`
 
 ## Sequential summary of applied changes
 
@@ -75,10 +57,10 @@
   - Doc
     - Data Object Mapping
     - Design
+      - [Airflow asset naming](../../../../../doc/design/airflow-asset-naming.md)
       - [Architecture](../../../../../doc/design/architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](../../../../../doc/design/ci-cd.md)
       - [Event-based orchestration plan (single data object)](../../../../../doc/design/event-based-orchestration-plan.md)
-      - [Kafka topic naming](../../../../../doc/design/kafka-topic-naming.md)
       - [Meta data design](../../../../../doc/design/meta-data-design.md)
     - Image
     - Implementation
@@ -132,6 +114,7 @@
   - [Getting started](../../../../../getting-started.md)
   - [Lessons learned](../../../../../lessons-learned-part1.md)
   - [Lessons learned (part 2)](../../../../../lessons-learned-part2.md)
+  - [Lessons learned (part 3)](../../../../../lessons-learned-part3.md)
 - Related repositories
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026) — Course and learning materials
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns) — Design pattern catalogue

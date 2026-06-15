@@ -21,7 +21,8 @@ This documentation is founded on design patterns that are documented here [Data 
 
 - [Data solution](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/data-solution.md) — `connection/`, `data-object/`, and `data-object-mapping/` layout under the solution root.
 - [Separate what and how](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/generic/separate-what-and-how.md) — path-based JSON in Git specifies *what*; extractors, pollers, and ADL specify *how*.
-- [Data object](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/data-object.md) — connections, data objects, and data items as separate artifacts.
+- [Data object poller](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/data-object-poller.md) — watches configured objects on a schedule, detects marker changes.
+- [Data object scheduling](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/data-object-scheduling.md) — `refreshContract` on each data object for time and dependency triggers.
 - [Data object tree](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/data-object-tree.md) — data item IDs as `{data-object-id}/{item-name}`.
 
 ## Purpose
@@ -100,6 +101,42 @@ One file per dataset. References a connection by path. Lists **data items** when
 ```
 
 Use `dataConnectionId` when the connection is shared. Inline `dataConnection` is allowed only when it is truly private to that object.
+
+Optional **`refreshContract`** declares when refresh work is due ([Data object scheduling](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/data-engineering/data-object-scheduling.md)). One contract per data object.
+
+| Field | Purpose |
+|-------|---------|
+| `triggerMode` | `time`, `dependency`, or combined modes per the pattern |
+| `timeTrigger.schedule` | Cron or preset (for example `@hourly`) for poller or batch refresh |
+| `dependencyTriggers` | Upstream data object id and signal (`change_detected`, `publish_success`) |
+| `refreshScope` | `all`, `subset`, or `partition` — PoC uses `all` |
+
+Source object (poller cadence):
+
+```json
+"refreshContract": {
+  "triggerMode": "time",
+  "timeTrigger": { "schedule": "@hourly" },
+  "refreshScope": "all"
+}
+```
+
+Staging object (extract on upstream change):
+
+```json
+"refreshContract": {
+  "triggerMode": "dependency",
+  "dependencyTriggers": [
+    {
+      "upstreamDataObjectId": "source/openmeteo/daily-temperature",
+      "signal": "change_detected"
+    }
+  ],
+  "refreshScope": "all"
+}
+```
+
+DAG schedules in `code/airflow/dags/` implement these contracts; metadata is the declarative *what*.
 
 ### Data object mapping
 
@@ -183,10 +220,10 @@ The path IDs in the repo remain the stable names humans use in reviews and logs.
   - Doc
     - Data Object Mapping
     - Design
+      - [Airflow asset naming](airflow-asset-naming.md)
       - [Architecture](architecture.md)
       - [CI/CD workflow (main only + server pull deploy)](ci-cd.md)
       - [Event-based orchestration plan (single data object)](event-based-orchestration-plan.md)
-      - [Kafka topic naming](kafka-topic-naming.md)
       - [Meta data design](meta-data-design.md)
     - Image
     - Implementation
@@ -240,6 +277,7 @@ The path IDs in the repo remain the stable names humans use in reviews and logs.
   - [Getting started](../../getting-started.md)
   - [Lessons learned](../../lessons-learned-part1.md)
   - [Lessons learned (part 2)](../../lessons-learned-part2.md)
+  - [Lessons learned (part 3)](../../lessons-learned-part3.md)
 - Related repositories
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026) — Course and learning materials
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns) — Design pattern catalogue

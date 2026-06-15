@@ -56,5 +56,15 @@
     }
   ],
   "classifications": [
-  ]
+  ],
+  "refreshContract": {
+    "triggerMode": "dependency",
+    "dependencyTriggers": [
+      {
+        "upstreamDataObjectId": "source/openmeteo/daily-temperature",
+        "signal": "change_detected"
+      }
+    ],
+    "refreshScope": "all"
+  }
 }
