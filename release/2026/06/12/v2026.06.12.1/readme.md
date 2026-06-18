@@ -17,15 +17,18 @@
 ﻿## Table of contents
 
 
+﻿## Table of contents
+
+
 # Release v2026.06.12.1 - Details
 
 ## Release metadata
 
 - Version: `v2026.06.12.1`
 - Development start: `2026-06-12T15:11:25+02:00`
-- Development end: `2026-06-15T16:18:10+02:00`
+- Development end: `2026-06-15T16:18:39+02:00`
 - Release branch: `main`
-- Release commit: `ff6a130b1fcc218aceca43c49c697ba80da8b49f`
+- Release commit: `60ac06675ad6c681f3948bbfcf642fb086613c70`
 
 ## Sequential summary of applied changes
 
@@ -120,6 +123,7 @@
             - [Release v2026.06.12.1](notes.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
+  - Schema
   - [Getting started](../../../../../getting-started.md)
   - [Lessons learned](../../../../../lessons-learned-part1.md)
   - [Lessons learned (part 2)](../../../../../lessons-learned-part2.md)

@@ -174,6 +174,7 @@ Postgres table `poller` stores the same markers plus `event_id` and `run_id`; qu
             - [Release v2026.06.12.1](../../release/2026/06/12/v2026.06.12.1/notes.md)
     - [Release <version>](../../release/release-notes-template.md)
     - [Retrospective — <version>](../../release/retrospective-template.md)
+  - Schema
   - [Getting started](../../getting-started.md)
   - [Lessons learned](../../lessons-learned-part1.md)
   - [Lessons learned (part 2)](../../lessons-learned-part2.md)

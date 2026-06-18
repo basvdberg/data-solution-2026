@@ -9,6 +9,7 @@
   - [Sync script (recommended)](#sync-script-recommended)
   - [Manual compose (from repo paths)](#manual-compose-from-repo-paths)
 - [Airflow](#airflow)
+  - [Memory / concurrency](#memory-concurrency)
 - [Postgres](#postgres)
   - [UI shows Bad Gateway or Missing Meta Database / Scheduler / Triggerer](#ui-shows-bad-gateway-or-missing-meta-database-scheduler-triggerer)
   - [Non-interactive SSH: git fails with libcharset.so.1](#non-interactive-ssh-git-fails-with-libcharsetso1)
@@ -107,6 +108,30 @@ HTTPS UI: `${LOCAL_SERVER_URL_AIRFLOW}` (values in [local-server.env.example](lo
 - Install runtime deps via `_PIP_ADDITIONAL_REQUIREMENTS` in `.env` (includes `psycopg[binary]`).
 - `PYTHONUNBUFFERED=1` and `AIRFLOW__LOGGING__TASK_LOG_TO_STDOUT=true` in compose so task subprocess logs reach the UI without buffering delay.
 - Event-based orchestration uses **Airflow Assets** (no separate message broker); see [airflow-asset-naming.md](../doc/design/airflow-asset-naming.md).
+
+### Memory / concurrency
+
+Airflow 3 **standalone** uses **LocalExecutor**: the scheduler forks `airflow worker` subprocesses to run tasks. On Linux the default **`parallelism` is 32**, so up to 32 idle workers (~67 MB each) can sit in the process list even when no DAGs are running. That default targets multi-GB servers, not BasNAS (~1.8 GB RAM shared with Immich, Homebridge, and other containers).
+
+Compose overrides in [airflow/docker-compose.standalone.yaml](airflow/docker-compose.standalone.yaml):
+
+| Setting | Value | Purpose |
+|---------|-------|---------|
+| `AIRFLOW__CORE__PARALLELISM` | `2` | Cap LocalExecutor worker subprocess count |
+| `AIRFLOW__CORE__MAX_ACTIVE_TASKS_PER_DAG` | `2` | Align per-DAG concurrency with parallelism |
+| `AIRFLOW__DAG_PROCESSOR__PARSING_PROCESSES` | `1` | One DAG parser (only two DAG files) |
+
+Peak workload is low (poller `max_active_runs=1`, extract `max_active_runs=3`); extracts may queue briefly when more than two tasks overlap.
+
+**Verify after deploy:**
+
+```bash
+docker exec airflow-standalone ps aux | grep 'airflow worker'
+docker stats --no-stream airflow-standalone
+docker exec airflow-standalone airflow config get-value core parallelism
+```
+
+Expect **two** `airflow worker` lines when idle and `parallelism` = `2`. Airflow UI: **Admin → Configuration** → `core.parallelism`.
 
 ## Postgres
 
@@ -303,6 +328,7 @@ docker exec airflow-standalone cat '/opt/airflow/logs/dag_id=openmeteo_data_obje
             - [Release v2026.06.12.1](../release/2026/06/12/v2026.06.12.1/notes.md)
     - [Release <version>](../release/release-notes-template.md)
     - [Retrospective — <version>](../release/retrospective-template.md)
+  - Schema
   - [Getting started](../getting-started.md)
   - [Lessons learned](../lessons-learned-part1.md)
   - [Lessons learned (part 2)](../lessons-learned-part2.md)

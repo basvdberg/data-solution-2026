@@ -32,6 +32,13 @@ services:
       AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: "admin:admin"
       AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_PASSWORDS_FILE: "/opt/airflow/config/simple_auth_manager_passwords.json"
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      # BasNAS has ~1.8GB RAM; default parallelism=32 spawns ~32 idle LocalExecutor workers.
+      AIRFLOW__CORE__PARALLELISM: "2"
+      AIRFLOW__CORE__MAX_ACTIVE_TASKS_PER_DAG: "2"
+      AIRFLOW__DAG_PROCESSOR__PARSING_PROCESSES: "1"
+      # QNAP cold dag-processor subprocesses can exceed defaults under memory pressure.
+      AIRFLOW__CORE__DAGBAG_IMPORT_TIMEOUT: "120"
+      AIRFLOW__DAG_PROCESSOR__DAG_FILE_PROCESSOR_TIMEOUT: "180"
       # Docker/QNAP often yields empty getfqdn(); without a hostname the UI builds http://:8793/log/...
       AIRFLOW__CORE__HOSTNAME_CALLABLE: airflow.utils.net.get_host_ip_address
       AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "true"

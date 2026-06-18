@@ -8,7 +8,7 @@ _No sections yet._
 
 Kafka was removed from the data-solution-2026 orchestration stack in favour of **Airflow native Assets** (see [airflow-asset-naming.md](../../doc/design/airflow-asset-naming.md) and [lessons-learned-part3.md](../../lessons-learned-part3.md)).
 
-Do not start this stack for the current PoC. The folder is kept only for historical reference until the NAS `~/kafka` deployment is cleaned up manually.
+Do not start this stack for the current PoC. The folder is kept only for historical reference. Kafka containers were removed from BasNAS on 2026-06-16.
 
 ## Project structure
 
@@ -99,6 +99,7 @@ Do not start this stack for the current PoC. The folder is kept only for histori
             - [Release v2026.06.12.1](../../release/2026/06/12/v2026.06.12.1/notes.md)
     - [Release <version>](../../release/release-notes-template.md)
     - [Retrospective — <version>](../../release/retrospective-template.md)
+  - Schema
   - [Getting started](../../getting-started.md)
   - [Lessons learned](../../lessons-learned-part1.md)
   - [Lessons learned (part 2)](../../lessons-learned-part2.md)

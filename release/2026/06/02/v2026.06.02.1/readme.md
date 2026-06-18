@@ -129,6 +129,7 @@
             - [Release v2026.06.12.1](../../12/v2026.06.12.1/notes.md)
     - [Release <version>](../../../../release-notes-template.md)
     - [Retrospective — <version>](../../../../retrospective-template.md)
+  - Schema
   - [Getting started](../../../../../getting-started.md)
   - [Lessons learned](../../../../../lessons-learned-part1.md)
   - [Lessons learned (part 2)](../../../../../lessons-learned-part2.md)
