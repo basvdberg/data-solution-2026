@@ -19,7 +19,7 @@ Python files under [dags/](dags/) are loaded by the Airflow scheduler from `/opt
 | DAG id | Schedule | Role |
 |--------|----------|------|
 | `openmeteo_data_object_poller` | `@hourly` | Probe marker, persist Postgres, emit change asset |
-| `openmeteo_daily_temperature_extract` | Asset `ds://source/openmeteo/daily-temperature/change` | Extract on `data_object_change` |
+| `openmeteo_daily_temperature_extract` | Asset `ds://source/openmeteo/daily-temperature/change` | Extract on `data_object_change`; emit staging asset on success |
 
 ## Configuration
 
@@ -36,10 +36,10 @@ Optional Airflow Variable:
 | Property | Value |
 |----------|--------|
 | File | `dags/openmeteo_data_object_poller.py` |
-| Tasks | `probe_and_persist` → `branch_on_event_type` → `emit_change_asset` or `record_progress` |
-| Asset emit | `emit_change_asset` with `outlets=[source_change_asset]` |
+| Tasks | `probe_api_and_write_postgres` → `check_data_changed` → `emit_airflow_data_change_event` or `complete_unchanged_run` → `poll_run_summary` |
+| Asset emit | `emit_airflow_data_change_event` with `outlets=[source_change_asset]` |
 
-Task `probe_and_persist` calls [`include/poll_run.py`](include/poll_run.py) (probe + Postgres). On `data_object_change`, `emit_change_asset` updates the source change asset with extract conf in event extra.
+Task `probe_api_and_write_postgres` calls [`include/poll_run.py`](include/poll_run.py) (Open-Meteo API probe + Postgres). On `data_object_change`, `emit_airflow_data_change_event` updates the source change asset with extract conf in event extra. Task `poll_run_summary` logs a human-readable outcome and sets a short DAG run note.
 
 ## Extract DAG
 
@@ -47,9 +47,11 @@ Task `probe_and_persist` calls [`include/poll_run.py`](include/poll_run.py) (pro
 |----------|--------|
 | File | `dags/openmeteo_daily_temperature_extract.py` |
 | Trigger | `schedule=[source_change_asset]` |
+| Tasks | `extract_openmeteo_daily_temperature` → `emit_staging_data_change_event` |
+| Staging asset | `ds://staging/openmeteo/daily-temperature/change` on successful extract |
 | Retries | 5 with exponential backoff (2–30 min) |
 
-The extract task reads `triggering_asset_events` for `{mapping_id, marker, event_id}` and calls the extractor CLI. Manual triggers with DAG conf still work for replay.
+The extract task reads `triggering_asset_events` for `{mapping_id, marker, event_id}` and runs the extractor. On success, `emit_staging_data_change_event` updates the staging change asset. On failure, Postgres records `processing_error` and the extract task fails (no staging asset emit). Manual triggers with DAG conf still work for replay.
 
 ## Asset helpers
 
@@ -101,10 +103,12 @@ Implementation checklist: [Implementation plan](../../doc/implementation/impleme
   - Doc
     - Data Object Mapping
     - Design
+      - Cicd
+        - [CI/CD workflow (main only + server pull deploy)](../../doc/design/cicd/ci-cd.md)
+      - Monitoring
+        - [Monitoring architecture](../../doc/design/monitoring/monitoring-architecture.md)
       - [Airflow asset naming](../../doc/design/airflow-asset-naming.md)
-      - [Architecture](../../doc/design/architecture.md)
-      - [CI/CD workflow (main only + server pull deploy)](../../doc/design/ci-cd.md)
-      - [Event-based orchestration plan (single data object)](../../doc/design/event-based-orchestration-plan.md)
+      - [Event-based orchestration plan](../../doc/design/event-based-orchestration-plan.md)
       - [Meta data design](../../doc/design/meta-data-design.md)
     - Image
     - Implementation
@@ -112,14 +116,16 @@ Implementation checklist: [Implementation plan](../../doc/implementation/impleme
     - Linked In
       - [Linkedin Post Part3V2](../../doc/linked-in/linkedin-post-part3v2.md)
     - Operation
-      - Incident
-        - [INC-001 — NAS non-interactive SSH environment](../../doc/operation/incident/inc-001-nas-ssh-environment.md)
-        - [INC-002 — Airflow standalone infra instability](../../doc/operation/incident/inc-002-airflow-infra-stability.md)
-        - [INC-003 — Agent rediscovery and false-done verification](../../doc/operation/incident/inc-003-agent-process-gaps.md)
-        - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](../../doc/operation/incident/inc-004-airflow-pythonpath-drift.md)
-        - [INC-<NNN> — <short title>](../../doc/operation/incident/incident-template.md)
       - [Event orchestration monitoring](../../doc/operation/event-orchestration-monitoring.md)
-      - [Issue categories](../../doc/operation/issue-category.md)
+    - Retrospective
+      - Incident
+        - [INC-001 — NAS non-interactive SSH environment](../../doc/retrospective/incident/inc-001-nas-ssh-environment.md)
+        - [INC-002 — Airflow standalone infra instability](../../doc/retrospective/incident/inc-002-airflow-infra-stability.md)
+        - [INC-003 — Agent rediscovery and false-done verification](../../doc/retrospective/incident/inc-003-agent-process-gaps.md)
+        - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](../../doc/retrospective/incident/inc-004-airflow-pythonpath-drift.md)
+        - [INC-<NNN> — <short title>](../../doc/retrospective/incident/incident-template.md)
+      - [Issue categories](../../doc/retrospective/issue-category.md)
+    - [Implementation plan](../../doc/implementation-plan.md)
   - Infra
     - Airflow
       - Dags

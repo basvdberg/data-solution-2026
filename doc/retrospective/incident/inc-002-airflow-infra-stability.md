@@ -1,4 +1,4 @@
-# INC-<NNN> — <short title>
+# INC-002 — Airflow standalone infra instability
 
 ## Table of contents
 
@@ -17,61 +17,72 @@
 
 ## Summary
 
-One paragraph: what happened, when, and user-visible impact.
+Initial Airflow PoC on the NAS required multiple fix cycles: incomplete first install, admin password regeneration on recreate, UI errors after reboot, Bad Gateway during startup, and task log URLs without hostname.
 
 ## Metadata
 
 | Field | Value |
 |-------|-------|
-| **ID** | INC-<NNN> |
-| **When** | <ISO-8601 or date range> |
-| **Category** | <primary category from issue-category.md> |
-| **Severity** | blocker / degraded / annoyance |
-| **Release(s)** | <version or pre-release> |
-| **Related ERR** | ERR-<NNN>, … |
-| **Status** | open / resolved / codified |
+| **ID** | INC-002 |
+| **When** | 2026-06-03 |
+| **Category** | orchestration |
+| **Severity** | blocker |
+| **Release(s)** | pre-release (infra PoC) |
+| **Related ERR** | ERR-003, ERR-004, ERR-005, ERR-006, ERR-008 |
+| **Status** | resolved |
 
 ## Impact
 
-- Who/what was affected
-- Duration or blast radius
-- Whether release validation failed
+- Airflow UI unusable or misleading after deploy, recreate, or host reboot
+- Task logs showed invalid URLs (`http://:8793/`)
+- Operators could not log in after container recreate until password re-documented
 
 ## Timeline
 
 | Time | Event |
 |------|-------|
-| | First symptom |
-| | Mitigation applied |
-| | Resolved |
+| 2026-06-03 | First install missing metadata DB and logging pieces |
+| 2026-06-03 | Admin password changed on almost every recreate |
+| 2026-06-03 | UI errors after reboot; log links stale IPs/ports |
+| 2026-06-03 | 502 Bad Gateway / missing scheduler during startup window |
+| 2026-06-03 | Task log hostname empty (`getfqdn` in Docker on QNAP) |
+| 2026-06-03 | Pinned compose: hostname, network, HOSTNAME_CALLABLE, AIRFLOW_ADMIN_PASSWORD |
 
 ## Root cause
 
-Why it happened (not only the fix command).
+Stack was partially invented on NAS instead of deployed from versioned compose. Identity (hostname, ports, password) was not pinned. Startup race and NGINX network membership were not accounted for in validation.
 
 ## Detection gap
 
-Why existing tests, checklists, or monitoring did not catch this earlier.
+Single browser check treated as “done” without reboot or full down/up cycle. No health endpoint wait before declaring failure.
 
 ## Resolution
 
-What fixed it or contained it.
+- Use [infra/airflow/docker-compose.standalone.yaml](../../../infra/airflow/docker-compose.standalone.yaml) from repo
+- Pin `AIRFLOW_ADMIN_PASSWORD` in `.env`
+- Pin `hostname`, named network, `AIRFLOW__CORE__HOSTNAME_CALLABLE`, fixed `AIRFLOW_HOST_PORT`
+- Wait 3–5 min then `curl` health endpoint; ensure NGINX on `apache-airflow_default` network
+- Trigger **new** DAG run after hostname fix (old runs keep bad URLs in DB)
 
 ## Prevention
 
-Concrete behaviors for the next occurrence (agent and human).
+- Start from versioned compose; sync via `deploy-infra-on-nas.sh`
+- Never mark infra done without login verify after `compose up -d`
+- Mandatory reboot verification for infra changes
+- See [infra/readme.md](../../../infra/readme.md) Airflow troubleshooting
 
 ## Action items
 
 | # | Action | Type | Owner | Status |
 |---|--------|------|-------|--------|
-| 1 | | skill / rule / checklist / runbook / pattern | agent / user | pending |
+| 1 | Add reboot verification to release validation checklist | checklist | agent | codified |
+| 2 | Document Bad Gateway startup window in infra readme | runbook | agent | codified |
+| 3 | Pin hostname/password in compose and .env.example | infra | agent | codified |
 
 ## Related artifacts
 
-- Release notes: `release/notes/<version>.md`
-- Retrospective: `release/retrospective/<version>.md`
-- Troubleshooting: `.cursor/troubleshooting-errors.md`
+- Troubleshooting: [ERR-003–006, ERR-008](../../../.cursor/troubleshooting-errors.md)
+- Retrospective: [v2026.06.03.4](../../release/retrospective/v2026.06.03.4.md)
 
 ## Project structure
 
@@ -108,10 +119,12 @@ Concrete behaviors for the next occurrence (agent and human).
   - Doc
     - Data Object Mapping
     - Design
+      - Cicd
+        - [CI/CD workflow (main only + server pull deploy)](../../design/cicd/ci-cd.md)
+      - Monitoring
+        - [Monitoring architecture](../../design/monitoring/monitoring-architecture.md)
       - [Airflow asset naming](../../design/airflow-asset-naming.md)
-      - [Architecture](../../design/architecture.md)
-      - [CI/CD workflow (main only + server pull deploy)](../../design/ci-cd.md)
-      - [Event-based orchestration plan (single data object)](../../design/event-based-orchestration-plan.md)
+      - [Event-based orchestration plan](../../design/event-based-orchestration-plan.md)
       - [Meta data design](../../design/meta-data-design.md)
     - Image
     - Implementation
@@ -119,14 +132,16 @@ Concrete behaviors for the next occurrence (agent and human).
     - Linked In
       - [Linkedin Post Part3V2](../../linked-in/linkedin-post-part3v2.md)
     - Operation
+      - [Event orchestration monitoring](../../operation/event-orchestration-monitoring.md)
+    - Retrospective
       - Incident
         - [INC-001 — NAS non-interactive SSH environment](inc-001-nas-ssh-environment.md)
         - [INC-002 — Airflow standalone infra instability](inc-002-airflow-infra-stability.md)
         - [INC-003 — Agent rediscovery and false-done verification](inc-003-agent-process-gaps.md)
         - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](inc-004-airflow-pythonpath-drift.md)
         - [INC-<NNN> — <short title>](incident-template.md)
-      - [Event orchestration monitoring](../event-orchestration-monitoring.md)
       - [Issue categories](../issue-category.md)
+    - [Implementation plan](../../implementation-plan.md)
   - Infra
     - Airflow
       - Dags

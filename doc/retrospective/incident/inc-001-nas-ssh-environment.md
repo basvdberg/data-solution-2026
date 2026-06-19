@@ -1,4 +1,4 @@
-# INC-003 — Agent rediscovery and false-done verification
+# INC-001 — NAS non-interactive SSH environment
 
 ## Table of contents
 
@@ -17,66 +17,70 @@
 
 ## Summary
 
-During infra troubleshooting the agent repeated environment discovery commands, invoked scripts from wrong working directories, and declared fixes complete without reboot verification — wasting time and leaving latent failures.
+Agent and automation sessions over SSH to the QNAP NAS failed or behaved inconsistently because non-interactive shells lack Container Station `docker` on PATH, QNAP `git` shared libraries, and executable bits on infra scripts after `git pull`.
 
 ## Metadata
 
 | Field | Value |
 |-------|-------|
-| **ID** | INC-003 |
+| **ID** | INC-001 |
 | **When** | 2026-06-03 |
-| **Category** | agent-efficiency (primary), process-verification |
+| **Category** | infra-environment |
 | **Severity** | degraded |
 | **Release(s)** | pre-release (infra PoC) |
-| **Related ERR** | ERR-002, ERR-011, ERR-012 |
-| **Status** | codified |
+| **Related ERR** | ERR-001, ERR-007, ERR-009, ERR-010 |
+| **Status** | resolved |
 
 ## Impact
 
-- Same `which`/`find` for docker run multiple times in one session
-- Local script invoked from monorepo root instead of cursor-config path
-- Airflow UI worked once then failed after reboot (false positive “done”)
+- `docker` and `git` commands failed over bare SSH (exit 127 / missing `.so`)
+- Setup scripts failed with permission denied or `sudo: command not found`
+- Brief SSH connection refused during `sshd` reload
 
 ## Timeline
 
 | Time | Event |
 |------|-------|
-| 2026-06-03 | Repeated docker discovery after ERR-001 already documented |
-| 2026-06-03 | `manage-bookmarks.cmd` not found (wrong cwd) |
-| 2026-06-03 | Infra marked done without reboot test; ERR-005 recurred |
+| 2026-06-03 | `docker ps` → command not found on SSH |
+| 2026-06-03 | `git pull` → libcharset.so.1 missing |
+| 2026-06-03 | `enable-nas-ssh-user-env.sh` permission/sudo issues |
+| 2026-06-03 | Transient SSH refused during PermitUserEnvironment enable |
+| 2026-06-03 | Resolved via `nas-remote-env.sh`, `setup-nas-ssh-env.sh`, `bash` invocation |
 
 ## Root cause
 
-No mandatory read of troubleshooting log before retry. No explicit infra verification checklist. Assumption that one successful UI check equals durable fix.
+QNAP non-interactive SSH uses a minimal environment. Container Station and optional QPKG paths are not on default PATH/LD_LIBRARY_PATH. Scripts assumed an interactive login shell.
 
 ## Detection gap
 
-Process rules existed only implicitly in chat, not in agent skills or release validation.
+No pre-flight check in agent workflow to source NAS env before first `docker`/`git` command. Deploy scripts were correct but ad-hoc agent SSH was not.
 
 ## Resolution
 
-- Introduced `.cursor/troubleshooting-errors.md` and `troubleshooting-error-log` skill
-- ERR-012 prevention: infra checklist includes reboot/full cycle
-- Log Count increment on repeat signatures
+- Run `bash infra/scripts/setup-nas-ssh-env.sh` once on NAS
+- Set `bas` login shell to `~/.local/bin/nas-login-sh` in `/etc/passwd` (`sudo sed`; QTS admin password) — survives QNAP reboot
+- Source `infra/scripts/nas-remote-env.sh` in deploy scripts (already in `deploy-on-nas.sh`)
+- Do **not** rely on manual `PermitUserEnvironment` in `/etc/config/ssh/sshd_config` (regenerated on reboot)
+- Running sshd as `bas` without sudo (`setsid /etc/init.d/login.sh restart`) can segfault
 
 ## Prevention
 
-- Read troubleshooting log before retrying known signatures
-- If `Count > 1`, stop and apply documented Solution
-- Infra checklist: health curl → HTTPS UI → **host reboot or full down/up** → UI + new DAG log
-- Verify script path with `Test-Path` / `Get-Command` before invoke
+- Use **basnas-ssh** Cursor skill: plain `ssh bas@basnas 'docker …'` after one-time setup
+- Do not default to `bash -lc` + `nas-path.sh` per command
+- Do not set global `LD_LIBRARY_PATH` in `~/.profile` (breaks QNAP bash)
+- See [infra/readme.md](../../../infra/readme.md) SSH troubleshooting sections
 
 ## Action items
 
 | # | Action | Type | Owner | Status |
 |---|--------|------|-------|--------|
-| 1 | troubleshooting-error-log skill with dedup and review | skill | agent | codified |
-| 2 | Add infra reboot item to release-notes-template Validation | checklist | agent | codified |
-| 3 | Issue inventory + per-release retrospective workflow | process | agent | codified |
+| 1 | **basnas-ssh** skill + deploy-basnas-container link | skill | agent | codified |
+| 2 | Source env in deploy-on-nas.sh | script | agent | codified |
+| 3 | `enable-nas-login-shell.sh` + fix `enable-nas-ssh-user-env.sh` for QNAP active config | script | agent | pending |
 
 ## Related artifacts
 
-- Troubleshooting: [ERR-002, ERR-011, ERR-012](../../../.cursor/troubleshooting-errors.md)
+- Troubleshooting: [ERR-001, ERR-007, ERR-009, ERR-010](../../../.cursor/troubleshooting-errors.md)
 - Retrospective: [v2026.06.03.4](../../release/retrospective/v2026.06.03.4.md)
 
 ## Project structure
@@ -114,10 +118,12 @@ Process rules existed only implicitly in chat, not in agent skills or release va
   - Doc
     - Data Object Mapping
     - Design
+      - Cicd
+        - [CI/CD workflow (main only + server pull deploy)](../../design/cicd/ci-cd.md)
+      - Monitoring
+        - [Monitoring architecture](../../design/monitoring/monitoring-architecture.md)
       - [Airflow asset naming](../../design/airflow-asset-naming.md)
-      - [Architecture](../../design/architecture.md)
-      - [CI/CD workflow (main only + server pull deploy)](../../design/ci-cd.md)
-      - [Event-based orchestration plan (single data object)](../../design/event-based-orchestration-plan.md)
+      - [Event-based orchestration plan](../../design/event-based-orchestration-plan.md)
       - [Meta data design](../../design/meta-data-design.md)
     - Image
     - Implementation
@@ -125,14 +131,16 @@ Process rules existed only implicitly in chat, not in agent skills or release va
     - Linked In
       - [Linkedin Post Part3V2](../../linked-in/linkedin-post-part3v2.md)
     - Operation
+      - [Event orchestration monitoring](../../operation/event-orchestration-monitoring.md)
+    - Retrospective
       - Incident
         - [INC-001 — NAS non-interactive SSH environment](inc-001-nas-ssh-environment.md)
         - [INC-002 — Airflow standalone infra instability](inc-002-airflow-infra-stability.md)
         - [INC-003 — Agent rediscovery and false-done verification](inc-003-agent-process-gaps.md)
         - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](inc-004-airflow-pythonpath-drift.md)
         - [INC-<NNN> — <short title>](incident-template.md)
-      - [Event orchestration monitoring](../event-orchestration-monitoring.md)
       - [Issue categories](../issue-category.md)
+    - [Implementation plan](../../implementation-plan.md)
   - Infra
     - Airflow
       - Dags

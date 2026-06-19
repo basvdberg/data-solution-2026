@@ -24,7 +24,7 @@ python -m extractor_and_poller.openmeteo.extractor --mapping daily-temperature
 Event-oriented poller options:
 
 ```powershell
-# Publish events to stdout for local debugging (production uses Airflow ProduceToTopicOperator)
+# Publish events to stdout for local debugging (production uses Airflow Assets)
 python -m extractor_and_poller.poller --data-object source/openmeteo/daily-temperature --publish stdout
 ```
 
@@ -79,10 +79,12 @@ Airflow DAGs: [`code/airflow/`](../airflow/readme.md).
   - Doc
     - Data Object Mapping
     - Design
+      - Cicd
+        - [CI/CD workflow (main only + server pull deploy)](../../doc/design/cicd/ci-cd.md)
+      - Monitoring
+        - [Monitoring architecture](../../doc/design/monitoring/monitoring-architecture.md)
       - [Airflow asset naming](../../doc/design/airflow-asset-naming.md)
-      - [Architecture](../../doc/design/architecture.md)
-      - [CI/CD workflow (main only + server pull deploy)](../../doc/design/ci-cd.md)
-      - [Event-based orchestration plan (single data object)](../../doc/design/event-based-orchestration-plan.md)
+      - [Event-based orchestration plan](../../doc/design/event-based-orchestration-plan.md)
       - [Meta data design](../../doc/design/meta-data-design.md)
     - Image
     - Implementation
@@ -90,14 +92,16 @@ Airflow DAGs: [`code/airflow/`](../airflow/readme.md).
     - Linked In
       - [Linkedin Post Part3V2](../../doc/linked-in/linkedin-post-part3v2.md)
     - Operation
-      - Incident
-        - [INC-001 — NAS non-interactive SSH environment](../../doc/operation/incident/inc-001-nas-ssh-environment.md)
-        - [INC-002 — Airflow standalone infra instability](../../doc/operation/incident/inc-002-airflow-infra-stability.md)
-        - [INC-003 — Agent rediscovery and false-done verification](../../doc/operation/incident/inc-003-agent-process-gaps.md)
-        - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](../../doc/operation/incident/inc-004-airflow-pythonpath-drift.md)
-        - [INC-<NNN> — <short title>](../../doc/operation/incident/incident-template.md)
       - [Event orchestration monitoring](../../doc/operation/event-orchestration-monitoring.md)
-      - [Issue categories](../../doc/operation/issue-category.md)
+    - Retrospective
+      - Incident
+        - [INC-001 — NAS non-interactive SSH environment](../../doc/retrospective/incident/inc-001-nas-ssh-environment.md)
+        - [INC-002 — Airflow standalone infra instability](../../doc/retrospective/incident/inc-002-airflow-infra-stability.md)
+        - [INC-003 — Agent rediscovery and false-done verification](../../doc/retrospective/incident/inc-003-agent-process-gaps.md)
+        - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](../../doc/retrospective/incident/inc-004-airflow-pythonpath-drift.md)
+        - [INC-<NNN> — <short title>](../../doc/retrospective/incident/incident-template.md)
+      - [Issue categories](../../doc/retrospective/issue-category.md)
+    - [Implementation plan](../../doc/implementation-plan.md)
   - Infra
     - Airflow
       - Dags

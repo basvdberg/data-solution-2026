@@ -8,7 +8,11 @@ from datetime import datetime, timezone
 
 from extractor_and_poller.poller.change_probe import PollResult
 from extractor_and_poller.poller.events import poll_event_json, poll_event_payload
-from extractor_and_poller.poller.poll_events import EVENT_TYPE_CHANGE, EVENT_TYPE_PROGRESS
+from extractor_and_poller.poller.poll_events import (
+    CHANGE_SCOPE_INCREMENTAL_UPDATE,
+    EVENT_TYPE_CHANGE,
+    EVENT_TYPE_UNCHANGED,
+)
 from include.data_object_asset_uris import change_asset_uri
 
 
@@ -23,14 +27,19 @@ def _sample_result() -> PollResult:
         previous_marker="2026-05-21",
         event_time_utc=datetime(2026, 5, 26, tzinfo=timezone.utc),
         event_type=EVENT_TYPE_CHANGE,
+        change_scope=CHANGE_SCOPE_INCREMENTAL_UPDATE,
     )
 
 
 class TestPollerEvents(unittest.TestCase):
-    def test_change_asset_uri(self) -> None:
+    def test_change_asset_uri_source_and_staging(self) -> None:
         self.assertEqual(
             change_asset_uri("source/openmeteo/daily-temperature"),
             "ds://source/openmeteo/daily-temperature/change",
+        )
+        self.assertEqual(
+            change_asset_uri("staging/openmeteo/daily-temperature"),
+            "ds://staging/openmeteo/daily-temperature/change",
         )
 
     def test_poll_event_payload_contains_envelope_fields(self) -> None:
@@ -40,6 +49,7 @@ class TestPollerEvents(unittest.TestCase):
             {
                 "data_object_id": "source/openmeteo/daily-temperature",
                 "event_type": EVENT_TYPE_CHANGE,
+                "change_scope": CHANGE_SCOPE_INCREMENTAL_UPDATE,
                 "event_time_utc": "2026-05-26T00:00:00+00:00",
                 "old_marker": "2026-05-21",
                 "new_marker": "2026-05-26",
@@ -56,8 +66,8 @@ class TestPollerEvents(unittest.TestCase):
         self.assertEqual(payload["new_marker"], "2026-05-26")
         self.assertIn("event_time_utc", payload)
 
-    def test_progress_event_type_constant(self) -> None:
-        self.assertEqual(EVENT_TYPE_PROGRESS, "data_object_progress")
+    def test_unchanged_event_type_constant(self) -> None:
+        self.assertEqual(EVENT_TYPE_UNCHANGED, "data_object_unchanged")
 
 
 if __name__ == "__main__":

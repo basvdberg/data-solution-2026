@@ -3,35 +3,9 @@
 ## Table of contents
 
 <!-- markdown-toc:start -->
-- [Structure](#structure)
-- [Lifecycle](#lifecycle)
 - [Retrospective → lessons ceremony](#retrospective-lessons-ceremony)
 - [Related](#related)
 <!-- markdown-toc:end -->
-
-Cross-release operational knowledge: incidents, categories, and links to per-release retrospectives.
-
-## Structure
-
-| Path | Purpose |
-|------|---------|
-| [event-orchestration-monitoring.md](event-orchestration-monitoring.md) | Health checks, error signals, and manual recovery for poller → Airflow asset → extract |
-| [issue-category.md](issue-category.md) | Taxonomy for classifying incidents and retro patterns |
-| [incident/readme.md](incident/readme.md) | Incident register (INC-NNN) |
-| [incident/incident-template.md](incident/incident-template.md) | Scaffold for new postmortems |
-| [../release/retrospective/](../release/retrospective/) | Per-release sprint retrospectives |
-| [../../.cursor/troubleshooting-errors.md](../../.cursor/troubleshooting-errors.md) | Session-level ERR log (agent-maintained) |
-
-## Lifecycle
-
-```text
-ERR (tactical, session)  →  INC (significant event)  →  retro (per release)  →  guardrails
-```
-
-- **ERR** — logged immediately on failure during debugging (`troubleshooting-error-log` skill).
-- **INC** — promoted when impact is blocker/degraded, release validation fails, or root cause is worth preserving.
-- **Retrospective** — aggregates incidents and ERR patterns for one release; produces action items.
-- **Guardrails** — skills, rules, validation checklists, infra runbooks, design patterns, or [lessons learned](../../lessons-learned-part2.md) (after your approval).
 
 ## Retrospective → lessons ceremony
 
@@ -83,10 +57,12 @@ ERR (tactical, session)  →  INC (significant event)  →  retro (per release) 
   - Doc
     - Data Object Mapping
     - Design
+      - Cicd
+        - [CI/CD workflow (main only + server pull deploy)](../design/cicd/ci-cd.md)
+      - Monitoring
+        - [Monitoring architecture](../design/monitoring/monitoring-architecture.md)
       - [Airflow asset naming](../design/airflow-asset-naming.md)
-      - [Architecture](../design/architecture.md)
-      - [CI/CD workflow (main only + server pull deploy)](../design/ci-cd.md)
-      - [Event-based orchestration plan (single data object)](../design/event-based-orchestration-plan.md)
+      - [Event-based orchestration plan](../design/event-based-orchestration-plan.md)
       - [Meta data design](../design/meta-data-design.md)
     - Image
     - Implementation
@@ -94,14 +70,16 @@ ERR (tactical, session)  →  INC (significant event)  →  retro (per release) 
     - Linked In
       - [Linkedin Post Part3V2](../linked-in/linkedin-post-part3v2.md)
     - Operation
+      - [Event orchestration monitoring](../operation/event-orchestration-monitoring.md)
+    - Retrospective
       - Incident
         - [INC-001 — NAS non-interactive SSH environment](incident/inc-001-nas-ssh-environment.md)
         - [INC-002 — Airflow standalone infra instability](incident/inc-002-airflow-infra-stability.md)
         - [INC-003 — Agent rediscovery and false-done verification](incident/inc-003-agent-process-gaps.md)
         - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](incident/inc-004-airflow-pythonpath-drift.md)
         - [INC-<NNN> — <short title>](incident/incident-template.md)
-      - [Event orchestration monitoring](event-orchestration-monitoring.md)
       - [Issue categories](issue-category.md)
+    - [Implementation plan](../implementation-plan.md)
   - Infra
     - Airflow
       - Dags

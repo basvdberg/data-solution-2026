@@ -72,10 +72,12 @@ https://github.com/basvdberg/data-solution-2026/blob/main/lessons-learned-part2.
   - Doc
     - Data Object Mapping
     - Design
+      - Cicd
+        - [CI/CD workflow (main only + server pull deploy)](../design/cicd/ci-cd.md)
+      - Monitoring
+        - [Monitoring architecture](../design/monitoring/monitoring-architecture.md)
       - [Airflow asset naming](../design/airflow-asset-naming.md)
-      - [Architecture](../design/architecture.md)
-      - [CI/CD workflow (main only + server pull deploy)](../design/ci-cd.md)
-      - [Event-based orchestration plan (single data object)](../design/event-based-orchestration-plan.md)
+      - [Event-based orchestration plan](../design/event-based-orchestration-plan.md)
       - [Meta data design](../design/meta-data-design.md)
     - Image
     - Implementation
@@ -83,14 +85,16 @@ https://github.com/basvdberg/data-solution-2026/blob/main/lessons-learned-part2.
     - Linked In
       - [Linkedin Post Part3V2](linkedin-post-part3v2.md)
     - Operation
-      - Incident
-        - [INC-001 — NAS non-interactive SSH environment](../operation/incident/inc-001-nas-ssh-environment.md)
-        - [INC-002 — Airflow standalone infra instability](../operation/incident/inc-002-airflow-infra-stability.md)
-        - [INC-003 — Agent rediscovery and false-done verification](../operation/incident/inc-003-agent-process-gaps.md)
-        - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](../operation/incident/inc-004-airflow-pythonpath-drift.md)
-        - [INC-<NNN> — <short title>](../operation/incident/incident-template.md)
       - [Event orchestration monitoring](../operation/event-orchestration-monitoring.md)
-      - [Issue categories](../operation/issue-category.md)
+    - Retrospective
+      - Incident
+        - [INC-001 — NAS non-interactive SSH environment](../retrospective/incident/inc-001-nas-ssh-environment.md)
+        - [INC-002 — Airflow standalone infra instability](../retrospective/incident/inc-002-airflow-infra-stability.md)
+        - [INC-003 — Agent rediscovery and false-done verification](../retrospective/incident/inc-003-agent-process-gaps.md)
+        - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](../retrospective/incident/inc-004-airflow-pythonpath-drift.md)
+        - [INC-<NNN> — <short title>](../retrospective/incident/incident-template.md)
+      - [Issue categories](../retrospective/issue-category.md)
+    - [Implementation plan](../implementation-plan.md)
   - Infra
     - Airflow
       - Dags

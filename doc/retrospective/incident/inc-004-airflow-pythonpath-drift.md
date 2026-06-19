@@ -1,4 +1,4 @@
-# INC-002 — Airflow standalone infra instability
+# INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)
 
 ## Table of contents
 
@@ -17,72 +17,84 @@
 
 ## Summary
 
-Initial Airflow PoC on the NAS required multiple fix cycles: incomplete first install, admin password regeneration on recreate, UI errors after reboot, Bad Gateway during startup, and task log URLs without hostname.
+After deploy, `openmeteo_data_object_poller` failed DAG parse with `ModuleNotFoundError: No module named 'dag_run_guard'`. The module exists in the repo at `code/airflow/dag_run_guard.py`, but the Airflow container on the local server used a stale compose file without `/opt/data-solution/code/airflow` on `PYTHONPATH`.
 
 ## Metadata
 
 | Field | Value |
 |-------|-------|
-| **ID** | INC-002 |
-| **When** | 2026-06-03 |
+| **ID** | INC-004 |
+| **When** | 2026-06-05 |
 | **Category** | orchestration |
 | **Severity** | blocker |
-| **Release(s)** | pre-release (infra PoC) |
-| **Related ERR** | ERR-003, ERR-004, ERR-005, ERR-006, ERR-008 |
+| **Release(s)** | v2026.06.05.6 (operational; not in git commits) |
+| **Related ERR** | ERR-013 |
 | **Status** | resolved |
+| **Source chat** | [dag_run_guard import error](cedbaac2-52cd-4054-9696-197659e47a7b) (user ref: `a672de17-cc52-409f-b6a6-b3326360ae3e`) |
 
 ## Impact
 
-- Airflow UI unusable or misleading after deploy, recreate, or host reboot
-- Task logs showed invalid URLs (`http://:8793/`)
-- Operators could not log in after container recreate until password re-documented
+- Poller DAG did not load; manual trigger blocked
+- Release validation item “Airflow DAGs available” would have failed if checked
+- Issue fixed in a separate Cursor session but not captured in ERR/INC until retro review
 
 ## Timeline
 
 | Time | Event |
 |------|-------|
-| 2026-06-03 | First install missing metadata DB and logging pieces |
-| 2026-06-03 | Admin password changed on almost every recreate |
-| 2026-06-03 | UI errors after reboot; log links stale IPs/ports |
-| 2026-06-03 | 502 Bad Gateway / missing scheduler during startup window |
-| 2026-06-03 | Task log hostname empty (`getfqdn` in Docker on QNAP) |
-| 2026-06-03 | Pinned compose: hostname, network, HOSTNAME_CALLABLE, AIRFLOW_ADMIN_PASSWORD |
+| 2026-06-05 | User saw DAG import traceback for `dag_run_guard` |
+| 2026-06-05 | Diagnosis: `~/apache-airflow/docker-compose.standalone.yaml` behind repo |
+| 2026-06-05 | `deploy-infra-on-nas.sh` synced compose and recreated container |
+| 2026-06-05 | `airflow dags list-import-errors` → no errors; DAG listed |
+| 2026-06-08 | Backfilled ERR-013 and INC-004; added to retro v2026.06.05.6 |
 
 ## Root cause
 
-Stack was partially invented on NAS instead of deployed from versioned compose. Identity (hostname, ports, password) was not pinned. Startup race and NGINX network membership were not accounted for in validation.
+Two deploy paths diverged:
+
+1. **App deploy** (`deploy-on-nas.sh`) — `git pull` only; does not update `~/apache-airflow/`
+2. **Infra deploy** (`deploy-infra-on-nas.sh`) — syncs compose including `PYTHONPATH`
+
+Repo already had correct `PYTHONPATH` in `infra/airflow/docker-compose.standalone.yaml`; runtime copy was stale.
 
 ## Detection gap
 
-Single browser check treated as “done” without reboot or full down/up cycle. No health endpoint wait before declaring failure.
+- No `airflow dags list-import-errors` in release validation checklist
+- Issue fixed in chat only; not logged to `.cursor/troubleshooting-errors.md` at time of fix
+- Retro workflow did not scan agent transcripts
 
 ## Resolution
 
-- Use [infra/airflow/docker-compose.standalone.yaml](../../../infra/airflow/docker-compose.standalone.yaml) from repo
-- Pin `AIRFLOW_ADMIN_PASSWORD` in `.env`
-- Pin `hostname`, named network, `AIRFLOW__CORE__HOSTNAME_CALLABLE`, fixed `AIRFLOW_HOST_PORT`
-- Wait 3–5 min then `curl` health endpoint; ensure NGINX on `apache-airflow_default` network
-- Trigger **new** DAG run after hostname fix (old runs keep bad URLs in DB)
+```bash
+bash ~/apps/data-solution-2026/infra/scripts/deploy-infra-on-nas.sh
+```
+
+Verified:
+
+- `PYTHONPATH=/opt/data-solution/code:/opt/data-solution:/opt/data-solution/code/airflow`
+- `airflow dags list-import-errors` empty
+- `openmeteo_data_object_poller` in DAG list
 
 ## Prevention
 
-- Start from versioned compose; sync via `deploy-infra-on-nas.sh`
-- Never mark infra done without login verify after `compose up -d`
-- Mandatory reboot verification for infra changes
-- See [infra/readme.md](../../../infra/readme.md) Airflow troubleshooting
+- Add `airflow dags list-import-errors` to release validation (template updated)
+- When `infra/` or DAG imports change: use `RUN_INFRA_SYNC=1` or run infra deploy script
+- Log ERR and promote to INC when validation fails; do not leave fixes chat-only
+- Retro skill: search agent transcripts when user supplies chat ID or release period has gaps
 
 ## Action items
 
 | # | Action | Type | Owner | Status |
 |---|--------|------|-------|--------|
-| 1 | Add reboot verification to release validation checklist | checklist | agent | codified |
-| 2 | Document Bad Gateway startup window in infra readme | runbook | agent | codified |
-| 3 | Pin hostname/password in compose and .env.example | infra | agent | codified |
+| 1 | Add DAG import check to release-notes-template Validation | checklist | agent | codified |
+| 2 | Extend release-retrospective skill — chat transcript scan | skill | agent | codified |
+| 3 | Document app vs infra deploy split in retro action items | runbook | agent | pending |
 
 ## Related artifacts
 
-- Troubleshooting: [ERR-003–006, ERR-008](../../../.cursor/troubleshooting-errors.md)
-- Retrospective: [v2026.06.03.4](../../release/retrospective/v2026.06.03.4.md)
+- Troubleshooting: [ERR-013](../../../.cursor/troubleshooting-errors.md)
+- Retrospective: [v2026.06.05.6](../../release/retrospective/v2026.06.05.6.md)
+- Compose: [`infra/airflow/docker-compose.standalone.yaml`](../../../infra/airflow/docker-compose.standalone.yaml)
 
 ## Project structure
 
@@ -119,10 +131,12 @@ Single browser check treated as “done” without reboot or full down/up cycle.
   - Doc
     - Data Object Mapping
     - Design
+      - Cicd
+        - [CI/CD workflow (main only + server pull deploy)](../../design/cicd/ci-cd.md)
+      - Monitoring
+        - [Monitoring architecture](../../design/monitoring/monitoring-architecture.md)
       - [Airflow asset naming](../../design/airflow-asset-naming.md)
-      - [Architecture](../../design/architecture.md)
-      - [CI/CD workflow (main only + server pull deploy)](../../design/ci-cd.md)
-      - [Event-based orchestration plan (single data object)](../../design/event-based-orchestration-plan.md)
+      - [Event-based orchestration plan](../../design/event-based-orchestration-plan.md)
       - [Meta data design](../../design/meta-data-design.md)
     - Image
     - Implementation
@@ -130,14 +144,16 @@ Single browser check treated as “done” without reboot or full down/up cycle.
     - Linked In
       - [Linkedin Post Part3V2](../../linked-in/linkedin-post-part3v2.md)
     - Operation
+      - [Event orchestration monitoring](../../operation/event-orchestration-monitoring.md)
+    - Retrospective
       - Incident
         - [INC-001 — NAS non-interactive SSH environment](inc-001-nas-ssh-environment.md)
         - [INC-002 — Airflow standalone infra instability](inc-002-airflow-infra-stability.md)
         - [INC-003 — Agent rediscovery and false-done verification](inc-003-agent-process-gaps.md)
         - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](inc-004-airflow-pythonpath-drift.md)
         - [INC-<NNN> — <short title>](incident-template.md)
-      - [Event orchestration monitoring](../event-orchestration-monitoring.md)
       - [Issue categories](../issue-category.md)
+    - [Implementation plan](../../implementation-plan.md)
   - Infra
     - Airflow
       - Dags

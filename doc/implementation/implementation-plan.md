@@ -3,160 +3,57 @@
 ## Table of contents
 
 <!-- markdown-toc:start -->
-- [Goal](#goal)
-- [Scope](#scope)
-- [Related documentation](#related-documentation)
-- [Prerequisites](#prerequisites)
-- [Implementation steps](#implementation-steps)
-  - [Step 1 — Poller in Airflow (verify)](#step-1-poller-in-airflow-verify)
-  - [Step 2 — Airflow Asset emit (verify)](#step-2-airflow-asset-emit-verify)
-  - [Step 3 — React to change assets (native Airflow scheduling)](#step-3-react-to-change-assets-native-airflow-scheduling)
-    - [3.1 What consumes the change asset](#31-what-consumes-the-change-asset)
-    - [3.2 Local smoke (dev machine)](#32-local-smoke-dev-machine)
-    - [3.3 Runtime config (local server)](#33-runtime-config-local-server)
-    - [3.4 Acceptance](#34-acceptance)
-    - [3.5 Recovery and monitoring](#35-recovery-and-monitoring)
-  - [After Step 3](#after-step-3)
-- [Definition of done](#definition-of-done)
+- [Purpose](#purpose)
+- [Step 1 — Poller probe and Postgres audit](#step-1-poller-probe-and-postgres-audit)
+- [Step 2 — Source change asset emit](#step-2-source-change-asset-emit)
+- [Step 3 — Asset-scheduled extract](#step-3-asset-scheduled-extract)
+- [Step 4 — Staging outcome events](#step-4-staging-outcome-events)
+- [Verification](#verification)
 <!-- markdown-toc:end -->
 
-## Goal
+## Purpose
 
-Move from a **locally runnable** Open-Meteo poller and extractor to **scheduled, event-driven orchestration** on the local server: Airflow runs the poller, **Airflow Assets** carry change signals, and Airflow runs extract only when the source marker advances.
+Checklist for implementing [Event-based orchestration plan](design/event-based-orchestration-plan.md) for `data-object-mapping/staging/openmeteo/daily-temperature`.
 
-This document is the **action checklist** for implementation. Technical detail for contracts, Postgres tables, and phases lives in [Event-based orchestration plan](design/event-based-orchestration-plan.md).
+## Step 1 — Poller probe and Postgres audit
 
-## Scope
+- [x] Open-Meteo probe returns observation-day marker
+- [x] Compare marker to previous row in `public.poller`
+- [x] Persist `data_object_change` or `data_object_unchanged` per probe
+- [x] Poller DAG `@hourly` aligned with source `refreshContract`
 
-Single data object for the PoC:
+Code: `code/extractor_and_poller/poller/`, `code/airflow/include/poll_run.py`.
 
-| Item | Value |
-|------|--------|
-| Mapping | `data-object-mapping/staging/openmeteo/daily-temperature` |
-| Mapping CLI alias | `daily-temperature` |
-| Source data object | `source/openmeteo/daily-temperature` |
-| Staging target | `staging/openmeteo/daily-temperature` |
-| Change asset URI | `ds://source/openmeteo/daily-temperature/change` |
-| Poller DAG id | `openmeteo_data_object_poller` |
-| Extract DAG id | `openmeteo_daily_temperature_extract` |
+## Step 2 — Source change asset emit
 
-Out of scope: additional sources, multi-mapping routing, and a dedicated controller Docker service.
+- [x] Branch on `event_type == data_object_change`
+- [x] Emit Airflow Asset `ds://source/openmeteo/daily-temperature/change` with extract conf extra
+- [x] Unchanged runs complete without asset emit
 
-## Related documentation
+Code: `code/airflow/dags/openmeteo_data_object_poller.py`.
 
-| Topic | Document |
-|-------|----------|
-| Target architecture and event contract | [Event-based orchestration plan](design/event-based-orchestration-plan.md) |
-| Airflow / Postgres on the local server | [Infrastructure](../infra/readme.md) |
-| Deploy to the local server (commit + push `main`) | [CI/CD workflow](design/ci-cd.md) |
-| Poller CLI and options | [Extractor and poller](../code/extractor_and_poller/readme.md) |
-| Airflow DAGs and variables | [code/airflow](../code/airflow/readme.md) |
-| Local commands | [Getting started](../getting-started.md) |
+## Step 3 — Asset-scheduled extract
 
-## Prerequisites
+- [x] Extract DAG `schedule=[source_change_asset]`
+- [x] Build extract conf from asset extra (`mapping_id`, `marker`, `event_id`)
+- [x] Idempotency via `extract_run_audit` on `event_id`
 
-Complete local-server setup before Step 1: Postgres metadata and Airflow standalone stack running with `.env` secrets configured. Follow [Infrastructure](../infra/readme.md) for ordered setup, SSH troubleshooting, and `deploy-infra-on-nas.sh`. For dev-machine commands, see [Getting started](../getting-started.md).
+Code: `code/airflow/dags/openmeteo_daily_temperature_extract.py`, `code/extractor_and_poller/openmeteo/extractor/`.
 
----
+## Step 4 — Staging outcome events
 
-## Implementation steps
+- [x] On success: `extract_run_audit.event_type = data_object_change`, emit staging asset `ds://staging/openmeteo/daily-temperature/change`
+- [x] On failure: `extract_run_audit.event_type = processing_error`, structured error log, Airflow task failure
 
-### Step 1 — Poller in Airflow (verify)
+Code: `code/extractor_and_poller/extract/run.py`, extract DAG `emit_staging_data_change_event`.
 
-**Status:** implemented — verify on the local server.
+## Verification
 
-- [ ] DAG `openmeteo_data_object_poller` appears in the Airflow UI without import errors.
-- [ ] Manual trigger reaches Open-Meteo and persists rows to Postgres table `poller`.
-- [ ] Second run with unchanged marker logs `data_object_progress` only.
+- Unit tests: `python -m pytest code/extractor_and_poller/tests/ -q`
+- Postgres: query `poller_latest_first` and `extract_run_audit` (see [Event orchestration monitoring](operation/event-orchestration-monitoring.md))
+- Airflow: trigger poller DAG manually or wait for hourly run; confirm extract DAG runs on change asset
 
-Troubleshooting (PYTHONPATH, infra sync, Postgres env): [code/airflow/readme.md](../code/airflow/readme.md).
-
----
-
-### Step 2 — Airflow Asset emit (verify)
-
-**Status:** implemented — verify after deploy.
-
-- [ ] Poller DAG task `emit_change_asset` succeeds when marker changes.
-- [ ] Airflow UI shows asset event for `ds://source/openmeteo/daily-temperature/change`.
-- [ ] Unchanged marker run skips `emit_change_asset` (branch to `record_progress`).
-
-Asset naming: [Airflow asset naming](design/airflow-asset-naming.md).
-
----
-
-### Step 3 — React to change assets (native Airflow scheduling)
-
-**Status:** implemented — deploy and validate on the local server.
-
-**Objective:** Schedule extract DAG on `ds://source/openmeteo/daily-temperature/change` and run extract when asset extra contains a valid change signal.
-
-#### 3.1 What consumes the change asset
-
-- **Extract DAG** [`openmeteo_daily_temperature_extract.py`](../code/airflow/dags/openmeteo_daily_temperature_extract.py) uses `schedule=[source_change_asset]`.
-- **Asset URI:** `ds://source/openmeteo/daily-temperature/change`
-- **Conf resolver:** [`code/airflow/include/asset_conf.py`](../code/airflow/include/asset_conf.py) — `extract_conf_from_asset_extra()` reads `{mapping_id, marker, event_id}` from `triggering_asset_events`.
-- **No separate process** — scheduler triggers extract DAG on asset update.
-
-Poller emit uses `emit_change_asset` with `outlets=[source_change_asset]` in [`openmeteo_data_object_poller.py`](../code/airflow/dags/openmeteo_data_object_poller.py).
-
-#### 3.2 Local smoke (dev machine)
-
-```powershell
-cd "c:\Dev2\Data Engineering 2.0\data-solution-2026"
-python -m unittest code.extractor_and_poller.tests.test_asset_conf code.extractor_and_poller.tests.test_poller_events
-```
-
-#### 3.3 Runtime config (local server)
-
-Set in `~/apache-airflow/.env` (see [infra/airflow/.env.example](../infra/airflow/.env.example)):
-
-| Variable | Example | Purpose |
-|----------|---------|---------|
-| `POSTGRES_HOST` | `basnas_postgress:5432` | Poller and extract metadata |
-| `DATA_SOLUTION_ROOT` | clone path on NAS | DAG and code mounts |
-
-Prerequisite: both DAGs load without import errors (`airflow dags list-import-errors` empty).
-
-#### 3.4 Acceptance
-
-1. Poller emits change asset on marker change (Step 2 green).
-2. Extract DAG shows runs **triggered by asset** `ds://source/openmeteo/daily-temperature/change`.
-3. On marker change, one `openmeteo_daily_temperature_extract` run starts with conf `{mapping_id, marker, event_id}`.
-4. Progress polls do not trigger extract.
-5. Extract task retries up to **5 times** on transient failure.
-
-**Step 3 done when:** one real change poll creates exactly one extract DAG run.
-
-#### 3.5 Recovery and monitoring
-
-- **Retries:** extract DAG `retries=5` with exponential backoff.
-- **Idempotency:** `extract_run_audit` skips only successful `event_id`; failed rows are reset to `running` on retry.
-- **Manual replay:** re-trigger extract DAG with conf from a failed audit row.
-- **Monitoring:** [Event orchestration monitoring](../operation/event-orchestration-monitoring.md).
-
----
-
-### After Step 3
-
-Remaining work after asset-triggered extract runs reliably:
-
-- **Extract + idempotency** — extract DAG calls `python -m extractor_and_poller.openmeteo.extractor --mapping daily-temperature`; write `extract_run_audit` rows and skip duplicate successful `event_id`. See [Phase 5 — Extract DAG and idempotency](design/event-based-orchestration-plan.md#phase-5---extract-dag-and-idempotency).
-- **End-to-end smoke** — poller → asset → extract → Postgres staging. Document failures in [lessons-learned.md](../lessons-learned-part1.md).
-- **Rollout** — commit and push to `main`; CI/CD and NAS deploy via [CI/CD workflow](design/ci-cd.md) (post-push hook → `deploy-on-nas.sh`). Record DAG ids in [release notes](../release/release-notes-template.md).
-
----
-
-## Definition of done
-
-The PoC orchestration path is complete when all of the following are true:
-
-- [ ] **Step 1:** Poller runs in Airflow with Postgres state.
-- [ ] **Step 2:** Poll results emit change assets with stable extra schema.
-- [ ] **Step 3:** Change assets trigger extract orchestration (no manual extract for routine loads).
-- [ ] **After Step 3:** Extract is idempotent per `event_id` and lands staging Parquet; end-to-end smoke documented in a release note.
-
-For schema-level acceptance criteria, use [Definition of done](design/event-based-orchestration-plan.md#definition-of-done) in the event-based orchestration plan.
+Related: [Airflow asset naming](design/airflow-asset-naming.md), [Meta data design](design/meta-data-design.md).
 
 ## Project structure
 
@@ -193,10 +90,12 @@ For schema-level acceptance criteria, use [Definition of done](design/event-base
   - Doc
     - Data Object Mapping
     - Design
+      - Cicd
+        - [CI/CD workflow (main only + server pull deploy)](../design/cicd/ci-cd.md)
+      - Monitoring
+        - [Monitoring architecture](../design/monitoring/monitoring-architecture.md)
       - [Airflow asset naming](../design/airflow-asset-naming.md)
-      - [Architecture](../design/architecture.md)
-      - [CI/CD workflow (main only + server pull deploy)](../design/ci-cd.md)
-      - [Event-based orchestration plan (single data object)](../design/event-based-orchestration-plan.md)
+      - [Event-based orchestration plan](../design/event-based-orchestration-plan.md)
       - [Meta data design](../design/meta-data-design.md)
     - Image
     - Implementation
@@ -204,14 +103,16 @@ For schema-level acceptance criteria, use [Definition of done](design/event-base
     - Linked In
       - [Linkedin Post Part3V2](../linked-in/linkedin-post-part3v2.md)
     - Operation
-      - Incident
-        - [INC-001 — NAS non-interactive SSH environment](../operation/incident/inc-001-nas-ssh-environment.md)
-        - [INC-002 — Airflow standalone infra instability](../operation/incident/inc-002-airflow-infra-stability.md)
-        - [INC-003 — Agent rediscovery and false-done verification](../operation/incident/inc-003-agent-process-gaps.md)
-        - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](../operation/incident/inc-004-airflow-pythonpath-drift.md)
-        - [INC-<NNN> — <short title>](../operation/incident/incident-template.md)
       - [Event orchestration monitoring](../operation/event-orchestration-monitoring.md)
-      - [Issue categories](../operation/issue-category.md)
+    - Retrospective
+      - Incident
+        - [INC-001 — NAS non-interactive SSH environment](../retrospective/incident/inc-001-nas-ssh-environment.md)
+        - [INC-002 — Airflow standalone infra instability](../retrospective/incident/inc-002-airflow-infra-stability.md)
+        - [INC-003 — Agent rediscovery and false-done verification](../retrospective/incident/inc-003-agent-process-gaps.md)
+        - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](../retrospective/incident/inc-004-airflow-pythonpath-drift.md)
+        - [INC-<NNN> — <short title>](../retrospective/incident/incident-template.md)
+      - [Issue categories](../retrospective/issue-category.md)
+    - [Implementation plan](../implementation-plan.md)
   - Infra
     - Airflow
       - Dags

@@ -62,6 +62,7 @@ class TestOpenMeteoPoller(unittest.TestCase):
 
         self.assertTrue(result.changed)
         self.assertEqual(result.event_type, "data_object_change")
+        self.assertEqual(result.change_scope, "incremental_update")
         self.assertEqual(result.current_marker, "2026-05-26")
 
     @patch("extractor_and_poller.openmeteo.extractor.client.requests.get")
@@ -78,7 +79,8 @@ class TestOpenMeteoPoller(unittest.TestCase):
         )
 
         self.assertFalse(result.changed)
-        self.assertEqual(result.event_type, "data_object_progress")
+        self.assertEqual(result.event_type, "data_object_unchanged")
+        self.assertIsNone(result.change_scope)
 
     @patch("extractor_and_poller.poller.state.PostgresStateStore._connect")
     def test_poller_table_append_and_last_marker(self, mock_connect) -> None:
@@ -109,6 +111,7 @@ class TestOpenMeteoPoller(unittest.TestCase):
             previous_marker="2026-05-21",
             event_time_utc=datetime(2026, 5, 26, tzinfo=timezone.utc),
             event_type="data_object_change",
+            change_scope="incremental_update",
         )
         row_id = store.append(result)
         self.assertEqual(row_id, 42)
@@ -118,7 +121,8 @@ class TestOpenMeteoPoller(unittest.TestCase):
         self.assertIn("returning id", insert_sql.lower())
         insert_args = cursor.execute.call_args_list[-1][0][1]
         self.assertEqual(insert_args[1], "source/openmeteo/daily-temperature")
-        self.assertEqual(insert_args[4], "2026-05-26")
+        self.assertEqual(insert_args[3], "incremental_update")
+        self.assertEqual(insert_args[5], "2026-05-26")
 
     @patch("extractor_and_poller.poller.state.PostgresStateStore._connect")
     def test_poller_initializes_schema_when_table_missing(self, mock_connect) -> None:
@@ -127,7 +131,6 @@ class TestOpenMeteoPoller(unittest.TestCase):
         mock_connect.return_value = conn
         conn.cursor.return_value.__enter__.return_value = cursor
         cursor.fetchone.side_effect = [
-            None,  # table missing
             (1,),  # table exists after init
             (True,),  # INSERT privilege
         ]
@@ -170,6 +173,7 @@ class TestOpenMeteoPoller(unittest.TestCase):
             "staging/openmeteo/daily-temperature",
         )
         self.assertEqual(payload["event_type"], "data_object_change")
+        self.assertEqual(payload["change_scope"], "incremental_update")
         self.assertEqual(payload["current_marker"], "2026-05-26")
         self.assertEqual(payload["previous_marker"], "2026-05-21")
 

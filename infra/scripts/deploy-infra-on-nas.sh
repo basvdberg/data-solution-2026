@@ -85,7 +85,7 @@ resolve_components() {
     fi
   fi
 
-  SELECTED_COMPONENTS=(airflow kafka postgres)
+  SELECTED_COMPONENTS=(airflow postgres)
 }
 
 copy_file() {
@@ -310,7 +310,7 @@ main() {
 
   echo "Infra deploy completed."
   if component_selected airflow; then
-    echo "Poller DAG publishes to Kafka by default; broker address from KAFKA_HOST in ${AIRFLOW_DEST}/.env."
+    echo "Airflow stack synced; orchestration uses Airflow-native triggers (no Kafka broker)."
   fi
   if component_selected postgres; then
     echo "Postgres: run bash infra/postgres/create-app-user.sh once if schema or app role is missing."

@@ -3,87 +3,53 @@
 ## Table of contents
 
 <!-- markdown-toc:start -->
-- [Pattern](#pattern)
-- [Formatting rules](#formatting-rules)
-- [Poll signals (implemented)](#poll-signals-implemented)
-- [Extract signals (planned)](#extract-signals-planned)
-- [Load signals (planned)](#load-signals-planned)
-- [Event extra conventions](#event-extra-conventions)
-- [Code reference](#code-reference)
+- [Purpose](#purpose)
+- [URI scheme](#uri-scheme)
+- [Change assets in this PoC](#change-assets-in-this-poc)
+- [Event extra fields](#event-extra-fields)
 <!-- markdown-toc:end -->
 
-## Pattern
+## Purpose
 
-Asset URIs use the solution scheme and the data object id:
+Airflow **Assets** carry orchestration change signals between DAGs. URIs are stable identifiers derived from data object paths so producers and consumers stay aligned with DSA metadata.
+
+## URI scheme
 
 ```text
-ds://{data-object-id}/{signal}
+ds://<data_object_id>/change
 ```
 
-| Segment | Purpose | Example |
-|---------|---------|---------|
-| `ds` | Solution boundary (data-solution-2026) | `ds` |
-| `data-object-id` | Repo-relative data object id | `source/openmeteo/daily-temperature` |
-| `signal` | Stable orchestration signal | `change` |
+| Part | Meaning |
+|------|---------|
+| `ds` | Data-solution asset scheme (constant) |
+| `data_object_id` | DSA path, for example `source/openmeteo/daily-temperature` |
+| `change` | Signal that the object’s change marker moved |
 
-This applies the [Simplicity](https://github.com/basvdberg/data-engineering-design-patterns/blob/main/design-patterns/generic/simplicity.md) pattern: one orchestration runtime (Airflow) instead of a separate message broker.
+Implementation: [`code/airflow/include/data_object_asset_uris.py`](../../code/airflow/include/data_object_asset_uris.py).
 
-## Formatting rules
+## Change assets in this PoC
 
-- Scheme is always `ds://` for this PoC.
-- Data object ids use forward slashes and match DSA metadata paths (no `data-object/` prefix).
-- Signal tokens use **lowercase** nouns (`change`, not `data_object_change` in the URI).
-- `event_type` in Postgres and poll envelopes remains **snake_case** (`data_object_change`, `data_object_progress`).
+| Data object | Asset URI | Producer | Consumer |
+|-------------|-----------|----------|----------|
+| `source/openmeteo/daily-temperature` | `ds://source/openmeteo/daily-temperature/change` | Poller DAG `emit_airflow_data_change_event` | Extract DAG schedule |
+| `staging/openmeteo/daily-temperature` | `ds://staging/openmeteo/daily-temperature/change` | Extract DAG `emit_staging_data_change_event` | (future downstream DAGs) |
 
-## Poll signals (implemented)
+## Event extra fields
 
-Signals from the data object poller. See [event-based orchestration plan](event-based-orchestration-plan.md).
+Asset event `extra` metadata uses orchestration glossary event types (`data_object_change`, `data_object_unchanged`, `processing_error`).
 
-| Design pattern term | `event_type` | Airflow Asset URI | Triggers downstream? |
-|---------------------|--------------|-------------------|----------------------|
-| Data object change | `data_object_change` | `ds://source/openmeteo/daily-temperature/change` | Yes → extract DAG |
-| Data object progress | `data_object_progress` | *(none — Postgres audit only)* | No (liveness / audit) |
+Minimum fields for extract conf from a source change asset:
 
-On `data_object_change`, the poller DAG task `emit_change_asset` updates the asset with **extra** metadata for the extract DAG. On `data_object_progress`, only a `poller` table row is written.
+| Field | Required | Meaning |
+|-------|----------|---------|
+| `data_object_id` | yes | Source data object path |
+| `marker` | yes | Current change marker (observation day) |
+| `event_type` | no | Defaults to `data_object_change` |
+| `event_id` | no | Poll event id for idempotency |
+| `mapping_id` | no | Short mapping slug when omitted |
+| `change_scope` | no | Glossary scope (`incremental_update`, `full_rewrite`, …) |
 
-## Extract signals (planned)
-
-When staging publish completes, emit a **publish success** asset for downstream dependency triggers:
-
-| Signal | Asset URI (example) |
-|--------|---------------------|
-| Staging publish success | `ds://staging/openmeteo/daily-temperature/publish` |
-
-## Load signals (planned)
-
-When Parquet lands and ADL load runs into the 100 Landing Area:
-
-| Signal | Asset URI (example) |
-|--------|---------------------|
-| Load succeeded | `ds://staging/openmeteo/daily-temperature/load` |
-
-## Event extra conventions
-
-Asset event **extra** carries per-run orchestration conf (JSON-serializable):
-
-| Field | Purpose |
-|-------|---------|
-| `data_object_id` | Source object that changed |
-| `event_type` | `data_object_change` |
-| `marker` | New change marker (`new_marker` in Postgres) |
-| `event_id` | Idempotency key for extract |
-| `mapping_id` | Mapping CLI slug (for example `daily-temperature`) |
-
-Postgres table `poller` stores the same markers plus `event_id` and `run_id`; query `poller_latest_first` for newest rows first.
-
-## Code reference
-
-| Module | Purpose |
-|--------|---------|
-| [`code/airflow/include/data_object_asset_uris.py`](../../code/airflow/include/data_object_asset_uris.py) | `change_asset_uri()` — URI without Airflow import |
-| [`code/airflow/include/data_object_assets.py`](../../code/airflow/include/data_object_assets.py) | `change_asset()` — Airflow `Asset` builder |
-| [`code/airflow/include/asset_conf.py`](../../code/airflow/include/asset_conf.py) | `extract_conf_from_asset_extra()` — consumer conf |
-| [`code/extractor_and_poller/poller/poll_events.py`](../../code/extractor_and_poller/poller/poll_events.py) | `event_type` constants |
+Validation: [`code/airflow/include/asset_conf.py`](../../code/airflow/include/asset_conf.py).
 
 ## Project structure
 
@@ -120,10 +86,12 @@ Postgres table `poller` stores the same markers plus `event_id` and `run_id`; qu
   - Doc
     - Data Object Mapping
     - Design
+      - Cicd
+        - [CI/CD workflow (main only + server pull deploy)](cicd/ci-cd.md)
+      - Monitoring
+        - [Monitoring architecture](monitoring/monitoring-architecture.md)
       - [Airflow asset naming](airflow-asset-naming.md)
-      - [Architecture](architecture.md)
-      - [CI/CD workflow (main only + server pull deploy)](ci-cd.md)
-      - [Event-based orchestration plan (single data object)](event-based-orchestration-plan.md)
+      - [Event-based orchestration plan](event-based-orchestration-plan.md)
       - [Meta data design](meta-data-design.md)
     - Image
     - Implementation
@@ -131,14 +99,16 @@ Postgres table `poller` stores the same markers plus `event_id` and `run_id`; qu
     - Linked In
       - [Linkedin Post Part3V2](../linked-in/linkedin-post-part3v2.md)
     - Operation
-      - Incident
-        - [INC-001 — NAS non-interactive SSH environment](../operation/incident/inc-001-nas-ssh-environment.md)
-        - [INC-002 — Airflow standalone infra instability](../operation/incident/inc-002-airflow-infra-stability.md)
-        - [INC-003 — Agent rediscovery and false-done verification](../operation/incident/inc-003-agent-process-gaps.md)
-        - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](../operation/incident/inc-004-airflow-pythonpath-drift.md)
-        - [INC-<NNN> — <short title>](../operation/incident/incident-template.md)
       - [Event orchestration monitoring](../operation/event-orchestration-monitoring.md)
-      - [Issue categories](../operation/issue-category.md)
+    - Retrospective
+      - Incident
+        - [INC-001 — NAS non-interactive SSH environment](../retrospective/incident/inc-001-nas-ssh-environment.md)
+        - [INC-002 — Airflow standalone infra instability](../retrospective/incident/inc-002-airflow-infra-stability.md)
+        - [INC-003 — Agent rediscovery and false-done verification](../retrospective/incident/inc-003-agent-process-gaps.md)
+        - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](../retrospective/incident/inc-004-airflow-pythonpath-drift.md)
+        - [INC-<NNN> — <short title>](../retrospective/incident/incident-template.md)
+      - [Issue categories](../retrospective/issue-category.md)
+    - [Implementation plan](../implementation-plan.md)
   - Infra
     - Airflow
       - Dags

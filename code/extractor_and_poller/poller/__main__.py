@@ -70,7 +70,7 @@ def main(argv: list[str] | None = None) -> int:
         "--publish",
         choices=("none", "stdout"),
         default="none",
-        help="publish poll events to stdout for local debugging (production uses Airflow ProduceToTopicOperator)",
+        help="publish poll events to stdout for local debugging (production uses Airflow Assets)",
     )
     args = parser.parse_args(argv)
 

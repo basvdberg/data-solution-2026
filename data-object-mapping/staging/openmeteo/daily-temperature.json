@@ -1,8 +1,14 @@
 {
+  "$schema": "../../../schema/data-solution-metadata.schema.json",
   "id": "data-object-mapping/staging/openmeteo/daily-temperature",
   "enabled": true,
   "sourceDataObjectIds": ["source/openmeteo/daily-temperature"],
   "targetDataObjectId": "staging/openmeteo/daily-temperature",
+  "refreshContract": {
+    "triggerMode": "sourceDataObjectsRefreshed",
+    "refreshScope": "all",
+    "notes": "This table is refreshed fully when the source table is refreshed."
+  },
   "dataItemMappings": [
     {
       "id": "1",
@@ -46,6 +52,6 @@
     }
   ],
   "classifications": [
-    { "group": "trigger", "classification": "data_object_change" }
-  ],
+   
+  ]
 }

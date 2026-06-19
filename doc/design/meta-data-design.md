@@ -150,7 +150,7 @@ One file per transformation (source → target). References other artifacts by p
   "targetDataObjectId": "staging/openmeteo/daily-temperature",
   "extensions": [
     { "key": "change_detection_rule", "value": "openmeteo_latest_day" },
-    { "key": "landing_path_template", "value": "./data/staging/openmeteo/{dataset}/{timestamp}.parquet" }
+    { "key": "staging_table_template", "value": "staging.{source}_{data_object_name}" }
   ]
 }
 ```
@@ -220,10 +220,12 @@ The path IDs in the repo remain the stable names humans use in reviews and logs.
   - Doc
     - Data Object Mapping
     - Design
+      - Cicd
+        - [CI/CD workflow (main only + server pull deploy)](cicd/ci-cd.md)
+      - Monitoring
+        - [Monitoring architecture](monitoring/monitoring-architecture.md)
       - [Airflow asset naming](airflow-asset-naming.md)
-      - [Architecture](architecture.md)
-      - [CI/CD workflow (main only + server pull deploy)](ci-cd.md)
-      - [Event-based orchestration plan (single data object)](event-based-orchestration-plan.md)
+      - [Event-based orchestration plan](event-based-orchestration-plan.md)
       - [Meta data design](meta-data-design.md)
     - Image
     - Implementation
@@ -231,14 +233,16 @@ The path IDs in the repo remain the stable names humans use in reviews and logs.
     - Linked In
       - [Linkedin Post Part3V2](../linked-in/linkedin-post-part3v2.md)
     - Operation
-      - Incident
-        - [INC-001 — NAS non-interactive SSH environment](../operation/incident/inc-001-nas-ssh-environment.md)
-        - [INC-002 — Airflow standalone infra instability](../operation/incident/inc-002-airflow-infra-stability.md)
-        - [INC-003 — Agent rediscovery and false-done verification](../operation/incident/inc-003-agent-process-gaps.md)
-        - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](../operation/incident/inc-004-airflow-pythonpath-drift.md)
-        - [INC-<NNN> — <short title>](../operation/incident/incident-template.md)
       - [Event orchestration monitoring](../operation/event-orchestration-monitoring.md)
-      - [Issue categories](../operation/issue-category.md)
+    - Retrospective
+      - Incident
+        - [INC-001 — NAS non-interactive SSH environment](../retrospective/incident/inc-001-nas-ssh-environment.md)
+        - [INC-002 — Airflow standalone infra instability](../retrospective/incident/inc-002-airflow-infra-stability.md)
+        - [INC-003 — Agent rediscovery and false-done verification](../retrospective/incident/inc-003-agent-process-gaps.md)
+        - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](../retrospective/incident/inc-004-airflow-pythonpath-drift.md)
+        - [INC-<NNN> — <short title>](../retrospective/incident/incident-template.md)
+      - [Issue categories](../retrospective/issue-category.md)
+    - [Implementation plan](../implementation-plan.md)
   - Infra
     - Airflow
       - Dags

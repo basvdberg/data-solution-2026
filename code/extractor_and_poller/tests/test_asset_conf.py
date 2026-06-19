@@ -47,10 +47,10 @@ class TestExtractConfFromAssetExtra(unittest.TestCase):
             result = extract_conf_from_asset_extra(extra)
         self.assertEqual(result["mapping_id"], "daily-temperature")
 
-    def test_ignores_progress_extra(self) -> None:
+    def test_ignores_unchanged_extra(self) -> None:
         extra = {
             "data_object_id": "source/openmeteo/daily-temperature",
-            "event_type": "data_object_progress",
+            "event_type": "data_object_unchanged",
             "marker": "2026-05-26",
         }
         self.assertIsNone(extract_conf_from_asset_extra(extra))

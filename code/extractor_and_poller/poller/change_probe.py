@@ -10,6 +10,11 @@ from importlib import import_module
 from uuid import uuid4
 
 from extractor_and_poller.common.config import Config, Mapping
+from extractor_and_poller.poller.poll_events import (
+    CHANGE_SCOPE_INCREMENTAL_UPDATE,
+    EVENT_TYPE_CHANGE,
+    EVENT_TYPE_UNCHANGED,
+)
 
 log = logging.getLogger(__name__)
 
@@ -31,10 +36,11 @@ class PollResult:
     previous_marker: str | None
     event_time_utc: datetime
     event_type: str
+    change_scope: str | None = None
 
     @property
     def changed(self) -> bool:
-        return self.event_type == "data_object_change"
+        return self.event_type == EVENT_TYPE_CHANGE
 
     @property
     def idempotency_key(self) -> str:
@@ -100,7 +106,8 @@ def poll_mapping(
 ) -> PollResult:
     current = probe_current_value(mapping, config)
     changed = previous_marker != current
-    event_type = "data_object_change" if changed else "data_object_progress"
+    event_type = EVENT_TYPE_CHANGE if changed else EVENT_TYPE_UNCHANGED
+    change_scope = CHANGE_SCOPE_INCREMENTAL_UPDATE if changed else None
     source_id = mapping.primary_source_data_object_id()
     target_id = mapping.target_data_object_id() or mapping.id
     log.info(
@@ -120,6 +127,7 @@ def poll_mapping(
         previous_marker=previous_marker,
         event_time_utc=datetime.now(timezone.utc),
         event_type=event_type,
+        change_scope=change_scope,
     )
 
 

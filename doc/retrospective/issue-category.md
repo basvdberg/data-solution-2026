@@ -177,10 +177,12 @@ Update this table during each release retrospective. When one category appears i
   - Doc
     - Data Object Mapping
     - Design
+      - Cicd
+        - [CI/CD workflow (main only + server pull deploy)](../design/cicd/ci-cd.md)
+      - Monitoring
+        - [Monitoring architecture](../design/monitoring/monitoring-architecture.md)
       - [Airflow asset naming](../design/airflow-asset-naming.md)
-      - [Architecture](../design/architecture.md)
-      - [CI/CD workflow (main only + server pull deploy)](../design/ci-cd.md)
-      - [Event-based orchestration plan (single data object)](../design/event-based-orchestration-plan.md)
+      - [Event-based orchestration plan](../design/event-based-orchestration-plan.md)
       - [Meta data design](../design/meta-data-design.md)
     - Image
     - Implementation
@@ -188,14 +190,16 @@ Update this table during each release retrospective. When one category appears i
     - Linked In
       - [Linkedin Post Part3V2](../linked-in/linkedin-post-part3v2.md)
     - Operation
+      - [Event orchestration monitoring](../operation/event-orchestration-monitoring.md)
+    - Retrospective
       - Incident
         - [INC-001 — NAS non-interactive SSH environment](incident/inc-001-nas-ssh-environment.md)
         - [INC-002 — Airflow standalone infra instability](incident/inc-002-airflow-infra-stability.md)
         - [INC-003 — Agent rediscovery and false-done verification](incident/inc-003-agent-process-gaps.md)
         - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](incident/inc-004-airflow-pythonpath-drift.md)
         - [INC-<NNN> — <short title>](incident/incident-template.md)
-      - [Event orchestration monitoring](event-orchestration-monitoring.md)
       - [Issue categories](issue-category.md)
+    - [Implementation plan](../implementation-plan.md)
   - Infra
     - Airflow
       - Dags

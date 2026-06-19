@@ -7,7 +7,7 @@
 - [Open-Meteo daily temperature](#open-meteo-daily-temperature)
   - [Object flow](#object-flow)
   - [Data item mappings](#data-item-mappings)
-  - [Orchestration](#orchestration)
+  - [Refresh contract](#refresh-contract)
 - [Source files](#source-files)
 <!-- markdown-toc:end -->
 
@@ -15,13 +15,13 @@
 
 Documentation for DSA **data object mappings** in this repository. Mappings describe how source data objects become staging targets and how each **data item** (column) maps across layers.
 
-See also the [staging architecture diagram](../../design/architecture-staging.png) and [DSA interface](../../../dsa-interface.md).
+See also the [staging architecture diagram](../design/architecture-staging.png) and [DSA interface](../../dsa-interface.md).
 
 | Mapping ID | Source | Target | Status |
 |------------|--------|--------|--------|
 | `data-object-mapping/staging/openmeteo/daily-temperature` | `source/openmeteo/daily-temperature` | `staging/openmeteo/daily-temperature` | enabled |
 
-All field mappings in this PoC are **one-to-one**: same name and logical type on source and staging. The extractor normalizes the API response into the source-shaped schema; staging files use the same column layout.
+All field mappings in this PoC are **one-to-one**: same name and logical type on source and staging.
 
 ## Open-Meteo daily temperature
 
@@ -46,7 +46,7 @@ flowchart TB
 
 Each data object carries a `dataConnectionId` (where and how data is reached). It is a property of the object, not a separate flow element.
 
-The mapping file references source and target objects by path. Runtime code (`extractor_and_poller`) loads the mapping and the referenced data objects from Git.
+The mapping file references source and target objects by path.
 
 ### Data item mappings
 
@@ -99,15 +99,14 @@ flowchart TB
 | 7 | `timestamp` | `timestamp` | string |
 | 8 | `value` | `value` | double |
 
-Classification on the mapping: `(trigger, data_object_change)` — the poller emits a change event when this source object’s extraction marker moves.
+### Refresh contract
 
-### Orchestration
+| Object | Trigger mode | Scope | Notes |
+|--------|--------------|-------|-------|
+| Source (`source/openmeteo/daily-temperature`) | time (`@hourly`) | all | Source marker may move each hour |
+| Mapping target refresh | `sourceDataObjectsRefreshed` | all | Staging is fully refreshed when the source object refreshes |
 
-```text
-Git (mapping + data objects)
-  → poller (--mapping daily-temperature) → Kafka (ds.poll.data_object_change)
-  → extractor reads source layer, writes staging layer (Parquet)
-```
+Classification on the mapping: `(trigger, data_object_change)` — downstream work starts when this source object’s change marker moves.
 
 ## Source files
 
@@ -116,6 +115,8 @@ Git (mapping + data objects)
 | Data object mapping | [`data-object-mapping/staging/openmeteo/daily-temperature.json`](../../data-object-mapping/staging/openmeteo/daily-temperature.json) |
 | Source data object | [`data-object/source/openmeteo/daily-temperature.json`](../../data-object/source/openmeteo/daily-temperature.json) |
 | Staging data object | [`data-object/staging/openmeteo/daily-temperature.json`](../../data-object/staging/openmeteo/daily-temperature.json) |
+
+For orchestration and runtime behaviour, see [Event-based orchestration plan](../design/event-based-orchestration-plan.md).
 
 ## Project structure
 
@@ -152,10 +153,12 @@ Git (mapping + data objects)
   - Doc
     - Data Object Mapping
     - Design
+      - Cicd
+        - [CI/CD workflow (main only + server pull deploy)](../design/cicd/ci-cd.md)
+      - Monitoring
+        - [Monitoring architecture](../design/monitoring/monitoring-architecture.md)
       - [Airflow asset naming](../design/airflow-asset-naming.md)
-      - [Architecture](../design/architecture.md)
-      - [CI/CD workflow (main only + server pull deploy)](../design/ci-cd.md)
-      - [Event-based orchestration plan (single data object)](../design/event-based-orchestration-plan.md)
+      - [Event-based orchestration plan](../design/event-based-orchestration-plan.md)
       - [Meta data design](../design/meta-data-design.md)
     - Image
     - Implementation
@@ -163,14 +166,16 @@ Git (mapping + data objects)
     - Linked In
       - [Linkedin Post Part3V2](../linked-in/linkedin-post-part3v2.md)
     - Operation
-      - Incident
-        - [INC-001 — NAS non-interactive SSH environment](../operation/incident/inc-001-nas-ssh-environment.md)
-        - [INC-002 — Airflow standalone infra instability](../operation/incident/inc-002-airflow-infra-stability.md)
-        - [INC-003 — Agent rediscovery and false-done verification](../operation/incident/inc-003-agent-process-gaps.md)
-        - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](../operation/incident/inc-004-airflow-pythonpath-drift.md)
-        - [INC-<NNN> — <short title>](../operation/incident/incident-template.md)
       - [Event orchestration monitoring](../operation/event-orchestration-monitoring.md)
-      - [Issue categories](../operation/issue-category.md)
+    - Retrospective
+      - Incident
+        - [INC-001 — NAS non-interactive SSH environment](../retrospective/incident/inc-001-nas-ssh-environment.md)
+        - [INC-002 — Airflow standalone infra instability](../retrospective/incident/inc-002-airflow-infra-stability.md)
+        - [INC-003 — Agent rediscovery and false-done verification](../retrospective/incident/inc-003-agent-process-gaps.md)
+        - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](../retrospective/incident/inc-004-airflow-pythonpath-drift.md)
+        - [INC-<NNN> — <short title>](../retrospective/incident/incident-template.md)
+      - [Issue categories](../retrospective/issue-category.md)
+    - [Implementation plan](../implementation-plan.md)
   - Infra
     - Airflow
       - Dags

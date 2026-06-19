@@ -26,7 +26,7 @@ def event_payload(result: PollResult) -> dict[str, str | None]:
 
 def poll_event_payload(result: PollResult) -> dict[str, str | None]:
     """Poll event envelope for orchestration consumers (matches Postgres marker columns)."""
-    return {
+    payload: dict[str, str | None] = {
         "data_object_id": result.data_object_id,
         "event_type": result.event_type,
         "event_time_utc": result.event_time_utc.isoformat(),
@@ -34,6 +34,9 @@ def poll_event_payload(result: PollResult) -> dict[str, str | None]:
         "new_marker": result.current_marker,
         "event_id": result.event_id,
     }
+    if result.change_scope is not None:
+        payload["change_scope"] = result.change_scope
+    return payload
 
 
 def poll_event_json(result: PollResult) -> str:

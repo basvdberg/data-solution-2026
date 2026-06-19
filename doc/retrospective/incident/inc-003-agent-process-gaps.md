@@ -1,38 +1,83 @@
-# Incident register
+# INC-003 — Agent rediscovery and false-done verification
 
 ## Table of contents
 
 <!-- markdown-toc:start -->
-- [Index](#index)
-- [Naming](#naming)
-- [New incident](#new-incident)
+- [Summary](#summary)
+- [Metadata](#metadata)
+- [Impact](#impact)
+- [Timeline](#timeline)
+- [Root cause](#root-cause)
+- [Detection gap](#detection-gap)
+- [Resolution](#resolution)
+- [Prevention](#prevention)
+- [Action items](#action-items)
+- [Related artifacts](#related-artifacts)
 <!-- markdown-toc:end -->
 
-Blameless postmortems for significant failures. Format follows common SRE practice: summary, impact, timeline, root cause, detection gap, action items.
+## Summary
 
-Tactical session errors stay in [`.cursor/troubleshooting-errors.md`](../../../.cursor/troubleshooting-errors.md) as `ERR-NNN`; promote here when impact warrants a durable record.
+During infra troubleshooting the agent repeated environment discovery commands, invoked scripts from wrong working directories, and declared fixes complete without reboot verification — wasting time and leaving latent failures.
 
-## Index
+## Metadata
 
-| ID | Title | Category | Severity | Release(s) | Status |
-|----|-------|----------|----------|------------|--------|
-| [INC-001](inc-001-nas-ssh-environment.md) | NAS non-interactive SSH environment | infra-environment | degraded | pre-release | resolved |
-| [INC-002](inc-002-airflow-infra-stability.md) | Airflow standalone infra instability | orchestration | blocker | pre-release | resolved |
-| [INC-003](inc-003-agent-process-gaps.md) | Agent rediscovery and false-done verification | agent-efficiency, process-verification | degraded | pre-release | codified |
-| [INC-004](inc-004-airflow-pythonpath-drift.md) | Airflow PYTHONPATH drift (dag_run_guard import) | orchestration | blocker | v2026.06.05.6 | resolved |
+| Field | Value |
+|-------|-------|
+| **ID** | INC-003 |
+| **When** | 2026-06-03 |
+| **Category** | agent-efficiency (primary), process-verification |
+| **Severity** | degraded |
+| **Release(s)** | pre-release (infra PoC) |
+| **Related ERR** | ERR-002, ERR-011, ERR-012 |
+| **Status** | codified |
 
-## Naming
+## Impact
 
-- File: `inc-<NNN>-<kebab-title>.md`
-- ID: `INC-001`, monotonic in this register
+- Same `which`/`find` for docker run multiple times in one session
+- Local script invoked from monorepo root instead of cursor-config path
+- Airflow UI worked once then failed after reboot (false positive “done”)
 
-## New incident
+## Timeline
 
-Copy [incident-template.md](incident-template.md). Link from:
+| Time | Event |
+|------|-------|
+| 2026-06-03 | Repeated docker discovery after ERR-001 already documented |
+| 2026-06-03 | `manage-bookmarks.cmd` not found (wrong cwd) |
+| 2026-06-03 | Infra marked done without reboot test; ERR-005 recurred |
 
-- Affected `release/notes/<version>.md` → **Related artifacts**
-- `release/details/<version>/README.md` → **Linked files**
-- `release/retrospective/<version>.md` → **Incidents**
+## Root cause
+
+No mandatory read of troubleshooting log before retry. No explicit infra verification checklist. Assumption that one successful UI check equals durable fix.
+
+## Detection gap
+
+Process rules existed only implicitly in chat, not in agent skills or release validation.
+
+## Resolution
+
+- Introduced `.cursor/troubleshooting-errors.md` and `troubleshooting-error-log` skill
+- ERR-012 prevention: infra checklist includes reboot/full cycle
+- Log Count increment on repeat signatures
+
+## Prevention
+
+- Read troubleshooting log before retrying known signatures
+- If `Count > 1`, stop and apply documented Solution
+- Infra checklist: health curl → HTTPS UI → **host reboot or full down/up** → UI + new DAG log
+- Verify script path with `Test-Path` / `Get-Command` before invoke
+
+## Action items
+
+| # | Action | Type | Owner | Status |
+|---|--------|------|-------|--------|
+| 1 | troubleshooting-error-log skill with dedup and review | skill | agent | codified |
+| 2 | Add infra reboot item to release-notes-template Validation | checklist | agent | codified |
+| 3 | Issue inventory + per-release retrospective workflow | process | agent | codified |
+
+## Related artifacts
+
+- Troubleshooting: [ERR-002, ERR-011, ERR-012](../../../.cursor/troubleshooting-errors.md)
+- Retrospective: [v2026.06.03.4](../../release/retrospective/v2026.06.03.4.md)
 
 ## Project structure
 
@@ -69,10 +114,12 @@ Copy [incident-template.md](incident-template.md). Link from:
   - Doc
     - Data Object Mapping
     - Design
+      - Cicd
+        - [CI/CD workflow (main only + server pull deploy)](../../design/cicd/ci-cd.md)
+      - Monitoring
+        - [Monitoring architecture](../../design/monitoring/monitoring-architecture.md)
       - [Airflow asset naming](../../design/airflow-asset-naming.md)
-      - [Architecture](../../design/architecture.md)
-      - [CI/CD workflow (main only + server pull deploy)](../../design/ci-cd.md)
-      - [Event-based orchestration plan (single data object)](../../design/event-based-orchestration-plan.md)
+      - [Event-based orchestration plan](../../design/event-based-orchestration-plan.md)
       - [Meta data design](../../design/meta-data-design.md)
     - Image
     - Implementation
@@ -80,14 +127,16 @@ Copy [incident-template.md](incident-template.md). Link from:
     - Linked In
       - [Linkedin Post Part3V2](../../linked-in/linkedin-post-part3v2.md)
     - Operation
+      - [Event orchestration monitoring](../../operation/event-orchestration-monitoring.md)
+    - Retrospective
       - Incident
         - [INC-001 — NAS non-interactive SSH environment](inc-001-nas-ssh-environment.md)
         - [INC-002 — Airflow standalone infra instability](inc-002-airflow-infra-stability.md)
         - [INC-003 — Agent rediscovery and false-done verification](inc-003-agent-process-gaps.md)
         - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](inc-004-airflow-pythonpath-drift.md)
         - [INC-<NNN> — <short title>](incident-template.md)
-      - [Event orchestration monitoring](../event-orchestration-monitoring.md)
       - [Issue categories](../issue-category.md)
+    - [Implementation plan](../../implementation-plan.md)
   - Infra
     - Airflow
       - Dags

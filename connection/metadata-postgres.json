@@ -1,4 +1,5 @@
 {
+  "$schema": "../schema/data-solution-metadata.schema.json",
   "id": "connection/metadata-postgres",
   "name": "metadata-postgres",
   "extensions": [

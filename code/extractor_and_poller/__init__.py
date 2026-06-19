@@ -1,6 +1,6 @@
 """Open-Meteo extractor and poller driven by data-object-mapping JSON.
 
-Layout: ``openmeteo/extractor`` (lands Parquet) and ``openmeteo/poller`` (change
+Layout: ``openmeteo/extractor`` (lands Postgres staging) and ``openmeteo/poller`` (change
 markers). Shared config and orchestration live under ``common/`` and ``poller/``.
 
 CLI (from solution root, with ``code/`` on PYTHONPATH)::

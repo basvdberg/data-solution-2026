@@ -14,6 +14,7 @@ create table if not exists poller (
     polled_at_utc timestamptz not null,
     data_object_id text not null,
     event_type text not null,
+    change_scope text,
     old_marker text,
     new_marker text not null,
     event_id text not null,
@@ -32,6 +33,7 @@ select
     polled_at_utc,
     data_object_id,
     event_type,
+    change_scope,
     old_marker,
     new_marker,
     event_id,
@@ -45,7 +47,10 @@ create table if not exists extract_run_audit (
     run_id text primary key,
     event_id text not null unique,
     mapping_id text not null,
+    data_object_id text,
     marker text not null,
+    change_scope text,
+    event_type text,
     status text not null,
     started_at_utc timestamptz not null,
     finished_at_utc timestamptz,
@@ -81,3 +86,11 @@ def schema_statements(sql: str | None = None) -> list[str]:
         if stmt:
             statements.append(stmt)
     return statements
+
+
+def ensure_metadata_schema(conn) -> None:
+    """Apply idempotent metadata DDL (poller, extract_run_audit, staging, ...)."""
+    with conn.cursor() as cur:
+        for statement in schema_statements(load_schema_sql()):
+            cur.execute(statement)
+    conn.commit()

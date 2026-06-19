@@ -1,4 +1,5 @@
 {
+  "$schema": "../../../schema/data-solution-metadata.schema.json",
   "id": "source/openmeteo/daily-temperature",
   "notes": "Open-Meteo Forecast API daily mean 2 m temperature — https://open-meteo.com/en/docs",
   "dataConnectionId": "connection/open-meteo-forecast",
@@ -58,6 +59,7 @@
   "refreshContract": {
     "triggerMode": "time",
     "timeTrigger": { "schedule": "@hourly" },
-    "refreshScope": "all"
+    "refreshScope": "all",
+    "notes": "Every hour potentially the full table is refreshed."
   }
 }

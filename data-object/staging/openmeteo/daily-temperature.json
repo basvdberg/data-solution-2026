@@ -1,4 +1,5 @@
 {
+  "$schema": "../../../schema/data-solution-metadata.schema.json",
   "id": "staging/openmeteo/daily-temperature",
   "notes": "One row per (reference station, day) with daily mean 2 m temperature in degrees Celsius.",
   "dataConnectionId": "connection/staging",
@@ -56,15 +57,5 @@
     }
   ],
   "classifications": [
-  ],
-  "refreshContract": {
-    "triggerMode": "dependency",
-    "dependencyTriggers": [
-      {
-        "upstreamDataObjectId": "source/openmeteo/daily-temperature",
-        "signal": "change_detected"
-      }
-    ],
-    "refreshScope": "all"
-  }
+  ]
 }

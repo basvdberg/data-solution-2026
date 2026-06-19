@@ -19,11 +19,19 @@
     "migration_paths":  [
                             "code/postgres/migrations/001-poller-simplify.check.sql",
                             "code/postgres/migrations/001-poller-simplify.sql",
+                            "code/postgres/migrations/002-poller-reorder-correlation-columns.check.sql",
+                            "code/postgres/migrations/002-poller-reorder-correlation-columns.sql",
+                            "code/postgres/migrations/003-extract-run-audit.check.sql",
+                            "code/postgres/migrations/003-extract-run-audit.sql",
+                            "code/postgres/migrations/004-change-scope.check.sql",
+                            "code/postgres/migrations/004-change-scope.sql",
+                            "code/postgres/migrations/005-extract-event-metadata.check.sql",
+                            "code/postgres/migrations/005-extract-event-metadata.sql",
                             "code/postgres/migrations/manifest.txt",
                             "code/postgres/schema.sql"
                         ],
     "reason":  "Infra component(s) airflow, postgres changed since tag v2026.06.03.4: infra/airflow/.env.example, infra/airflow/docker-compose.standalone.yaml, infra/postgres/.env.example, infra/postgres/apply-shared-postgres-on-nas.sh, infra/postgres/create-app-user.sh, infra/postgres/migrate-database-name.sh, infra/postgres/migrate-poller-from-dedicated-postgres.sh, infra/postgres/remove-dedicated-postgres.sh, infra/postgres/run-applicable-migrations.sh",
     "version":  "v2026.06.12.1",
     "since_tag":  "v2026.06.03.4",
-    "updated_at":  "2026-06-18T14:45:32Z"
+    "updated_at":  "2026-06-19T12:05:39Z"
 }

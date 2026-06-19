@@ -6,7 +6,7 @@ import logging
 import os
 from typing import TYPE_CHECKING, Protocol
 
-from extractor_and_poller.common.postgres_schema import load_schema_sql, schema_statements
+from extractor_and_poller.common.postgres_schema import ensure_metadata_schema
 
 if TYPE_CHECKING:
     from extractor_and_poller.poller.change_probe import PollResult
@@ -75,19 +75,10 @@ class PostgresStateStore:
             return cur.fetchone() is not None
 
     def _ensure_schema(self) -> None:
-        if self._poller_table_exists():
-            log.info("Postgres poller schema present (table public.poller)")
-            self._verify_table_writable()
-            return
-
-        log.info("Postgres poller schema missing; applying metadata schema")
+        log.info("Ensuring Postgres metadata schema")
         try:
-            with self._conn.cursor() as cur:
-                for statement in schema_statements(load_schema_sql()):
-                    cur.execute(statement)
-            self._conn.commit()
+            ensure_metadata_schema(self._conn)
         except Exception as exc:
-            self._conn.rollback()
             if _is_insufficient_privilege(exc):
                 raise RuntimeError(
                     "Cannot initialize poller metadata schema (permission denied on public). "
@@ -95,14 +86,14 @@ class PostgresStateStore:
                     "or apply code/postgres/schema.sql as postgres."
                 ) from exc
             raise RuntimeError(
-                f"Failed to initialize Postgres poller schema: {exc}"
+                f"Failed to initialize Postgres metadata schema: {exc}"
             ) from exc
 
         if not self._poller_table_exists():
             raise RuntimeError(
-                "Postgres poller schema was applied but table public.poller is still missing"
+                "Postgres metadata schema was applied but table public.poller is still missing"
             )
-        log.info("Initialized Postgres poller schema (table public.poller)")
+        log.info("Postgres metadata schema ready (table public.poller)")
         self._verify_table_writable()
 
     def _verify_table_writable(self) -> None:
@@ -144,18 +135,20 @@ class PostgresStateStore:
                     polled_at_utc,
                     data_object_id,
                     event_type,
+                    change_scope,
                     old_marker,
                     new_marker,
                     event_id,
                     run_id
                 )
-                values (%s, %s, %s, %s, %s, %s, %s)
+                values (%s, %s, %s, %s, %s, %s, %s, %s)
                 returning id
                 """,
                 (
                     polled_at,
                     result.data_object_id,
                     result.event_type,
+                    result.change_scope,
                     result.previous_marker,
                     result.current_marker,
                     result.event_id,

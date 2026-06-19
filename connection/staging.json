@@ -1,9 +1,10 @@
 {
+  "$schema": "../schema/data-solution-metadata.schema.json",
   "id": "connection/staging",
   "name": "staging",
   "extensions": [
-    { "key": "path", "value": "./data/staging/{source}/{data-object-name}" },
-    { "key": "protocol", "value": "parquet" },
-    { "key": "connectionType", "value": "FlatFile" }
+    { "key": "schema", "value": "staging" },
+    { "key": "protocol", "value": "postgres" },
+    { "key": "connectionType", "value": "Database" }
   ]
 }

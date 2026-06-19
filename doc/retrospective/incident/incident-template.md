@@ -1,4 +1,4 @@
-# INC-001 — NAS non-interactive SSH environment
+# INC-<NNN> — <short title>
 
 ## Table of contents
 
@@ -17,71 +17,61 @@
 
 ## Summary
 
-Agent and automation sessions over SSH to the QNAP NAS failed or behaved inconsistently because non-interactive shells lack Container Station `docker` on PATH, QNAP `git` shared libraries, and executable bits on infra scripts after `git pull`.
+One paragraph: what happened, when, and user-visible impact.
 
 ## Metadata
 
 | Field | Value |
 |-------|-------|
-| **ID** | INC-001 |
-| **When** | 2026-06-03 |
-| **Category** | infra-environment |
-| **Severity** | degraded |
-| **Release(s)** | pre-release (infra PoC) |
-| **Related ERR** | ERR-001, ERR-007, ERR-009, ERR-010 |
-| **Status** | resolved |
+| **ID** | INC-<NNN> |
+| **When** | <ISO-8601 or date range> |
+| **Category** | <primary category from issue-category.md> |
+| **Severity** | blocker / degraded / annoyance |
+| **Release(s)** | <version or pre-release> |
+| **Related ERR** | ERR-<NNN>, … |
+| **Status** | open / resolved / codified |
 
 ## Impact
 
-- `docker` and `git` commands failed over bare SSH (exit 127 / missing `.so`)
-- Setup scripts failed with permission denied or `sudo: command not found`
-- Brief SSH connection refused during `sshd` reload
+- Who/what was affected
+- Duration or blast radius
+- Whether release validation failed
 
 ## Timeline
 
 | Time | Event |
 |------|-------|
-| 2026-06-03 | `docker ps` → command not found on SSH |
-| 2026-06-03 | `git pull` → libcharset.so.1 missing |
-| 2026-06-03 | `enable-nas-ssh-user-env.sh` permission/sudo issues |
-| 2026-06-03 | Transient SSH refused during PermitUserEnvironment enable |
-| 2026-06-03 | Resolved via `nas-remote-env.sh`, `setup-nas-ssh-env.sh`, `bash` invocation |
+| | First symptom |
+| | Mitigation applied |
+| | Resolved |
 
 ## Root cause
 
-QNAP non-interactive SSH uses a minimal environment. Container Station and optional QPKG paths are not on default PATH/LD_LIBRARY_PATH. Scripts assumed an interactive login shell.
+Why it happened (not only the fix command).
 
 ## Detection gap
 
-No pre-flight check in agent workflow to source NAS env before first `docker`/`git` command. Deploy scripts were correct but ad-hoc agent SSH was not.
+Why existing tests, checklists, or monitoring did not catch this earlier.
 
 ## Resolution
 
-- Run `bash infra/scripts/setup-nas-ssh-env.sh` once on NAS
-- Set `bas` login shell to `~/.local/bin/nas-login-sh` in `/etc/passwd` (`sudo sed`; QTS admin password) — survives QNAP reboot
-- Source `infra/scripts/nas-remote-env.sh` in deploy scripts (already in `deploy-on-nas.sh`)
-- Do **not** rely on manual `PermitUserEnvironment` in `/etc/config/ssh/sshd_config` (regenerated on reboot)
-- Running sshd as `bas` without sudo (`setsid /etc/init.d/login.sh restart`) can segfault
+What fixed it or contained it.
 
 ## Prevention
 
-- Use **basnas-ssh** Cursor skill: plain `ssh bas@basnas 'docker …'` after one-time setup
-- Do not default to `bash -lc` + `nas-path.sh` per command
-- Do not set global `LD_LIBRARY_PATH` in `~/.profile` (breaks QNAP bash)
-- See [infra/readme.md](../../../infra/readme.md) SSH troubleshooting sections
+Concrete behaviors for the next occurrence (agent and human).
 
 ## Action items
 
 | # | Action | Type | Owner | Status |
 |---|--------|------|-------|--------|
-| 1 | **basnas-ssh** skill + deploy-basnas-container link | skill | agent | codified |
-| 2 | Source env in deploy-on-nas.sh | script | agent | codified |
-| 3 | `enable-nas-login-shell.sh` + fix `enable-nas-ssh-user-env.sh` for QNAP active config | script | agent | pending |
+| 1 | | skill / rule / checklist / runbook / pattern | agent / user | pending |
 
 ## Related artifacts
 
-- Troubleshooting: [ERR-001, ERR-007, ERR-009, ERR-010](../../../.cursor/troubleshooting-errors.md)
-- Retrospective: [v2026.06.03.4](../../release/retrospective/v2026.06.03.4.md)
+- Release notes: `release/notes/<version>.md`
+- Retrospective: `release/retrospective/<version>.md`
+- Troubleshooting: `.cursor/troubleshooting-errors.md`
 
 ## Project structure
 
@@ -118,10 +108,12 @@ No pre-flight check in agent workflow to source NAS env before first `docker`/`g
   - Doc
     - Data Object Mapping
     - Design
+      - Cicd
+        - [CI/CD workflow (main only + server pull deploy)](../../design/cicd/ci-cd.md)
+      - Monitoring
+        - [Monitoring architecture](../../design/monitoring/monitoring-architecture.md)
       - [Airflow asset naming](../../design/airflow-asset-naming.md)
-      - [Architecture](../../design/architecture.md)
-      - [CI/CD workflow (main only + server pull deploy)](../../design/ci-cd.md)
-      - [Event-based orchestration plan (single data object)](../../design/event-based-orchestration-plan.md)
+      - [Event-based orchestration plan](../../design/event-based-orchestration-plan.md)
       - [Meta data design](../../design/meta-data-design.md)
     - Image
     - Implementation
@@ -129,14 +121,16 @@ No pre-flight check in agent workflow to source NAS env before first `docker`/`g
     - Linked In
       - [Linkedin Post Part3V2](../../linked-in/linkedin-post-part3v2.md)
     - Operation
+      - [Event orchestration monitoring](../../operation/event-orchestration-monitoring.md)
+    - Retrospective
       - Incident
         - [INC-001 — NAS non-interactive SSH environment](inc-001-nas-ssh-environment.md)
         - [INC-002 — Airflow standalone infra instability](inc-002-airflow-infra-stability.md)
         - [INC-003 — Agent rediscovery and false-done verification](inc-003-agent-process-gaps.md)
         - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](inc-004-airflow-pythonpath-drift.md)
         - [INC-<NNN> — <short title>](incident-template.md)
-      - [Event orchestration monitoring](../event-orchestration-monitoring.md)
       - [Issue categories](../issue-category.md)
+    - [Implementation plan](../../implementation-plan.md)
   - Infra
     - Airflow
       - Dags

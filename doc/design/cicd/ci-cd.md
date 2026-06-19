@@ -235,7 +235,7 @@ git checkout <previous-tag>
 ## Project structure
 
 <!-- markdown-project-structure:start -->
-- [Data Solution 2026](../../readme.md)
+- [Data Solution 2026](../../../readme.md)
   - Code
     - Airflow
       - Dags
@@ -267,25 +267,29 @@ git checkout <previous-tag>
   - Doc
     - Data Object Mapping
     - Design
-      - [Airflow asset naming](airflow-asset-naming.md)
-      - [Architecture](architecture.md)
-      - [CI/CD workflow (main only + server pull deploy)](ci-cd.md)
-      - [Event-based orchestration plan (single data object)](event-based-orchestration-plan.md)
-      - [Meta data design](meta-data-design.md)
+      - Cicd
+        - [CI/CD workflow (main only + server pull deploy)](ci-cd.md)
+      - Monitoring
+        - [Monitoring architecture](../monitoring/monitoring-architecture.md)
+      - [Airflow asset naming](../airflow-asset-naming.md)
+      - [Event-based orchestration plan](../event-based-orchestration-plan.md)
+      - [Meta data design](../meta-data-design.md)
     - Image
     - Implementation
-      - [Implementation plan (Open-Meteo → event orchestration)](../implementation/implementation-plan.md)
+      - [Implementation plan (Open-Meteo → event orchestration)](../../implementation/implementation-plan.md)
     - Linked In
-      - [Linkedin Post Part3V2](../linked-in/linkedin-post-part3v2.md)
+      - [Linkedin Post Part3V2](../../linked-in/linkedin-post-part3v2.md)
     - Operation
+      - [Event orchestration monitoring](../../operation/event-orchestration-monitoring.md)
+    - Retrospective
       - Incident
-        - [INC-001 — NAS non-interactive SSH environment](../operation/incident/inc-001-nas-ssh-environment.md)
-        - [INC-002 — Airflow standalone infra instability](../operation/incident/inc-002-airflow-infra-stability.md)
-        - [INC-003 — Agent rediscovery and false-done verification](../operation/incident/inc-003-agent-process-gaps.md)
-        - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](../operation/incident/inc-004-airflow-pythonpath-drift.md)
-        - [INC-<NNN> — <short title>](../operation/incident/incident-template.md)
-      - [Event orchestration monitoring](../operation/event-orchestration-monitoring.md)
-      - [Issue categories](../operation/issue-category.md)
+        - [INC-001 — NAS non-interactive SSH environment](../../retrospective/incident/inc-001-nas-ssh-environment.md)
+        - [INC-002 — Airflow standalone infra instability](../../retrospective/incident/inc-002-airflow-infra-stability.md)
+        - [INC-003 — Agent rediscovery and false-done verification](../../retrospective/incident/inc-003-agent-process-gaps.md)
+        - [INC-004 — Airflow PYTHONPATH drift (dag_run_guard import)](../../retrospective/incident/inc-004-airflow-pythonpath-drift.md)
+        - [INC-<NNN> — <short title>](../../retrospective/incident/incident-template.md)
+      - [Issue categories](../../retrospective/issue-category.md)
+    - [Implementation plan](../../implementation-plan.md)
   - Infra
     - Airflow
       - Dags
@@ -296,36 +300,36 @@ git checkout <previous-tag>
       - 06
         - 02
           - V2026.06.02.1
-            - [Notes](../../release/2026/06/02/v2026.06.02.1/notes.md)
+            - [Notes](../../../release/2026/06/02/v2026.06.02.1/notes.md)
           - V2026.06.02.2
-            - [Release v2026.06.02.2](../../release/2026/06/02/v2026.06.02.2/notes.md)
+            - [Release v2026.06.02.2](../../../release/2026/06/02/v2026.06.02.2/notes.md)
         - 03
           - V2026.06.03.1
-            - [Release v2026.06.03.1](../../release/2026/06/03/v2026.06.03.1/notes.md)
+            - [Release v2026.06.03.1](../../../release/2026/06/03/v2026.06.03.1/notes.md)
           - V2026.06.03.2
-            - [Release v2026.06.03.2](../../release/2026/06/03/v2026.06.03.2/notes.md)
+            - [Release v2026.06.03.2](../../../release/2026/06/03/v2026.06.03.2/notes.md)
           - V2026.06.03.3
-            - [Release v2026.06.03.3](../../release/2026/06/03/v2026.06.03.3/notes.md)
+            - [Release v2026.06.03.3](../../../release/2026/06/03/v2026.06.03.3/notes.md)
           - V2026.06.03.4
-            - [Release v2026.06.03.4](../../release/2026/06/03/v2026.06.03.4/notes.md)
-            - [Retrospective](../../release/2026/06/03/v2026.06.03.4/retrospective.md)
+            - [Release v2026.06.03.4](../../../release/2026/06/03/v2026.06.03.4/notes.md)
+            - [Retrospective](../../../release/2026/06/03/v2026.06.03.4/retrospective.md)
         - 04
           - V2026.06.04.1
-            - [Notes](../../release/2026/06/04/v2026.06.04.1/notes.md)
+            - [Notes](../../../release/2026/06/04/v2026.06.04.1/notes.md)
         - 05
           - V2026.06.05.6
-            - [Notes](../../release/2026/06/05/v2026.06.05.6/notes.md)
-            - [Retrospective](../../release/2026/06/05/v2026.06.05.6/retrospective.md)
+            - [Notes](../../../release/2026/06/05/v2026.06.05.6/notes.md)
+            - [Retrospective](../../../release/2026/06/05/v2026.06.05.6/retrospective.md)
         - 12
           - V2026.06.12.1
-            - [Release v2026.06.12.1](../../release/2026/06/12/v2026.06.12.1/notes.md)
-    - [Release <version>](../../release/release-notes-template.md)
-    - [Retrospective — <version>](../../release/retrospective-template.md)
+            - [Release v2026.06.12.1](../../../release/2026/06/12/v2026.06.12.1/notes.md)
+    - [Release <version>](../../../release/release-notes-template.md)
+    - [Retrospective — <version>](../../../release/retrospective-template.md)
   - Schema
-  - [Getting started](../../getting-started.md)
-  - [Lessons learned](../../lessons-learned-part1.md)
-  - [Lessons learned (part 2)](../../lessons-learned-part2.md)
-  - [Lessons learned (part 3)](../../lessons-learned-part3.md)
+  - [Getting started](../../../getting-started.md)
+  - [Lessons learned](../../../lessons-learned-part1.md)
+  - [Lessons learned (part 2)](../../../lessons-learned-part2.md)
+  - [Lessons learned (part 3)](../../../lessons-learned-part3.md)
 - Related repositories
   - [Data Engineering 2026](https://github.com/basvdberg/data-engineering-2026) — Course and learning materials
   - [Data Engineering Design Patterns](https://github.com/basvdberg/data-engineering-design-patterns) — Design pattern catalogue
