@@ -30,7 +30,19 @@ fi
 ADMIN_USER="${POSTGRES_USER:-postgres}"
 ADMIN_PASSWORD="${POSTGRES_PASSWORD:-}"
 
+# Use -i only when piping SQL on stdin; otherwise docker exec -i steals the
+# caller's stdin (e.g. while read ...; done <manifest.txt stops after one row).
 psql_admin() {
+  if [ -n "$ADMIN_PASSWORD" ]; then
+    docker exec -e PGPASSWORD="$ADMIN_PASSWORD" "$CONTAINER" \
+      psql -v ON_ERROR_STOP=1 -U "$ADMIN_USER" -d "$APP_DB" "$@"
+  else
+    docker exec "$CONTAINER" \
+      psql -v ON_ERROR_STOP=1 -U "$ADMIN_USER" -d "$APP_DB" "$@"
+  fi
+}
+
+psql_admin_stdin() {
   if [ -n "$ADMIN_PASSWORD" ]; then
     docker exec -i -e PGPASSWORD="$ADMIN_PASSWORD" "$CONTAINER" \
       psql -v ON_ERROR_STOP=1 -U "$ADMIN_USER" -d "$APP_DB" "$@"
@@ -63,7 +75,7 @@ echo "Ensuring schema_migrations table"
 if [ "$DRY_RUN" = "1" ]; then
   echo "[dry-run] would create schema_migrations if missing"
 else
-  psql_admin <<'SQL'
+  psql_admin_stdin <<'SQL'
 create table if not exists schema_migrations (
     version text primary key,
     applied_at_utc timestamptz not null default now()
@@ -102,7 +114,7 @@ while IFS= read -r line || [ -n "$line" ]; do
     continue
   fi
 
-  applicable="$(psql_admin <"$check_file" | tr -d '[:space:]')"
+  applicable="$(psql_admin_stdin <"$check_file" | tr -d '[:space:]')"
   if [ -z "$applicable" ]; then
     echo "Migration ${version}: not applicable — skipped"
     skipped=$((skipped + 1))
@@ -116,7 +128,7 @@ while IFS= read -r line || [ -n "$line" ]; do
     continue
   fi
 
-  psql_admin <"$sql_file"
+  psql_admin_stdin <"$sql_file"
   psql_admin -c "insert into schema_migrations (version) values ('${version}');"
   applied=$((applied + 1))
 done <"$MANIFEST"

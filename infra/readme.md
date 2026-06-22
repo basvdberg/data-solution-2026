@@ -200,7 +200,7 @@ sudo cp -p /etc/passwd /etc/passwd.bak.nas-path
 sudo sed -i 's#:/bin/sh$#:/share/homes/bas/.local/bin/nas-login-sh#' /etc/passwd
 ```
 
-`sudo` uses the **QTS administrator password**, not the SSH user password. QNAP Control Panel has no custom-shell field. Manual `PermitUserEnvironment` in `/etc/config/ssh/sshd_config` is **wiped on reboot** — do not rely on it. See Cursor skill **basnas-ssh** (`cursor-config/skills/basnas-ssh`).
+`sudo` uses the **QTS administrator password**, not the SSH user password. QNAP Control Panel has no custom-shell field. Manual `PermitUserEnvironment` in `/etc/config/ssh/sshd_config` is **wiped on reboot** — do not rely on it. See Cursor skill **basnas-ssh** (`cursor-config/skills/basnas/basnas-ssh`).
 
 Verify (after `source local-server.env.example` or your `local-server.env`):
 

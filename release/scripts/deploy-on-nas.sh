@@ -15,6 +15,7 @@ source "${APP_ROOT}/infra/scripts/nas-remote-env.sh"
 # - Set RUN_DB_MIGRATIONS=1 to force Postgres migrations (overrides deploy-config)
 # - Set RUN_DB_MIGRATIONS=0 to skip Postgres migrations
 # - release/deploy-config.json: run_db_migrations set when code/postgres/migrations change
+# - Without deploy-config or when run_db_migrations=false, migrations are skipped (RUN_DB_MIGRATIONS=1 to force)
 RUN_POLLER_CHECK="${RUN_POLLER_CHECK:-0}"
 RUN_INFRA_SYNC="${RUN_INFRA_SYNC:-0}"
 INFRA_SYNC_FROM_CONFIG=0
@@ -87,7 +88,7 @@ should_run_db_migrations() {
       return 1
     fi
   fi
-  return 0
+  return 1
 }
 
 if should_run_db_migrations; then

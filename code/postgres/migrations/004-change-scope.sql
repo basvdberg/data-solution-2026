@@ -6,7 +6,9 @@ alter table poller
 alter table extract_run_audit
     add column if not exists change_scope text;
 
-create or replace view poller_latest_first as
+drop view if exists poller_latest_first;
+
+create view poller_latest_first as
 select
     id,
     polled_at_utc,

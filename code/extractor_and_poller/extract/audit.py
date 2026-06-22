@@ -6,7 +6,6 @@ import logging
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from extractor_and_poller.common.postgres_schema import ensure_metadata_schema
 from extractor_and_poller.poller.poll_events import (
     EVENT_TYPE_CHANGE,
     EVENT_TYPE_PROCESSING_ERROR,
@@ -14,6 +13,13 @@ from extractor_and_poller.poller.poll_events import (
 from extractor_and_poller.poller.state import default_postgres_dsn
 
 log = logging.getLogger(__name__)
+
+_EXTRACT_AUDIT_TABLE = "public.extract_run_audit"
+_DEPLOY_SCHEMA_HINT = (
+    "Schema is applied by deploy (release/scripts/deploy-on-nas.sh); "
+    "incremental DDL runs via infra/postgres/run-applicable-migrations.sh "
+    "when migration files change."
+)
 
 
 def event_type_for_status(status: str) -> str:
@@ -29,7 +35,7 @@ class ExtractRunAudit:
     def __init__(self, dsn: str | None = None) -> None:
         self._dsn = dsn or default_postgres_dsn()
         self._conn = self._connect(self._dsn)
-        self._ensure_schema()
+        self._require_ready_schema()
 
     @staticmethod
     def _connect(dsn: str):
@@ -53,12 +59,10 @@ class ExtractRunAudit:
             )
             return cur.fetchone() is not None
 
-    def _ensure_schema(self) -> None:
-        ensure_metadata_schema(self._conn)
+    def _require_ready_schema(self) -> None:
         if not self._extract_run_audit_exists():
             raise RuntimeError(
-                "Postgres metadata schema was applied but table public.extract_run_audit "
-                "is still missing"
+                f"Postgres table {_EXTRACT_AUDIT_TABLE} is missing. {_DEPLOY_SCHEMA_HINT}"
             )
 
     def already_processed(self, event_id: str) -> bool:

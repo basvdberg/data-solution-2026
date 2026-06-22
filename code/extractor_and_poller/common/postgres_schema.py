@@ -1,4 +1,9 @@
-"""Postgres DDL for poller metadata (source: ``code/postgres/schema.sql``)."""
+"""Postgres metadata schema reference (source: ``code/postgres/schema.sql``).
+
+DDL is applied by deploy only:
+- Initial bootstrap: ``infra/postgres/create-app-user.sh`` (applies ``schema.sql``)
+- Incremental changes: ``infra/postgres/run-applicable-migrations.sh`` (via deploy)
+"""
 
 from __future__ import annotations
 
@@ -66,7 +71,7 @@ _SCHEMA_PATH = CODE_ROOT / "postgres" / "schema.sql"
 
 
 def load_schema_sql() -> str:
-    """Return the full Postgres metadata schema script."""
+    """Return the canonical Postgres metadata schema script (read-only reference)."""
     if _SCHEMA_PATH.is_file():
         return _SCHEMA_PATH.read_text(encoding="utf-8-sig").strip()
     return _EMBEDDED_SCHEMA_SQL
@@ -86,11 +91,3 @@ def schema_statements(sql: str | None = None) -> list[str]:
         if stmt:
             statements.append(stmt)
     return statements
-
-
-def ensure_metadata_schema(conn) -> None:
-    """Apply idempotent metadata DDL (poller, extract_run_audit, staging, ...)."""
-    with conn.cursor() as cur:
-        for statement in schema_statements(load_schema_sql()):
-            cur.execute(statement)
-    conn.commit()

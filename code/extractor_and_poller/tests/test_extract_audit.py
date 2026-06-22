@@ -18,9 +18,8 @@ class TestExtractAudit(unittest.TestCase):
         self.assertEqual(event_type_for_status("failed"), EVENT_TYPE_PROCESSING_ERROR)
         self.assertEqual(event_type_for_status("running"), "")
 
-    @patch("extractor_and_poller.extract.audit.ensure_metadata_schema")
     @patch("extractor_and_poller.extract.audit.ExtractRunAudit._connect")
-    def test_finish_sets_event_type_on_success(self, mock_connect, _mock_schema) -> None:
+    def test_finish_sets_event_type_on_success(self, mock_connect) -> None:
         conn = MagicMock()
         cursor = MagicMock()
         mock_connect.return_value = conn
@@ -39,9 +38,8 @@ class TestExtractAudit(unittest.TestCase):
         update_sql = cursor.execute.call_args_list[-1][0][0]
         self.assertIn("event_type", update_sql)
 
-    @patch("extractor_and_poller.extract.audit.ensure_metadata_schema")
     @patch("extractor_and_poller.extract.audit.ExtractRunAudit._connect")
-    def test_finish_sets_processing_error_on_failure(self, mock_connect, _mock_schema) -> None:
+    def test_finish_sets_processing_error_on_failure(self, mock_connect) -> None:
         conn = MagicMock()
         cursor = MagicMock()
         mock_connect.return_value = conn

@@ -125,13 +125,30 @@ class TestOpenMeteoPoller(unittest.TestCase):
         self.assertEqual(insert_args[5], "2026-05-26")
 
     @patch("extractor_and_poller.poller.state.PostgresStateStore._connect")
-    def test_poller_initializes_schema_when_table_missing(self, mock_connect) -> None:
+    def test_poller_raises_when_table_missing(self, mock_connect) -> None:
+        conn = MagicMock()
+        cursor = MagicMock()
+        mock_connect.return_value = conn
+        conn.cursor.return_value.__enter__.return_value = cursor
+        cursor.fetchone.return_value = None
+
+        with self.assertRaisesRegex(RuntimeError, "public.poller is missing"):
+            PostgresStateStore("postgresql://example")
+
+        executed_sql = " ".join(
+            call.args[0].lower() for call in cursor.execute.call_args_list
+        )
+        self.assertNotIn("create table", executed_sql)
+        conn.commit.assert_not_called()
+
+    @patch("extractor_and_poller.poller.state.PostgresStateStore._connect")
+    def test_poller_never_runs_ddl_when_table_exists(self, mock_connect) -> None:
         conn = MagicMock()
         cursor = MagicMock()
         mock_connect.return_value = conn
         conn.cursor.return_value.__enter__.return_value = cursor
         cursor.fetchone.side_effect = [
-            (1,),  # table exists after init
+            (1,),  # table exists
             (True,),  # INSERT privilege
         ]
 
@@ -140,10 +157,9 @@ class TestOpenMeteoPoller(unittest.TestCase):
         executed_sql = " ".join(
             call.args[0].lower() for call in cursor.execute.call_args_list
         )
-        self.assertIn("create table if not exists poller", executed_sql)
-        self.assertIn("create index if not exists poller_data_object_polled_idx", executed_sql)
-        self.assertIn("create or replace view poller_latest_first", executed_sql)
-        conn.commit.assert_called()
+        self.assertNotIn("create index if not exists poller_data_object_polled_idx", executed_sql)
+        self.assertNotIn("create or replace view poller_latest_first", executed_sql)
+        conn.commit.assert_not_called()
 
     @patch("extractor_and_poller.openmeteo.extractor.client.requests.get")
     def test_event_payload_contract_fields(self, mock_get) -> None:

@@ -139,7 +139,7 @@ ssh bas@basnas 'ps w | grep sshd'
 
 Restarting SSH from the QNAP Control Panel reloads the **active** config; toggling SSH off/on does **not** add `PermitUserEnvironment` to `/etc/config/ssh/sshd_config` if it was only ever appended to `/etc/ssh/sshd_config`.
 
-**Fix that worked (persistent):** after `setup-nas-ssh-env.sh`, set `bas` login shell in `/etc/passwd` to `/share/homes/bas/.local/bin/nas-login-sh` with `sudo sed` (QTS admin password). Bare `ssh bas@basnas 'docker -v'` then works across reboot. QNAP wipes manual `PermitUserEnvironment` in `/etc/config/ssh/sshd_config` on reboot; `ssh admin@basnas` is denied; Control Panel has no shell field. Codified in Cursor skill **basnas-ssh** (`cursor-config/skills/basnas-ssh`). See [INC-001](doc/operation/incident/inc-001-nas-ssh-environment.md).
+**Fix that worked (persistent):** after `setup-nas-ssh-env.sh`, set `bas` login shell in `/etc/passwd` to `/share/homes/bas/.local/bin/nas-login-sh` with `sudo sed` (QTS admin password). Bare `ssh bas@basnas 'docker -v'` then works across reboot. QNAP wipes manual `PermitUserEnvironment` in `/etc/config/ssh/sshd_config` on reboot; `ssh admin@basnas` is denied; Control Panel has no shell field. Codified in Cursor skill **basnas-ssh** (`cursor-config/skills/basnas/basnas-ssh`). See [INC-001](doc/operation/incident/inc-001-nas-ssh-environment.md).
 
 ### Relation to the Airflow “no logs” session
 

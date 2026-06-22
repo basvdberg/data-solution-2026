@@ -41,7 +41,7 @@ Airflow DAGs: [`code/airflow/`](../airflow/readme.md).
 - No local files or directories are created by the poller.
 - Each run appends one row to Postgres table `poller` (see [../postgres/schema.sql](../postgres/schema.sql)).
 - Query `poller_latest_first` to browse newest probe events first.
-- Schema upgrades on deploy: [../../infra/postgres/run-applicable-migrations.sh](../../infra/postgres/run-applicable-migrations.sh) (when `run_db_migrations` is set in deploy-config).
+- Schema is **not** applied at runtime by poller or DAG tasks. Bootstrap with [../../infra/postgres/create-app-user.sh](../../infra/postgres/create-app-user.sh); incremental DDL runs on deploy via [../../infra/postgres/run-applicable-migrations.sh](../../infra/postgres/run-applicable-migrations.sh) when `run_db_migrations` is set in [../../release/deploy-config.json](../../release/deploy-config.json) (pre-commit sets this when migration files change).
 - Environment: `POSTGRES_HOST`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `DATA_SOLUTION_DB` (default `data-solution-2026`), or `POSTGRES_DSN`.
 
 ## Project structure

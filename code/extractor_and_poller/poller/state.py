@@ -6,14 +6,16 @@ import logging
 import os
 from typing import TYPE_CHECKING, Protocol
 
-from extractor_and_poller.common.postgres_schema import ensure_metadata_schema
-
 if TYPE_CHECKING:
     from extractor_and_poller.poller.change_probe import PollResult
 
 log = logging.getLogger(__name__)
 
 _POLLER_TABLE = "public.poller"
+_DEPLOY_SCHEMA_HINT = (
+    "Schema is applied by deploy (release/scripts/deploy-on-nas.sh) or initial "
+    "bootstrap (infra/postgres/create-app-user.sh)."
+)
 
 
 class StateStore(Protocol):
@@ -34,14 +36,6 @@ def default_postgres_dsn() -> str:
     return f"postgresql://{user}:{password}@{host}/{database}"
 
 
-def _is_insufficient_privilege(exc: BaseException) -> bool:
-    try:
-        from psycopg import errors as pg_errors  # type: ignore
-    except Exception:
-        return exc.__class__.__name__ == "InsufficientPrivilege"
-    return isinstance(exc, pg_errors.InsufficientPrivilege)
-
-
 class PostgresStateStore:
     """Append poll results to Postgres table ``poller``."""
 
@@ -49,7 +43,7 @@ class PostgresStateStore:
         self._dsn = dsn
         log.info("Connecting to Postgres metadata store")
         self._conn = self._connect(dsn)
-        self._ensure_schema()
+        self._require_ready_schema()
         log.info("Postgres metadata store ready (table public.poller)")
 
     @staticmethod
@@ -74,26 +68,11 @@ class PostgresStateStore:
             )
             return cur.fetchone() is not None
 
-    def _ensure_schema(self) -> None:
-        log.info("Ensuring Postgres metadata schema")
-        try:
-            ensure_metadata_schema(self._conn)
-        except Exception as exc:
-            if _is_insufficient_privilege(exc):
-                raise RuntimeError(
-                    "Cannot initialize poller metadata schema (permission denied on public). "
-                    "Run infra/postgres/create-app-user.sh (grants CREATE on schema public) "
-                    "or apply code/postgres/schema.sql as postgres."
-                ) from exc
-            raise RuntimeError(
-                f"Failed to initialize Postgres metadata schema: {exc}"
-            ) from exc
-
+    def _require_ready_schema(self) -> None:
         if not self._poller_table_exists():
             raise RuntimeError(
-                "Postgres metadata schema was applied but table public.poller is still missing"
+                f"Postgres table {_POLLER_TABLE} is missing. {_DEPLOY_SCHEMA_HINT}"
             )
-        log.info("Postgres metadata schema ready (table public.poller)")
         self._verify_table_writable()
 
     def _verify_table_writable(self) -> None:

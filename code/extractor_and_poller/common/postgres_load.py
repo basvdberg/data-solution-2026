@@ -55,7 +55,18 @@ def reload_staging_table(
     column_names = [name for name, _ in columns]
 
     with conn.cursor() as cur:
-        cur.execute(sql.SQL("create schema if not exists {}").format(sql.Identifier(schema)))
+        cur.execute(
+            """
+            select 1
+            from information_schema.schemata
+            where schema_name = %s
+            """,
+            (schema,),
+        )
+        if cur.fetchone() is None:
+            cur.execute(
+                sql.SQL("create schema {}").format(sql.Identifier(schema))
+            )
         cur.execute(
             sql.SQL("create table if not exists {}.{} ({})").format(
                 sql.Identifier(schema),
