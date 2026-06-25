@@ -5,7 +5,7 @@
 - [Sequential summary of applied changes](#sequential-summary-of-applied-changes)
 <!-- markdown-toc:end -->
 
-## Table of contents
+﻿## Table of contents
 
 
 ﻿## Table of contents
@@ -53,9 +53,9 @@
 
 - Version: `v2026.06.12.1`
 - Development start: `2026-06-12T15:11:25+02:00`
-- Development end: `2026-06-22T14:59:51+02:00`
+- Development end: `2026-06-25T11:56:07+02:00`
 - Release branch: `main`
-- Release commit: `b37efc14b60eaf4f02846263d5354f9c52e46946`
+- Release commit: `acc440d34a8e921cfb4202a3a2fd254e53c09c3e`
 
 ## Sequential summary of applied changes
 
