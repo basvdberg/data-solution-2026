@@ -12,6 +12,7 @@
 #   POSTGRES_DEST       Legacy Postgres config folder (default: ~/data-solution-postgres)
 #   INFRA_COMPONENTS    Comma-separated subset: airflow,kafka,postgres (default: from deploy-config or all)
 #   RUN_COMPOSE         1 = docker compose up -d after sync (default: 1)
+#   RUN_DB_MIGRATIONS   1 = run Postgres migrations after postgres sync (default: 1)
 #   DRY_RUN             1 = print actions only (default: 0)
 
 set -euo pipefail
@@ -25,6 +26,7 @@ AIRFLOW_DEST="${AIRFLOW_DEST:-$HOME/apache-airflow}"
 KAFKA_DEST="${KAFKA_DEST:-$HOME/kafka}"
 POSTGRES_DEST="${POSTGRES_DEST:-$HOME/data-solution-postgres}"
 RUN_COMPOSE="${RUN_COMPOSE:-1}"
+RUN_DB_MIGRATIONS="${RUN_DB_MIGRATIONS:-1}"
 DRY_RUN="${DRY_RUN:-0}"
 
 # nas-remote-env.sh already extends PATH for git wrapper + Container Station.
@@ -299,6 +301,21 @@ main() {
   fi
   if component_selected postgres; then
     sync_postgres
+    if [ "$RUN_DB_MIGRATIONS" = "1" ]; then
+      migration_runner="${APP_ROOT}/infra/postgres/run-applicable-migrations.sh"
+      if [ -x "$migration_runner" ]; then
+        echo "Running applicable Postgres migrations..."
+        if [ "$DRY_RUN" = "1" ]; then
+          echo "[dry-run] would run: bash ${migration_runner}"
+        else
+          bash "$migration_runner"
+        fi
+      else
+        echo "WARN: ${migration_runner} is not executable; skipping DB migrations." >&2
+      fi
+    else
+      echo "RUN_DB_MIGRATIONS=0: skipping Postgres migrations after sync."
+    fi
   fi
   if component_selected airflow; then
     sync_airflow

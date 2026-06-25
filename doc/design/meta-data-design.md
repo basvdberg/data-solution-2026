@@ -231,6 +231,7 @@ The path IDs in the repo remain the stable names humans use in reviews and logs.
     - Implementation
       - [Implementation plan (Open-Meteo → event orchestration)](../implementation/implementation-plan.md)
     - Linked In
+      - [Data object quality of service](../linked-in/data-object-quality-of-service.md)
       - [Linkedin Post Part3V2](../linked-in/linkedin-post-part3v2.md)
     - Operation
       - [Event orchestration monitoring](../operation/event-orchestration-monitoring.md)

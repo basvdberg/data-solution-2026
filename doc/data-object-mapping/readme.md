@@ -164,6 +164,7 @@ For orchestration and runtime behaviour, see [Event-based orchestration plan](..
     - Implementation
       - [Implementation plan (Open-Meteo → event orchestration)](../implementation/implementation-plan.md)
     - Linked In
+      - [Data object quality of service](../linked-in/data-object-quality-of-service.md)
       - [Linkedin Post Part3V2](../linked-in/linkedin-post-part3v2.md)
     - Operation
       - [Event orchestration monitoring](../operation/event-orchestration-monitoring.md)

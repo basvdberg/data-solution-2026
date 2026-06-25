@@ -5,6 +5,9 @@
 - [Sequential summary of applied changes](#sequential-summary-of-applied-changes)
 <!-- markdown-toc:end -->
 
+## Table of contents
+
+
 ﻿## Table of contents
 
 
@@ -104,6 +107,7 @@
     - Implementation
       - [Implementation plan (Open-Meteo → event orchestration)](../../../../../doc/implementation/implementation-plan.md)
     - Linked In
+      - [Data object quality of service](../../../../../doc/linked-in/data-object-quality-of-service.md)
       - [Linkedin Post Part3V2](../../../../../doc/linked-in/linkedin-post-part3v2.md)
     - Operation
       - [Event orchestration monitoring](../../../../../doc/operation/event-orchestration-monitoring.md)
