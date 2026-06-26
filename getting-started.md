@@ -89,7 +89,7 @@ python -m extractor_and_poller.openmeteo.extractor --mapping daily-temperature
     - Implementation
       - [Implementation plan (Open-Meteo → event orchestration)](doc/implementation/implementation-plan.md)
     - Linked In
-      - [Data object quality of service](doc/linked-in/data-object-quality-of-service.md)
+      - [Data Object Contract](doc/linked-in/data-object-contract.md)
       - [Linkedin Post Part3V2](doc/linked-in/linkedin-post-part3v2.md)
     - Operation
       - [Event orchestration monitoring](doc/operation/event-orchestration-monitoring.md)

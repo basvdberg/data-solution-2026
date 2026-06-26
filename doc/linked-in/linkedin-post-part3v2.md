@@ -83,7 +83,7 @@ https://github.com/basvdberg/data-solution-2026/blob/main/lessons-learned-part2.
     - Implementation
       - [Implementation plan (Open-Meteo → event orchestration)](../implementation/implementation-plan.md)
     - Linked In
-      - [Data object quality of service](data-object-quality-of-service.md)
+      - [Data Object Contract](data-object-contract.md)
       - [Linkedin Post Part3V2](linkedin-post-part3v2.md)
     - Operation
       - [Event orchestration monitoring](../operation/event-orchestration-monitoring.md)

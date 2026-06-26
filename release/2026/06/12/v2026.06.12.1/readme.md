@@ -47,15 +47,18 @@
 ﻿## Table of contents
 
 
+﻿## Table of contents
+
+
 # Release v2026.06.12.1 - Details
 
 ## Release metadata
 
 - Version: `v2026.06.12.1`
 - Development start: `2026-06-12T15:11:25+02:00`
-- Development end: `2026-06-25T11:56:07+02:00`
+- Development end: `2026-06-26T09:30:39+02:00`
 - Release branch: `main`
-- Release commit: `acc440d34a8e921cfb4202a3a2fd254e53c09c3e`
+- Release commit: `3433bd15af4da6995d23cdc22447821931084d45`
 
 ## Sequential summary of applied changes
 
@@ -107,7 +110,7 @@
     - Implementation
       - [Implementation plan (Open-Meteo → event orchestration)](../../../../../doc/implementation/implementation-plan.md)
     - Linked In
-      - [Data object quality of service](../../../../../doc/linked-in/data-object-quality-of-service.md)
+      - [Data Object Contract](../../../../../doc/linked-in/data-object-contract.md)
       - [Linkedin Post Part3V2](../../../../../doc/linked-in/linkedin-post-part3v2.md)
     - Operation
       - [Event orchestration monitoring](../../../../../doc/operation/event-orchestration-monitoring.md)
